@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= htmlWebpackPlugin.options.title %></title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <%= htmlWebpackPlugin.options.criticalCss %>
+    <!-- Favicon will be injected by HtmlWebpackPlugin -->
+</head>
+<body>
+    <div class="main-container">
+        <div id="app">
+            <!-- Header will be inserted here -->
+            
+            <!-- Hero Section -->
+            <section class="hero">
+                <div class="hero-container">
+                    <div class="hero-content">
+                        <h1 class="hero-title">
+                            Голосовой AI‑ассистент для e‑commerce<br>
+                            в <span class="hero-highlight">реальном времени</span>
+                        </h1>
+                        <p class="hero-description">
+                            Виджет с OpenAI Realtime, семантический поиск по товарам, корзина, дашборд и визуальный редактор сценариев — полный стек для продаж и поддержки.
+                        </p>
+                        <div class="hero-actions">
+                            <a href="/login.html" class="btn btn-primary">
+                                Начать
+                            </a>
+                            <a href="/about.html" class="btn btn-secondary">
+                                Узнать больше
+                            </a>
+                        </div>
+                    </div>
+                    <div class="hero-visual">
+                        <div class="hero-card">
+                            <div class="hero-card-header">
+                                <div class="hero-card-icon">
+                                    
+                                </div>
+                                <div class="hero-card-title">Голосовой движок</div>
+                            </div>
+                            <div class="hero-card-content">
+                                <div class="metric">
+                                    <span class="metric-value">99.9%</span>
+                                    <span class="metric-label">Готовность</span>
+                                </div>
+                                <div class="metric">
+                                    <span class="metric-value">< 100ms</span>
+                                    <span class="metric-label">Отклик</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Features Section -->
+            <section class="features">
+                <div class="container">
+                    <div class="section-header">
+                        <h2 class="section-title">Ключевые возможности</h2>
+                        <p class="section-description">
+                            Полный стек для голосового ассистента и витрины товаров
+                        </p>
+                    </div>
+                    
+                    <div class="features-grid">
+                        <div class="feature-card">
+                            <div class="feature-icon">
+                                
+                            </div>
+                            <h3 class="feature-title">Голосовой виджет</h3>
+                            <p class="feature-description">
+                                OpenAI Realtime, выбор голоса (Alloy/Echo/Shimmer), запись аудио через WebSocket и мгновенные ответы.
+                            </p>
+                        </div>
+                        
+                        <div class="feature-card">
+                            <div class="feature-icon">
+                                
+                            </div>
+                            <h3 class="feature-title">Семантический поиск</h3>
+                            <p class="feature-description">
+                                Векторный поиск (pgvector, HNSW) по продуктам и вариантам на RU/EN с релевантными ответами для пользователя.
+                            </p>
+                        </div>
+                        
+                        <div class="feature-card">
+                            <div class="feature-icon">
+                                
+                            </div>
+                            <h3 class="feature-title">Каталог и карточки</h3>
+                            <p class="feature-description">
+                                Продукты и варианты, цены и SKU, быстрый доступ к деталям через get_product_info.
+                            </p>
+                        </div>
+                        
+                        <div class="feature-card">
+                            <div class="feature-icon">
+                                
+                            </div>
+                            <h3 class="feature-title">Корзина и покупки</h3>
+                            <p class="feature-description">
+                                Добавление в корзину и просмотр содержимого через add_to_cart и get_cart_info с дружелюбными ответами.
+                            </p>
+                        </div>
+                        
+                        <div class="feature-card">
+                            <div class="feature-icon">
+                                
+                            </div>
+                            <h3 class="feature-title">Дашборд и домены</h3>
+                            <p class="feature-description">
+                                Единый /api/dashboard/data: домены, конфигурации ботов, доступные голоса; управление конфигурацией бота по домену.
+                            </p>
+                        </div>
+                        
+                        <div class="feature-card">
+                            <div class="feature-icon">
+                                
+                            </div>
+                            <h3 class="feature-title">Визуальный редактор</h3>
+                            <p class="feature-description">
+                                Конструктор сценариев на Konva: START/END, связи, подсветка, отмена по Esc, высокая производительность.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- CTA Section -->
+            <section class="cta">
+                <div class="container">
+                    <div class="cta-content">
+                        <h2 class="cta-title">Готовы запустить голосового ассистента?</h2>
+                        <p class="cta-description">
+                            Подключите виджет к своему домену, настройте голос и инструкции, и начните общаться с клиентами сегодня.
+                        </p>
+                        <div class="cta-actions">
+                            <a href="/login.html" class="btn btn-primary btn-lg">
+                                Войти в дашборд
+                            </a>
+                            <a href="/visual-editor.html" class="btn btn-outline btn-lg">
+                                Открыть редактор
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Footer will be inserted here -->
+        </div>
+        <footer class="main-footer">
+            <!-- Footer content will be inserted here -->
+        </footer>
+    </div>
+</body>
+</html> 

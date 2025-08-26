@@ -1,0 +1,9 @@
+# Ignore node_modules and generated prisma client
+node_modules
+.prisma
+
+# Log files
+*.log
+
+# Environment variables
+.env 

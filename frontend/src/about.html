@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= htmlWebpackPlugin.options.title %></title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <%= htmlWebpackPlugin.options.criticalCss %>
+    <!-- Favicon will be injected by HtmlWebpackPlugin -->
+</head>
+<body>
+    <div id="app">
+        <!-- Header will be inserted here -->
+        
+        <!-- Page Header -->
+        <section class="page-header">
+            <div class="container">
+                <div class="page-header-content">
+                    <h1 class="page-title">О платформе AIAssistant</h1>
+                    <p class="page-subtitle">
+                        Голосовой ассистент для e‑commerce: от поиска до покупки
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Mission Section -->
+        <section class="mission">
+            <div class="container">
+                <div class="mission-grid">
+                    <div class="mission-content">
+                        <h2 class="section-title">Наша миссия</h2>
+                        <p class="mission-text">
+                            Сделать голосовое взаимодействие с витриной товаров естественным и быстрым. Пользователь задает вопрос — ассистент понимает, ищет по каталогу, уточняет варианты и помогает оформить заказ.
+                        </p>
+                        <p class="mission-text">
+                            Мы объединяем OpenAI Realtime, семантический поиск на pgvector, безопасный backend и удобный редактор сценариев в единую систему.
+                        </p>
+                    </div>
+                    <div class="mission-visual">
+                        <div class="stats-container">
+                            <div class="stat-item">
+                                <div class="stat-number">4</div>
+                                <div class="stat-label">Bot‑функции</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-number">99.9%</div>
+                                <div class="stat-label">Готовность</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-number">< 100мс</div>
+                                <div class="stat-label">Отклик</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Values Section -->
+        <section class="values">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">Принципы</h2>
+                    <p class="section-description">
+                        На чем держится качество ассистента
+                    </p>
+                </div>
+                
+                <div class="values-grid">
+                    <div class="value-card">
+                        <div class="value-icon">
+                            
+                        </div>
+                        <h3 class="value-title">Безопасность</h3>
+                        <p class="value-description">
+                            Авторизация доменов, защищенные токены, серверные дефолты конфигурации. Публичный доступ — только к необходимым данным.
+                        </p>
+                    </div>
+                    
+                    <div class="value-card">
+                        <div class="value-icon">
+                            
+                        </div>
+                        <h3 class="value-title">Производительность</h3>
+                        <p class="value-description">
+                            HNSW‑индексы, компактные эмбеддинги, кэширование и оптимизация обновлений интерфейса.
+                        </p>
+                    </div>
+                    
+                    <div class="value-card">
+                        <div class="value-icon">
+                            
+                        </div>
+                        <h3 class="value-title">Фокус на сценариях</h3>
+                        <p class="value-description">
+                            Четкие инструменты: search_products, get_product_info, add_to_cart, get_cart_info. Ответы человеку читаемы и транслируются в речь.
+                        </p>
+                    </div>
+                    
+                    <div class="value-card">
+                        <div class="value-icon">
+                            
+                        </div>
+                        <h3 class="value-title">Гибкость</h3>
+                        <p class="value-description">
+                            Конфигурация на домен: инструкции, голос, states и editorSettings с инъекцией зависимостей и fail‑fast валидацией.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Technology Section -->
+        <section class="technology">
+            <div class="container">
+                <div class="technology-grid">
+                    <div class="technology-content">
+                        <h2 class="section-title">Технологический стек</h2>
+                        <p class="technology-text">
+                            Node.js + Express, Prisma + PostgreSQL (pgvector), OpenAI SDK, WebSocket для аудио, фронтенд на TypeScript с модульной архитектурой и Konva‑редактором.
+                        </p>
+                        
+                        <div class="tech-features">
+                            <div class="tech-feature">
+                                <div class="tech-feature-icon">
+                                    
+                                </div>
+                                <div class="tech-feature-content">
+                                    <h4 class="tech-feature-title">Голосовой Realtime</h4>
+                                    <p class="tech-feature-text">
+                                        Подключение к OpenAI Realtime, потоковые ответы и выбор голоса.
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <div class="tech-feature">
+                                <div class="tech-feature-icon">
+                                    
+                                </div>
+                                <div class="tech-feature-content">
+                                    <h4 class="tech-feature-title">Семантика товаров</h4>
+                                    <p class="tech-feature-text">
+                                        Эмбеддинги text-embedding-3-small и HNSW‑поиск по продуктам и вариантам.
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <div class="tech-feature">
+                                <div class="tech-feature-icon">
+                                    
+                                </div>
+                                <div class="tech-feature-content">
+                                    <h4 class="tech-feature-title">Безопасность и домены</h4>
+                                    <p class="tech-feature-text">
+                                        Верификация hostname, токены для виджета и серверное применение дефолтов.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="technology-visual">
+                        <div class="tech-card">
+                            <div class="tech-card-header">
+                                <div class="tech-status">
+                                    <span class="status-indicator active"></span>
+                                    <span class="status-text">Система работает</span>
+                                </div>
+                            </div>
+                            <div class="tech-metrics">
+                                <div class="metric-row">
+                                    <span class="metric-name">Отклик</span>
+                                    <span class="metric-value">47ms</span>
+                                </div>
+                                <div class="metric-row">
+                                    <span class="metric-name">Готовность</span>
+                                    <span class="metric-value">99.98%</span>
+                                </div>
+                                <div class="metric-row">
+                                    <span class="metric-name">Активные сессии</span>
+                                    <span class="metric-value">12,847</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA Section -->
+        <section class="cta">
+            <div class="container">
+                <div class="cta-content">
+                    <h2 class="cta-title">Попробуйте сейчас</h2>
+                    <p class="cta-description">
+                        Войдите в дашборд, добавьте домен, настройте голос и инструкции — виджет готов к работе.
+                    </p>
+                    <div class="cta-actions">
+                        <a href="/login.html" class="btn btn-primary btn-lg">
+                            Войти в дашборд
+                        </a>
+                        <a href="/visual-editor.html" class="btn btn-outline btn-lg">
+                            Открыть редактор
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer will be inserted here -->
+    </div>
+</body>
+</html> 

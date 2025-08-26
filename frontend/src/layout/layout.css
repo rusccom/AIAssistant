@@ -1,0 +1,517 @@
+body {
+    margin: 0;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #f8fafc;
+    color: #1e293b;
+    min-height: 100vh;
+}
+
+#dashboard-layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* Main Content Styles */
+.dashboard-content {
+    flex-grow: 1;
+    background: #f8fafc;
+    overflow-y: auto;
+    padding: 2rem;
+    transition: margin-left 0.3s ease;
+}
+
+/* ==========================================================================
+   DESKTOP STYLES (> 768px)
+   ========================================================================== */
+@media (min-width: 769px) {
+    /* Show sidebar on desktop */
+    .dashboard-sidebar {
+        display: flex !important;
+    }
+    
+    /* Hide mobile header on desktop */
+    .dashboard-mobile-header {
+        display: none !important;
+    }
+    
+    /* Adjust content for sidebar */
+    .dashboard-content {
+        margin-left: 260px;
+    }
+}
+
+/* ==========================================================================
+   MOBILE STYLES (<= 768px)
+   ========================================================================== */
+@media (max-width: 768px) {
+    /* Hide sidebar on mobile */
+    .dashboard-sidebar {
+        display: none !important;
+    }
+    
+    /* Show mobile header */
+    .dashboard-mobile-header {
+        display: block !important;
+    }
+    
+    /* Adjust content for mobile header */
+    .dashboard-content {
+        margin-left: 0;
+        padding-top: 5rem;
+    }
+}
+
+/* ==========================================================================
+   SIDEBAR STYLES
+   ========================================================================== */
+.dashboard-sidebar {
+    width: 260px;
+    background: #1a1a1a;
+    color: #e5e5e5;
+    flex-direction: column;
+    flex-shrink: 0;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+    border-right: 1px solid #333333;
+}
+
+.sidebar-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid #333333;
+    background: #141414;
+}
+
+.sidebar-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    text-decoration: none;
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: color 0.2s ease;
+}
+
+.sidebar-brand:hover {
+    color: #3b82f6;
+}
+
+.brand-icon {
+    font-size: 1.25rem;
+    width: 28px;
+    height: 28px;
+    background: #3b82f6;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+.brand-text {
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.sidebar-nav {
+    flex: 1;
+    padding: 1rem 0;
+    overflow-y: auto;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1.5rem;
+    margin: 0;
+    color: #a0a0a0;
+    font-weight: 500;
+    font-size: 0.875rem;
+    text-decoration: none;
+    transition: all 0.15s ease;
+    border-left: 3px solid transparent;
+}
+
+.nav-item:hover {
+    background: #2a2a2a;
+    color: #e5e5e5;
+}
+
+.nav-item.active {
+    background: #2a2a2a;
+    color: #3b82f6;
+    border-left-color: #3b82f6;
+}
+
+.nav-icon {
+    width: 18px;
+    height: 18px;
+    margin-right: 0.75rem;
+    fill: currentColor;
+    flex-shrink: 0;
+}
+
+.nav-text {
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.sidebar-footer {
+    border-top: 1px solid #333333;
+    padding: 1rem 1.5rem;
+    background: #141414;
+}
+
+.user-profile {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    border-radius: 4px;
+    background: #2a2a2a;
+    margin-bottom: 1rem;
+}
+
+.user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #555555;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.user-avatar-icon {
+    width: 18px;
+    height: 18px;
+    fill: #ffffff;
+}
+
+.user-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.user-name {
+    font-weight: 600;
+    color: #ffffff;
+    font-size: 0.8rem;
+    margin: 0;
+}
+
+.user-email {
+    font-size: 0.7rem;
+    color: #a0a0a0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin: 0;
+}
+
+.logout-item {
+    margin: 0;
+    color: #ef4444;
+}
+
+.logout-item:hover {
+    background: #2a2a2a;
+    color: #f87171;
+}
+
+/* ==========================================================================
+   MOBILE HEADER STYLES
+   ========================================================================== */
+.dashboard-mobile-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
+    z-index: 1001;
+}
+
+.mobile-header-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.5rem;
+}
+
+.mobile-header-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    color: #1e293b;
+    font-weight: 600;
+}
+
+.mobile-logo-icon {
+    font-size: 1.5rem;
+    width: 32px;
+    height: 32px;
+    background: #3b82f6;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+.mobile-logo-text {
+    font-size: 1.125rem;
+}
+
+.mobile-nav-toggle {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+}
+
+.mobile-nav-toggle:hover {
+    background: #f1f5f9;
+}
+
+.mobile-hamburger {
+    width: 20px;
+    height: 16px;
+    position: relative;
+}
+
+.mobile-hamburger span {
+    display: block;
+    position: absolute;
+    height: 2px;
+    width: 100%;
+    background: #64748b;
+    border-radius: 1px;
+    transition: 0.25s ease-in-out;
+}
+
+.mobile-hamburger span:nth-child(1) { top: 0px; }
+.mobile-hamburger span:nth-child(2), 
+.mobile-hamburger span:nth-child(3) { top: 7px; }
+.mobile-hamburger span:nth-child(4) { top: 14px; }
+
+.mobile-nav-toggle.mobile-nav-active .mobile-hamburger span:nth-child(1),
+.mobile-nav-toggle.mobile-nav-active .mobile-hamburger span:nth-child(4) {
+    top: 7px;
+    width: 0%;
+    left: 50%;
+}
+
+.mobile-nav-toggle.mobile-nav-active .mobile-hamburger span:nth-child(2) {
+    transform: rotate(45deg);
+}
+
+.mobile-nav-toggle.mobile-nav-active .mobile-hamburger span:nth-child(3) {
+    transform: rotate(-45deg);
+}
+
+.mobile-nav-menu {
+    background: #ffffff;
+    border-top: 1px solid #e2e8f0;
+    padding: 1rem 0;
+    display: none;
+}
+
+.mobile-nav-menu.mobile-nav-open {
+    display: block;
+}
+
+.mobile-nav-link {
+    display: block;
+    padding: 0.75rem 1.5rem;
+    color: #374151;
+    text-decoration: none;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+}
+
+.mobile-nav-link:hover {
+    background: #f9fafb;
+    color: #3b82f6;
+}
+
+.mobile-user-info {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #f1f5f9;
+    margin-bottom: 0.5rem;
+}
+
+.mobile-user-email {
+    display: block;
+    color: #3b82f6;
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.mobile-user-email:hover {
+    color: #2563eb;
+    text-decoration: underline;
+}
+
+/* ==========================================================================
+   CONTENT STYLES
+   ========================================================================== */
+.dashboard-header {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.dashboard-header h1 {
+    margin: 0;
+    color: #0f172a;
+    font-size: 2rem;
+    font-weight: 600;
+}
+
+.content-section {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 768px) {
+    .dashboard-header {
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .dashboard-header h1 {
+        font-size: 1.75rem;
+    }
+    
+    .content-section {
+        padding: 1.5rem;
+    }
+}
+
+/* Mobile User Profile Section */
+.mobile-user-section {
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border-top: 1px solid #e2e8f0;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.mobile-user-profile {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    cursor: pointer;
+    padding: 0.75rem;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.mobile-user-profile:hover {
+    background: rgba(59, 130, 246, 0.05);
+}
+
+.mobile-user-avatar {
+    width: 48px;
+    height: 48px;
+    background: #3b82f6;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    flex-shrink: 0;
+}
+
+.mobile-user-avatar svg {
+    width: 24px;
+    height: 24px;
+    fill: currentColor;
+}
+
+.mobile-user-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.mobile-user-email {
+    display: block;
+    color: #0f172a;
+    font-weight: 600;
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
+}
+
+.mobile-user-hint {
+    display: block;
+    color: #64748b;
+    font-size: 0.75rem;
+    font-weight: 400;
+}
+
+/* Mobile Navigation Section */
+.mobile-nav-section {
+    padding: 1rem 0;
+    flex: 1;
+}
+
+.mobile-nav-link {
+    display: flex;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    color: #374151;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    gap: 0.75rem;
+}
+
+.mobile-nav-link:hover {
+    background: #f9fafb;
+    color: #3b82f6;
+}
+
+.mobile-nav-icon {
+    width: 20px;
+    height: 20px;
+    fill: currentColor;
+    flex-shrink: 0;
+}
+
+/* Mobile Logout Section */
+.mobile-logout-section {
+    border-top: none;
+    margin-top: 0;
+}
+
+.mobile-logout-link {
+    display: flex;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    color: #dc2626;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    gap: 0.75rem;
+}
+
+.mobile-logout-link:hover {
+    background: #fef2f2;
+    color: #b91c1c;
+} 

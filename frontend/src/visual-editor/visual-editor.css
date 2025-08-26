@@ -1,0 +1,1023 @@
+/* Visual Editor Styles - Business Professional Theme */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+    margin: 0;
+    padding: 0;
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    color: #1e293b;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.app-container {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header - Строгий бизнес-стиль */
+.editor-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    color: #2c3e50;
+    padding: 0.75rem 1.25rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #dee2e6;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.12);
+    position: relative;
+    z-index: 100;
+}
+
+.editor-header h1 {
+    margin: 0;
+    font-size: 1.75rem;
+    font-weight: 600;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color: #1a202c;
+    letter-spacing: -0.025em;
+    position: relative;
+}
+
+.editor-header h1::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    width: 40px;
+    height: 3px;
+    background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+    border-radius: 2px;
+}
+
+.header-controls {
+    display: flex;
+    gap: 0.375rem;
+    align-items: center;
+    padding: 0.25rem 0.5rem;
+    background: #ffffff;
+    border-radius: 10px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 1px 2px rgba(2, 6, 23, 0.06), inset 0 1px 0 rgba(255,255,255,0.6);
+}
+
+.hc-left,
+.hc-center,
+.hc-right {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.hc-left {
+    padding-right: 0.5rem;
+    border-right: 1px solid #e5e7eb;
+    margin-right: 0.5rem;
+}
+
+.hc-right {
+    padding-left: 0.5rem;
+    border-left: 1px solid #e5e7eb;
+    margin-left: 0.5rem;
+}
+
+.hc-label {
+    font-size: 0.8rem;
+    color: #475569;
+    font-weight: 500;
+}
+
+/* Header Buttons - Бизнес-стиль */
+.header-controls .btn,
+.header-controls select {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    color: #0f172a;
+    padding: 0.375rem 0.625rem;
+    border-radius: 6px;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease, transform 0.12s ease;
+    box-shadow: 0 1px 0 rgba(15, 23, 42, 0.04);
+    outline: none;
+}
+
+.header-controls .btn:hover,
+.header-controls select:hover {
+    background: #f8fafc;
+    border-color: #94a3b8;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(2, 6, 23, 0.08);
+}
+
+.header-controls .btn:active,
+.header-controls select:active {
+    transform: translateY(0);
+    background: #f1f5f9;
+    box-shadow: inset 0 1px 2px rgba(2, 6, 23, 0.08);
+}
+
+.header-controls .btn:focus-visible,
+.header-controls select:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+}
+
+.header-controls .btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Специфичные стили для разных типов кнопок */
+.header-controls .btn-primary {
+    background: #2563eb;
+    border-color: #1d4ed8;
+    color: #ffffff;
+    box-shadow: 0 1px 2px rgba(29, 78, 216, 0.2);
+}
+
+.header-controls .btn-primary:hover {
+    background: #1d4ed8;
+    border-color: #1d4ed8;
+    box-shadow: 0 2px 6px rgba(29, 78, 216, 0.25);
+}
+
+.header-controls .btn-success {
+    background: #059669;
+    border-color: #047857;
+    color: #ffffff;
+}
+
+.header-controls .btn-success:hover {
+    background: #047857;
+    border-color: #047857;
+}
+
+.header-controls .btn-danger {
+    background: #dc2626;
+    border-color: #b91c1c;
+    color: #ffffff;
+}
+
+.header-controls .btn-danger:hover {
+    background: #b91c1c;
+    border-color: #b91c1c;
+}
+
+.header-controls .btn-secondary {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    color: #334155;
+}
+
+.header-controls .btn-secondary:hover {
+    background: #f1f5f9;
+    border-color: #94a3b8;
+}
+
+.header-controls select {
+    background: #ffffff;
+    color: #0f172a;
+    min-width: 180px;
+}
+
+/* Main Editor Container */
+.editor-container {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+}
+
+/* Sidebar */
+.editor-sidebar {
+    width: 300px;
+    background: white;
+    border-right: 1px solid #ddd;
+    overflow-y: auto;
+    flex-shrink: 0;
+}
+
+.sidebar-section {
+    padding: 0.25rem;
+    border-bottom: 1px solid #eee;
+}
+
+.sidebar-section h3 {
+    margin: 0 0 0.25rem 0;
+    color: #2c3e50;
+    font-size: 1.1rem;
+}
+
+.sidebar-section p {
+    color: #7f8c8d;
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+/* Canvas Container */
+.editor-canvas-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: #ecf0f1;
+}
+
+.canvas-toolbar {
+    background: white;
+    padding: 0.25rem 0.5rem;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+}
+
+.canvas-wrapper {
+    flex: 1;
+    position: relative;
+    /* Нужны скроллы, когда логическая область больше экрана */
+    overflow: auto;
+    contain: layout paint size; /* предотвращает влияние трансформаций на поток вне враппера */
+}
+
+/* Контейнер для Konva Stage (слой соединений) */
+#konva-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: auto; /* разрешаем взаимодействие с Konva элементами */
+    z-index: 1; /* под HTML блоками, но видимый */
+    overflow: hidden; /* обрезаем контент по границам */
+}
+
+/* Внутренний контент, который масштабируется */
+.canvas-content {
+    position: relative;
+    transform-origin: top left;
+    min-width: 1200px; /* синхронизируется кодом */
+    min-height: 800px;
+    display: block; /* гарантируем, что контейнер участвует в потоке */
+}
+
+.canvas-content #editor-canvas {
+    width: 100%;
+    height: 100%;
+    cursor: grab;
+    background: 
+        radial-gradient(circle, #bdc3c7 1px, transparent 1px),
+        radial-gradient(circle, #bdc3c7 1px, transparent 1px);
+    background-size: 20px 20px;
+    background-position: 0 0, 10px 10px;
+    z-index: 50;
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+}
+
+#editor-canvas:active {
+    cursor: grabbing;
+}
+
+/* Buttons */
+.btn {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+    font-weight: 500;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.btn-primary {
+    background: #3498db;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #2980b9;
+}
+
+.btn-secondary {
+    background: #95a5a6;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #7f8c8d;
+}
+
+.btn-success {
+    background: #27ae60;
+    color: white;
+}
+
+.btn-success:hover {
+    background: #229954;
+}
+
+.btn-danger {
+    background: #e74c3c;
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #c0392b;
+}
+
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.8rem;
+}
+
+/* Form Controls */
+.form-control {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    transition: border-color 0.2s;
+    background: white;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+/* Context Menu */
+.context-menu {
+    position: absolute;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 1000;
+    min-width: 160px;
+}
+
+.context-menu-item {
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    border-bottom: 1px solid #eee;
+    transition: background-color 0.2s;
+}
+
+.context-menu-item:hover {
+    background-color: #f8f9fa;
+}
+
+.context-menu-item:last-child {
+    border-bottom: none;
+}
+
+/* Modal */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 8px;
+    width: 100%;
+    max-width: 500px;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    margin: auto;
+    position: relative;
+    transform: none;
+}
+
+.modal-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
+
+.modal-header-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.modal-header-left h3 {
+    margin: 0;
+}
+
+.modal-header h3 {
+    color: #2c3e50;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #7f8c8d;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.close-btn:hover {
+    color: #e74c3c;
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+.modal-footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid #eee;
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+}
+
+/* Form Elements */
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: #2c3e50;
+}
+
+/* Error Message */
+.error-message {
+    color: #e74c3c;
+    background-color: #fadad7;
+    border: 1px solid #f5b7b1;
+    border-radius: 0.375rem;
+    padding: 12px;
+    margin-top: 8px;
+    font-size: 0.875rem;
+}
+
+
+
+/* Properties Panel */
+.property-section {
+    background: white;
+    border-radius: 6px;
+    padding: 0.25rem;
+    border: 1px solid #e5e7eb;
+}
+
+.property-section h4 {
+    margin: 0 0 0.25rem 0;
+    color: #2c3e50;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.property-section h5 {
+    margin: 0;
+    color: #34495e;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.connections-section {
+    margin: 0;
+}
+
+.connections-list {
+    margin-bottom: 0;
+}
+
+.connection-item {
+    display: block;
+    padding: 0.25rem;
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+    margin-bottom: 0.25rem;
+    font-size: 0.875rem;
+}
+
+.connection-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.connection-target {
+    color: #495057;
+    font-family: 'Courier New', monospace;
+    font-weight: 500;
+    flex: 1;
+}
+
+.connection-condition {
+    margin-top: 0.5rem;
+}
+
+.condition-label {
+    display: block;
+    font-size: 0.8rem;
+    color: #6c757d;
+    margin-bottom: 0.25rem;
+    font-weight: 500;
+}
+
+.condition-input {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    background: white;
+    transition: border-color 0.15s ease-in-out;
+    min-height: 2.5rem;
+    line-height: 1.4;
+    resize: both;
+    font-family: inherit;
+    box-sizing: border-box;
+    overflow: auto;
+    user-select: text;
+    cursor: text;
+    outline: none;
+    pointer-events: auto;
+    position: relative;
+    z-index: 2;
+    min-width: 200px;
+    max-width: 100%;
+}
+
+.condition-input:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 0.125rem rgba(52, 152, 219, 0.25);
+    background: white;
+    cursor: text;
+}
+
+.condition-input::placeholder {
+    color: #adb5bd;
+    font-style: italic;
+}
+
+.connection-item span {
+    color: #495057;
+    font-family: 'Courier New', monospace;
+}
+
+.btn-delete-connection {
+    background: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    width: 20px;
+    height: 20px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+    flex-shrink: 0;
+    z-index: 10;
+    position: relative;
+    pointer-events: auto;
+}
+
+.btn-delete-connection:hover {
+    background: #c82333;
+}
+
+.no-connections {
+    font-style: italic;
+    color: #6c757d;
+    font-size: 0.8rem;
+    margin: 0;
+}
+
+.property-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+}
+
+.property-actions .btn {
+    flex: 1;
+    min-width: 120px;
+}
+
+/* Canvas State Block Styles */
+.state-block {
+    position: absolute;
+    width: 174px;        /* ~260 * 2/3 */
+    min-height: 80px;    /* ~110 * 2/3 (округлено) */
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: 2px solid #4a5568;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    cursor: move;
+    user-select: none;
+    transition: all 0.2s ease, transform 0.15s ease;
+    z-index: 100;
+}
+
+/* Во время перетаскивания отключаем transitions, чтобы не было «подвисаний» */
+.state-block.dragging {
+    transition: none !important;
+}
+
+.state-block:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+}
+
+.state-block.selected {
+    border-color: #f39c12;
+    box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.3);
+}
+
+.state-block.connecting {
+    border-color: #e74c3c;
+    box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.3);
+}
+
+.state-block.connection-target {
+    border-color: #27ae60;
+    box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.3);
+    animation: pulse-green 2s infinite;
+}
+
+@keyframes pulse-green {
+    0% {
+        box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.3);
+    }
+    50% {
+        box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.6);
+    }
+    100% {
+        box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.3);
+    }
+}
+
+.state-block-header {
+    background: rgba(0,0,0,0.1);
+    padding: 0.25rem 0.375rem;
+    border-radius: 6px 6px 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    min-height: 40px;
+    box-sizing: border-box;
+}
+
+.state-block-number {
+    font-weight: bold;
+    color: white;
+    font-size: 1rem;
+}
+
+.state-block-body {
+    padding: 0.18rem 0.25rem 0.25rem 0.25rem;
+    color: white;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+}
+
+.state-block-title {
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin-bottom: 0.125rem;
+    word-break: break-word;
+    line-height: 1.1;
+}
+
+.state-block-description {
+    font-size: 0.75rem;
+    opacity: 0.9;
+    line-height: 1.2;
+    word-break: break-word;
+    margin-bottom: 0.25rem;
+}
+
+.connections-counter {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: #e74c3c;
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: bold;
+    border: 2px solid white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* Special non-interactive blocks: start/end */
+.state-block.special {
+    background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+    border: 2px dashed #7f8c8d;
+    opacity: 0.9;
+    /* pointer-events оставляем включёнными, чтобы работало контекстное меню у start */
+}
+
+.state-block.special.start {
+    border-color: #27ae60;
+}
+
+.state-block.special.end {
+    border-color: #e74c3c;
+}
+
+/* Connection Lines */
+.connection-line {
+    position: absolute;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.connection-arrow {
+    fill: #3498db;
+    stroke: #3498db;
+    stroke-width: 2;
+    transition: all 0.2s ease;
+}
+
+.connection-arrow:hover {
+    fill: #2980b9;
+    stroke: #2980b9;
+    filter: drop-shadow(0 0 5px rgba(52, 152, 219, 0.5));
+}
+
+/* Canvas smooth transitions */
+#editor-canvas {
+    transition: transform 0.2s ease;
+}
+
+
+
+/* Zoom Level Display */
+#zoom-level {
+    font-size: 0.9rem;
+    color: #7f8c8d;
+    margin-left: 0.5rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .editor-container {
+        flex-direction: column;
+    }
+    
+    .editor-sidebar {
+        width: 100%;
+        height: 200px;
+        order: 2;
+    }
+    
+    .editor-canvas-container {
+        order: 1;
+    }
+    
+    .editor-header {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .header-controls {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    /* Smaller blocks on mobile */
+    .state-block {
+        width: 250px;
+        min-height: 100px;
+    }
+    
+    .state-block-header {
+        min-height: 35px;
+        padding: 0.1875rem 0.25rem;
+    }
+    
+    .state-block-number {
+        font-size: 0.9rem;
+    }
+    
+    .state-block-body {
+        padding: 0.1875rem 0.25rem 0.25rem 0.25rem;
+    }
+    
+    .state-block-title {
+        font-size: 0.85rem;
+        margin-bottom: 0.0625rem;
+        line-height: 1.1;
+    }
+    
+    .state-block-description {
+        font-size: 0.75rem;
+        line-height: 1.2;
+        margin-bottom: 0.1875rem;
+    }
+    
+    .connections-counter {
+        top: -6px;
+        right: -6px;
+        width: 18px;
+        height: 18px;
+        font-size: 0.6rem;
+    }
+}
+
+/* Properties Panel */
+.property-item {
+    margin-bottom: 0.25rem;
+    padding-bottom: 0.25rem;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.property-item:last-child {
+    border-bottom: none;
+}
+
+.property-item label {
+    display: block;
+    margin-bottom: 0;
+    color: #495057;
+    font-size: 0.875rem;
+}
+
+.property-item p {
+    margin: 0;
+    padding: 0;
+    color: #212529;
+    font-size: 0.875rem;
+    line-height: 1.4;
+    word-wrap: break-word;
+}
+
+.property-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0;
+    padding-top: 0;
+    border-top: 1px solid #e9ecef;
+}
+
+
+
+/* Small buttons */
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    line-height: 1.25;
+    border-radius: 0.2rem;
+}
+
+/* Connections Management */
+.connections-section {
+    margin-top: 0.25rem;
+}
+
+.connections-section h5 {
+    margin: 0 0 0.25rem 0;
+    color: #495057;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.connections-list {
+    margin-bottom: 0;
+}
+
+.connection-item {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+    padding: 0.25rem;
+    margin-bottom: 0.25rem;
+}
+
+.connection-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.connection-target {
+    font-weight: 500;
+    color: #495057;
+}
+
+.btn-delete-connection {
+    background: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.btn-delete-connection:hover {
+    background: #c82333;
+}
+
+.connection-condition {
+    margin-top: 0.5rem;
+}
+
+.condition-label {
+    display: block;
+    font-size: 0.75rem;
+    color: #6c757d;
+    margin-bottom: 0.25rem;
+}
+
+.condition-input {
+    width: 100%;
+    padding: 0.375rem;
+    border: 1px solid #ced4da;
+    border-radius: 3px;
+    font-size: 0.75rem;
+    resize: vertical;
+    min-height: 40px;
+    font-family: 'Inter', Arial, sans-serif;
+}
+
+.condition-input:focus {
+    outline: none;
+    border-color: #80bdff;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.no-connections {
+    color: #6c757d;
+    font-style: italic;
+    font-size: 0.875rem;
+    margin: 0;
+}
+
+.property-section h4 {
+    margin: 0 0 0.25rem 0;
+    color: #212529;
+    font-size: 1rem;
+    font-weight: 600;
+} 

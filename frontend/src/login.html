@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= htmlWebpackPlugin.options.title %></title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <%= htmlWebpackPlugin.options.criticalCss %>
+    <!-- Favicon will be injected by HtmlWebpackPlugin -->
+</head>
+<body>
+    <div id="app">
+        <!-- Header will be inserted here -->
+        
+        <main class="auth-main">
+            <div class="auth-container">
+                <div class="auth-card">
+                    <div class="auth-header">
+                        <div class="auth-logo">
+                            <div class="logo-icon">
+                                
+                            </div>
+                            <span class="logo-text">AIAssistant</span>
+                        </div>
+                        <h1 class="auth-title">Welcome Back</h1>
+                        <p class="auth-subtitle">Sign in to your account to continue</p>
+                    </div>
+                    
+                    <form class="auth-form" id="login-form">
+                        <div class="form-group">
+                            <label for="email" class="form-label">Email Address</label>
+                            <div class="input-wrapper">
+                                <div class="input-icon">
+                                    
+                                </div>
+                                <input 
+                                    type="email" 
+                                    id="email" 
+                                    name="email" 
+                                    class="form-input" 
+                                    placeholder="Enter your email"
+                                    required
+                                    autocomplete="email"
+                                >
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="password" class="form-label">Password</label>
+                            <div class="password-wrapper">
+                                <input type="password" id="password" name="password" required class="form-input" placeholder="Enter your password">
+                                <button type="button" id="password-toggle" class="password-toggle" aria-label="Toggle password visibility">
+                                    <svg class="password-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path class="eye-open" d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                        <circle class="eye-open" cx="12" cy="12" r="3"></circle>
+                                        <path class="eye-closed" d="m9.88 9.88a3 3 0 1 0 4.24 4.24" style="display: none;"></path>
+                                        <path class="eye-closed" d="m10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 11 8 11 8a13.16 13.16 0 0 1-1.67 2.68" style="display: none;"></path>
+                                        <path class="eye-closed" d="M6.61 6.61A13.526 13.526 0 0 0 1 12s4 8 11 8a9.74 9.74 0 0 0 5-1.17" style="display: none;"></path>
+                                        <line class="eye-closed" x1="2" y1="2" x2="22" y2="22" style="display: none;"></line>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="form-options">
+                            <a href="#" class="forgot-password">Forgot password?</a>
+                        </div>
+                        
+                        <div class="form-row form-row-space-between">
+                            <button type="submit" id="login-button" class="btn btn-primary btn-block">
+                                <span class="button-text">Sign In</span>
+                                <div class="loading-spinner hidden">
+                                    
+                                </div>
+                            </button>
+                        </div>
+                        
+                        <div class="form-error" id="error-message" style="display: none;">
+                            <div class="error-icon">
+                                
+                            </div>
+                            <span class="error-text"></span>
+                        </div>
+                    </form>
+                    
+                    <div class="auth-footer">
+                        <p class="auth-footer-text">
+                            Don't have an account? 
+                            <a href="/register.html" class="auth-link">Create account</a>
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="auth-features">
+                    <div class="feature-item">
+                        <div class="feature-icon">
+                            
+                        </div>
+                        <div class="feature-content">
+                            <h3 class="feature-title">Enterprise Security</h3>
+                            <p class="feature-text">Your data is protected with bank-level encryption and security protocols.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="feature-item">
+                        <div class="feature-icon">
+                            
+                        </div>
+                        <div class="feature-content">
+                            <h3 class="feature-title">Lightning Fast</h3>
+                            <p class="feature-text">Experience instant AI responses with our optimized infrastructure.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="feature-item">
+                        <div class="feature-icon">
+                            
+                        </div>
+                        <div class="feature-content">
+                            <h3 class="feature-title">24/7 Support</h3>
+                            <p class="feature-text">Get help whenever you need it with our round-the-clock support team.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <!-- Footer will be inserted here -->
+    </div>
+</body>
+</html> 

@@ -1,0 +1,33 @@
+{
+  "name": "voice-agent-project",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A speech-to-speech voice agent with a separate backend and frontend widget.",
+  "workspaces": [
+    "backend",
+    "widget",
+    "frontend"
+  ],
+  "scripts": {
+    "dev:backend": "npm run dev --workspace=backend",
+    "dev:frontend": "npm run dev --workspace=frontend",
+    "dev:widget": "npm run start --workspace=widget",
+    "dev:all": "concurrently \"npm:dev:backend\" \"npm:dev:frontend\" \"npm:dev:widget\"",
+    "install-all": "npm install && npm install --workspaces --if-present"
+  },
+  "overrides": {
+    "zod": "3.22.4"
+  },
+  "dependencies": {
+    "@openai/agents": "latest",
+    "@openai/agents-realtime": "latest"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.0"
+  },
+  "main": "index.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}

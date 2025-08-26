@@ -1,0 +1,160 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  firstName String?
+  lastName  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  domains  Domain[]
+  sessions Session[]
+  carts    Cart[]
+}
+
+model Session {
+  id                 String    @id @default(cuid())
+  domainId           String?
+  domain             Domain?   @relation(fields: [domainId], references: [id])
+  sessionId          String
+  conversationId     String?
+  transcriptionId    String?
+  clientRecordingUrl String?
+  assistRecordingUrl String?
+  userId             Int?
+  user               User?     @relation(fields: [userId], references: [id])
+
+  @@index([domainId])
+  @@index([userId])
+}
+
+model Domain {
+  id        String   @id @default(cuid())
+  hostname  String   @unique
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sessions Session[]
+  products Product[]
+  carts    Cart[]
+
+  botConfiguration BotConfiguration?
+
+  @@index([userId])
+}
+
+model BotConfiguration {
+  id               String   @id @default(cuid())
+  domainId         String   @unique
+  domain           Domain   @relation(fields: [domainId], references: [id], onDelete: Cascade)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  identity         String
+  task             String
+  demeanor         String
+  tone             String
+  levelOfEnthusiasm String
+  formality        String
+  levelOfEmotion   String
+  fillerWords      String
+  pacing           String
+  voice            String
+  otherDetails     String
+  instructions     String
+  conversationStates Json?
+  editorSettings   Json?
+
+  tools Tool[] @relation("BotConfigurationToTool")
+}
+
+model Tool {
+  id          Int                  @id @default(autoincrement())
+  name        String               @unique
+  description String
+  type        String               // Template type, e.g., 'csv_lookup', 'api_call'
+  config      Json                 // Dynamic settings, e.g., { filePath: '...', searchColumn: 'item', returnColumn: 'price' }
+  isActive    Boolean              @default(true)
+  parameters  Json                 // JSON schema for input parameters
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+
+  botConfigurations BotConfiguration[] @relation("BotConfigurationToTool")
+}
+
+model Product {
+  id          Int      @id @default(autoincrement())
+  title       String   // основное название товара
+  description String?  // описание товара
+  status      String   @default("active") // active/inactive
+  domainId    String?  // связь с доменом пользователя
+  domain      Domain?  @relation(fields: [domainId], references: [id], onDelete: Cascade)
+  embedding   Unsupported("vector(1536)")? // векторное представление для семантического поиска (pgvector)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  variants ProductVariant[]
+
+  @@index([domainId])
+}
+
+model ProductVariant {
+  id        Int     @id @default(autoincrement())
+  productId Int
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  title     String  // название варианта: "128GB Черный" или "Default Title"
+  price     Int     // цена в копейках
+  sku       String? // артикул
+  embedding Unsupported("vector(1536)")? // векторное представление варианта (pgvector)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  cartItems CartItem[]
+
+  @@index([productId])
+}
+
+model Cart {
+  id        String     @id @default(cuid())
+  userId    Int        // связь с пользователем (Int как в User.id)
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  domainId  String     // корзина привязана к домену (String как в Domain.id)
+  domain    Domain     @relation(fields: [domainId], references: [id], onDelete: Cascade)
+  items     CartItem[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@unique([userId, domainId]) // один пользователь = одна корзина на домен
+  @@index([userId])
+  @@index([domainId])
+}
+
+model CartItem {
+  id        Int            @id @default(autoincrement())
+  cartId    String         // связь с корзиной
+  cart      Cart           @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  variantId Int            // связь с вариантом товара
+  variant   ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  quantity  Int            @default(1) // количество товара
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  @@unique([cartId, variantId]) // уникальность: один вариант товара в корзине
+  @@index([cartId])
+  @@index([variantId])
+}

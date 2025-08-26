@@ -1,0 +1,384 @@
+<header class="dashboard-header">
+    <h1>Bot Settings</h1>
+    <p>Configure the behavior and appearance of your AI assistant.</p>
+</header>
+
+<div class="content-section">
+    <div class="section-header">
+        <h2 class="section-title">Manage Domains</h2>
+        <button id="add-domain-btn" class="btn btn-primary">Add Domain</button>
+    </div>
+    <div id="domains-list">
+        <!-- Domains will be dynamically inserted here -->
+    </div>
+    <div id="empty-domains" style="display: none;">
+        <div class="empty-state">
+            <div class="empty-state-icon">
+                
+            </div>
+            <h3>No domains added yet</h3>
+            <p>Add a domain to start configuring your bot.</p>
+        </div>
+    </div>
+</div>
+
+<div class="content-section" id="bot-config-section" style="display: none;">
+    <h2 class="section-title">
+        Configuration for: <span id="selected-domain-label" style="color: #3b82f6;"></span>
+    </h2>
+    <div class="tabs">
+        <button class="tab-link active" data-tab="bot-config">Bot Configuration</button>
+        <button class="tab-link" data-tab="data-config">Data Configuration</button>
+    </div>
+    <div id="bot-config" class="tab-content active">
+    <form id="bot-config-form">
+        <div class="form-subsection">
+            <h3 class="subsection-title">Personality and Tone</h3>
+            <p class="subsection-description">Define the core character, communication style, and behavior of your AI assistant.</p>
+
+        <div class="form-group">
+            <label for="identity" class="label">Identity</label>
+                <textarea id="identity" class="textarea" rows="3" placeholder="Who or what the AI represents (e.g., friendly teacher, formal advisor, helpful assistant). Be detailed and include specific details about their character or backstory."></textarea>
+        </div>
+        <div class="form-group">
+            <label for="task" class="label">Task</label>
+                <textarea id="task" class="textarea" rows="3" placeholder="At a high level, what is the agent expected to do? (e.g. &quot;you are an expert at accurately handling user returns&quot;)"></textarea>
+        </div>
+            
+            <div class="form-grid">
+        <div class="form-group">
+            <label for="voice" class="label">Voice</label>
+            <select id="voice" class="select">
+                <option value="">Loading voices...</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="otherDetails" class="label">Other Details</label>
+                    <input type="text" id="otherDetails" class="input" placeholder="Any other information that helps guide the personality or tone of the agent.">
+                </div>
+            </div>
+        </div>
+        
+        <div class="form-subsection">
+            <h3 class="subsection-title">Instructions</h3>
+            <p class="subsection-description">Provide specific, step-by-step instructions and rules for the AI to follow.</p>
+        <div class="form-group">
+                <label for="instructions" class="label"># Instructions</label>
+                <textarea id="instructions" class="textarea" rows="15" placeholder="If a user provides a name or phone number, always repeat it back to the user to confrm you have the right understanding. If the caller corrects any detail, acknowledge the correction and confirm the new spelling or value."></textarea>
+            </div>
+        </div>
+
+        <div class="form-subsection">
+            <div class="subsection-header">
+                <h3 class="subsection-title">Conversation States</h3>
+                <div class="subsection-actions">
+                    <a href="/visual-editor.html" target="_blank" class="btn btn-primary" id="open-visual-editor-btn">
+                        🎨 Open Visual Editor
+                    </a>
+                </div>
+            </div>
+            <p class="subsection-description">
+                Manage conversation logic using the visual state editor. Create, edit, and connect conversation states with an intuitive drag-and-drop interface. The visual editor automatically saves changes to the database.
+            </p>
+            <div class="conversation-states-info">
+                <div class="info-card">
+                    <h4>📝 What you can do in the visual editor:</h4>
+                    <ul>
+                        <li>Create new conversation states</li>
+                        <li>Edit instructions and examples</li>
+                        <li>Create transitions between states</li>
+                        <li>Visually organize conversation flow</li>
+                        <li>Use AI Assistant to generate content</li>
+                    </ul>
+            </div>
+            </div>
+        </div>
+
+            <button type="submit" class="btn btn-primary">Save Bot Configuration</button>
+        </form>
+    </div>
+    <div id="data-config" class="tab-content">
+        <div class="form-subsection">
+            <div class="subsection-header">
+                <h3 class="subsection-title">Current Price List</h3>
+                <div class="header-buttons">
+                    <button type="button" id="import-btn" class="btn btn-secondary">Import</button>
+                    <button type="button" id="add-product-btn" class="btn btn-secondary">Add Product</button>
+                </div>
+            </div>
+            
+            <!-- Domain indicator -->
+            <div id="domain-indicator" class="domain-indicator" style="display: none;">
+                <div class="indicator-content">
+                    <svg class="indicator-icon" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 2C5.58172 2 2 5.58172 2 10C2 14.4183 5.58172 18 10 18C14.4183 18 18 14.4183 18 10C18 5.58172 14.4183 2 10 2ZM10 6C10.5523 6 11 6.44772 11 7V10C11 10.5523 10.5523 11 10 11C9.44772 11 9 10.5523 9 10V7C9 6.44772 9.44772 6 10 6ZM10 13C9.44772 13 9 13.4477 9 14C9 14.5523 9.44772 15 10 15C10.5523 15 11 14.5523 11 14C11 13.4477 10.5523 13 10 13Z" clip-rule="evenodd" />
+                    </svg>
+                    <span id="domain-indicator-text">Managing products for: <strong id="current-domain-name">No domain selected</strong></span>
+                </div>
+            </div>
+            
+            <!-- Search bar -->
+            <div class="search-container">
+                <div class="search-input-wrapper">
+                    <svg class="search-icon" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+                    </svg>
+                    <input 
+                        type="text" 
+                        id="product-search" 
+                        class="search-input" 
+                        placeholder="Search products by name, description, or SKU..."
+                        autocomplete="off"
+                    >
+                    <button type="button" id="clear-search-btn" class="clear-search-btn" style="display: none;">
+                        <svg viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                </div>
+                <div id="search-results-info" class="search-results-info" style="display: none;">
+                    <span id="search-results-text">Found 0 results</span>
+                </div>
+            </div>
+            
+            <table id="price-list-table" class="price-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th>SKU</th>
+                        <th>Price</th>
+                        <th>Currency</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Products will be dynamically inserted here -->
+                </tbody>
+            </table>
+            
+            <!-- Pagination controls -->
+            <div id="pagination-container" class="pagination-container" style="display: none;">
+                <div class="pagination-info">
+                    <span id="pagination-info-text">Showing 1-50 of 100 products</span>
+                </div>
+                <div class="pagination-controls">
+                    <button id="prev-page-btn" class="btn btn-secondary pagination-btn" disabled>
+                        ← Previous
+                    </button>
+                    <div class="pagination-pages" id="pagination-pages">
+                        <!-- Page numbers will be inserted here -->
+                    </div>
+                    <button id="next-page-btn" class="btn btn-secondary pagination-btn">
+                        Next →
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="form-subsection">
+            <div class="subsection-header">
+                <h3 class="subsection-title">Function Configuration</h3>
+                <div class="header-buttons">
+                    <button type="button" id="generate-functions-btn" class="btn btn-primary">Generate Functions</button>
+                    <button type="button" id="add-function-btn" class="btn btn-secondary">Add Function</button>
+                </div>
+            </div>
+            <p class="subsection-description">Configure dynamic functions that will be available to your AI assistant based on your product data.</p>
+            
+            <div id="functions-list">
+                <!-- Functions will be dynamically inserted here -->
+            </div>
+            
+            <div id="empty-functions" style="display: none;">
+                <div class="empty-state">
+                    <div class="empty-state-icon">⚙️</div>
+                    <h3>No functions configured yet</h3>
+                    <p>Generate functions from your price list or add custom functions manually.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- Universal Product Modal -->
+<div id="product-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title" id="product-modal-title">Add Product</h3>
+            <button id="close-product-modal-btn" class="close-btn" aria-label="Close"></button>
+        </div>
+        <form id="product-form" class="modal-body">
+            <input type="hidden" id="product-id">
+            
+            <div class="form-group">
+                <label for="product-name" class="label">Product Name</label>
+                <input type="text" id="product-name" class="input" placeholder="e.g., iPhone 15" required>
+            </div>
+            <div class="form-group">
+                <label for="product-description" class="label">Description</label>
+                <textarea id="product-description" class="textarea" rows="2" placeholder="Brief product description"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label class="label">Product Type</label>
+                <div class="product-type-selector">
+                    <label class="radio-option">
+                        <input type="radio" name="product-type" value="simple" checked>
+                        <span>Simple product (single price)</span>
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="product-type" value="variants">
+                        <span>Product with variants (sizes, colors, etc.)</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- For simple product -->
+            <div id="simple-product-section">
+                <div class="form-group">
+                    <label for="simple-price" class="label">Price ($)</label>
+                    <input type="number" id="simple-price" class="input" placeholder="29.99" step="0.01" min="0">
+                </div>
+                <div class="form-group">
+                    <label for="simple-sku" class="label">SKU (optional)</label>
+                    <input type="text" id="simple-sku" class="input" placeholder="MUG-001">
+                </div>
+            </div>
+
+            <!-- For product with variants -->
+            <div id="variants-section" style="display: none;">
+            <div id="variants-container">
+                    <h4>Product Variants</h4>
+                    <p class="help-text">Add different variants of the product (sizes, colors, configurations)</p>
+                <!-- Dynamic variant fields will be added here -->
+                </div>
+                <button type="button" id="add-variant-btn" class="btn btn-secondary">+ Add Variant</button>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" id="cancel-product-btn" class="btn btn-secondary">Cancel</button>
+                <button type="submit" class="btn btn-primary" id="submit-product-btn">Save Product</button>
+            </div>
+    </form>
+    </div>
+</div>
+
+<!-- Conversation states management moved to visual editor only -->
+
+<!-- AI Assist Modal -->
+<div id="ai-assist-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">AI Assistant</h3>
+            <button id="close-ai-modal-btn" class="close-btn" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label for="ai-prompt-input" class="label">What should this state do?</label>
+                <textarea id="ai-prompt-input" class="textarea" rows="4" placeholder="e.g., Greet the user and ask for their name."></textarea>
+            </div>
+            <div id="ai-error-message" class="error-message" style="display: none;"></div>
+        </div>
+        <div class="modal-actions">
+            <button type="button" id="cancel-ai-modal-btn" class="btn btn-secondary">Cancel</button>
+            <button type="button" id="generate-content-btn" class="btn btn-primary">Generate</button>
+        </div>
+    </div>
+</div>
+
+<!-- Add Domain Modal -->
+<div id="add-domain-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">Add a New Domain</h3>
+            <button id="close-modal-btn" class="close-btn" aria-label="Close">
+                
+            </button>
+        </div>
+        <form id="add-domain-form" class="modal-body">
+            <div class="form-group">
+                <label for="domain-name-input" class="label">Domain Name</label>
+                <input type="text" id="domain-name-input" class="input" placeholder="e.g., example.com" required>
+                <p class="form-help">Enter the domain where you'll be using the AI assistant.</p>
+            </div>
+            <div class="modal-actions">
+                <button type="button" id="cancel-modal-btn" class="btn btn-secondary">Cancel</button>
+                <button type="submit" class="btn btn-primary">Add Domain</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Import Price List Modal -->
+<div id="import-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">Import Price List</h3>
+            <button id="close-import-modal-btn" class="close-btn" aria-label="Close">&times;</button>
+        </div>
+        <form id="import-form" class="modal-body">
+            <div class="form-group">
+                <label for="price-list-file" class="label">Upload Price List File</label>
+                <input type="file" id="price-list-file" class="input" accept=".csv,.json" required>
+                <p class="form-help">Upload a CSV or JSON file with your product pricing information.</p>
+            </div>
+            <div class="form-group">
+                <label class="label">File Format</label>
+                <p class="form-help">
+                    <strong>CSV Format:</strong> Name, Description, Price, Currency<br>
+                    <strong>JSON Format:</strong> Array of objects with name, description, price, currency fields
+                </p>
+            </div>
+            <div class="modal-actions">
+                <button type="button" id="cancel-import-btn" class="btn btn-secondary">Cancel</button>
+                <button type="submit" class="btn btn-primary">Import</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Add/Edit Function Modal -->
+<div id="function-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title" id="function-modal-title">Add Function</h3>
+            <button id="close-function-modal-btn" class="close-btn" aria-label="Close">&times;</button>
+        </div>
+        <form id="function-form" class="modal-body">
+            <div class="form-group">
+                <label for="function-name" class="label">Function Name</label>
+                <input type="text" id="function-name" class="input" placeholder="e.g., getPrice, placeOrder" required>
+                <p class="form-help">The name of the function that will be called by the AI assistant.</p>
+            </div>
+            <div class="form-group">
+                <label for="function-description" class="label">Description</label>
+                <textarea id="function-description" class="textarea" rows="3" placeholder="Describe what this function does..." required></textarea>
+                <p class="form-help">Clear description of the function's purpose and functionality.</p>
+            </div>
+            <div class="form-group">
+                <label for="function-parameters" class="label">Parameters</label>
+                <div id="parameters-container">
+                    <!-- Dynamic parameter fields will be added here -->
+                </div>
+                <button type="button" id="add-parameter-btn" class="btn btn-secondary btn-sm">Add Parameter</button>
+                <p class="form-help">Define the parameters this function accepts.</p>
+            </div>
+            <div class="form-group">
+                <label for="function-implementation" class="label">Implementation Type</label>
+                <select id="function-implementation" class="select" required>
+                    <option value="">Select implementation type</option>
+                    <option value="auto">Auto-generated from price list</option>
+                    <option value="custom">Custom implementation</option>
+                </select>
+                <p class="form-help">Choose how this function will be implemented.</p>
+            </div>
+            <div class="modal-actions">
+                <button type="button" id="cancel-function-btn" class="btn btn-secondary">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save Function</button>
+            </div>
+        </form>
+    </div>
+</div> 

@@ -1,0 +1,5 @@
+-- AlterTable
+ALTER TABLE "BotConfiguration" ALTER COLUMN "identity" DROP DEFAULT,
+ALTER COLUMN "task" DROP DEFAULT,
+ALTER COLUMN "otherDetails" DROP DEFAULT,
+ALTER COLUMN "instructions" DROP DEFAULT;

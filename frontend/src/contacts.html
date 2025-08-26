@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= htmlWebpackPlugin.options.title %></title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <%= htmlWebpackPlugin.options.criticalCss %>
+    <!-- Favicon will be injected by HtmlWebpackPlugin -->
+</head>
+<body>
+    <div id="app">
+        <!-- Header will be inserted here -->
+        
+        <!-- Page Header -->
+        <section class="page-header">
+            <div class="container">
+                <div class="page-header-content">
+                    <h1 class="page-title">Contact Us</h1>
+                    <p class="page-subtitle">
+                        Get in touch with our team of experts
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section class="contact">
+            <div class="container">
+                <div class="contact-grid">
+                    <!-- Contact Form -->
+                    <div class="contact-form-container">
+                        <div class="form-header">
+                            <h2 class="form-title">Send us a Message</h2>
+                            <p class="form-description">
+                                Our team will get back to you within 24 hours.
+                            </p>
+                        </div>
+                        
+                        <form class="contact-form" id="contact-form">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="firstName" class="form-label">First Name *</label>
+                                    <input type="text" id="firstName" name="firstName" class="form-input" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="lastName" class="form-label">Last Name *</label>
+                                    <input type="text" id="lastName" name="lastName" class="form-input" required>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="email" class="form-label">Email Address *</label>
+                                <input type="email" id="email" name="email" class="form-input" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="company" class="form-label">Company</label>
+                                <input type="text" id="company" name="company" class="form-input">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="subject" class="form-label">Subject *</label>
+                                <select id="subject" name="subject" class="form-select" required>
+                                    <option value="">Select a subject</option>
+                                    <option value="sales">Sales Inquiry</option>
+                                    <option value="support">Technical Support</option>
+                                    <option value="partnership">Partnership</option>
+                                    <option value="general">General Question</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="message" class="form-label">Message *</label>
+                                <textarea id="message" name="message" class="form-textarea" rows="5" required placeholder="Tell us about your project or question..."></textarea>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary btn-block">
+                                
+                                Send Message
+                            </button>
+                            
+                            <p class="form-note">
+                                By submitting this form, you agree to our privacy policy.
+                            </p>
+                        </form>
+                    </div>
+                    
+                    <!-- Contact Information -->
+                    <div class="contact-info">
+                        <div class="contact-card">
+                            <h3 class="contact-card-title">Get in Touch</h3>
+                            <p class="contact-card-description">
+                                Choose the best way to reach us based on your needs.
+                            </p>
+                            
+                            <div class="contact-methods">
+                                <div class="contact-method">
+                                    <div class="contact-method-icon">
+                                        
+                                    </div>
+                                    <div class="contact-method-content">
+                                        <h4 class="contact-method-title">Email</h4>
+                                        <p class="contact-method-text">contact@aiassistant.com</p>
+                                        <p class="contact-method-note">Response within 24 hours</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="contact-method">
+                                    <div class="contact-method-icon">
+                                        
+                                    </div>
+                                    <div class="contact-method-content">
+                                        <h4 class="contact-method-title">Phone</h4>
+                                        <p class="contact-method-text">+1 (555) 123-4567</p>
+                                        <p class="contact-method-note">Mon-Fri, 9AM-6PM EST</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="contact-method">
+                                    <div class="contact-method-icon">
+                                        
+                                    </div>
+                                    <div class="contact-method-content">
+                                        <h4 class="contact-method-title">Live Chat</h4>
+                                        <p class="contact-method-text">Available 24/7</p>
+                                        <p class="contact-method-note">Instant support</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="office-card">
+                            <h3 class="office-card-title">Office Locations</h3>
+                            
+                            <div class="office-location">
+                                <h4 class="office-name">San Francisco HQ</h4>
+                                <p class="office-address">
+                                    123 Tech Street<br>
+                                    San Francisco, CA 94105<br>
+                                    United States
+                                </p>
+                            </div>
+                            
+                            <div class="office-location">
+                                <h4 class="office-name">London Office</h4>
+                                <p class="office-address">
+                                    45 Innovation Lane<br>
+                                    London EC2A 4DP<br>
+                                    United Kingdom
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FAQ Section -->
+        <section class="faq">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">Frequently Asked Questions</h2>
+                    <p class="section-description">
+                        Quick answers to common questions
+                    </p>
+                </div>
+                
+                <div class="faq-grid">
+                    <div class="faq-item">
+                        <h3 class="faq-question">How secure is my data?</h3>
+                        <p class="faq-answer">
+                            We implement enterprise-grade security with SOC 2 compliance, 
+                            end-to-end encryption, and regular security audits.
+                        </p>
+                    </div>
+                    
+                    <div class="faq-item">
+                        <h3 class="faq-question">What's included in the free trial?</h3>
+                        <p class="faq-answer">
+                            Full access to all features for 14 days, dedicated support, 
+                            and onboarding assistance from our team.
+                        </p>
+                    </div>
+                    
+                    <div class="faq-item">
+                        <h3 class="faq-question">Do you offer custom integrations?</h3>
+                        <p class="faq-answer">
+                            Yes, we provide custom API integrations and dedicated 
+                            enterprise solutions for large organizations.
+                        </p>
+                    </div>
+                    
+                    <div class="faq-item">
+                        <h3 class="faq-question">What kind of support do you provide?</h3>
+                        <p class="faq-answer">
+                            24/7 technical support, dedicated account managers for 
+                            enterprise clients, and comprehensive documentation.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer will be inserted here -->
+    </div>
+</body>
+</html> 
