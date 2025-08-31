@@ -52,16 +52,20 @@ const corsOptions = {
     origin: function (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
         console.log(`🌐 CORS check: origin="${origin}", allowed origins:`, allowedOrigins);
         
-        // В development режиме разрешаем запросы без origin (Postman, тесты)
-        if (!origin && isDevelopment) return callback(null, true);
+        // Разрешаем запросы без origin (same-origin requests - когда frontend и backend на одном домене)
+        if (!origin) {
+            console.log(`✅ CORS: Allowing same-origin request (no origin header)`);
+            return callback(null, true);
+        }
         
-        // В production временно разрешаем все DigitalOcean домены для диагностики
-        if (isProduction && origin && origin.includes('.ondigitalocean.app')) {
+        // В production разрешаем все DigitalOcean домены
+        if (isProduction && origin.includes('.ondigitalocean.app')) {
             console.log(`✅ CORS: Allowing DigitalOcean origin: ${origin}`);
             return callback(null, true);
         }
         
-        if (origin && allowedOrigins.includes(origin)) {
+        if (allowedOrigins.includes(origin)) {
+            console.log(`✅ CORS: Allowing configured origin: ${origin}`);
             callback(null, true);
         } else {
             console.warn(`❌ CORS: Blocked request from unauthorized origin: ${origin}`);
