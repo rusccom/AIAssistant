@@ -29,7 +29,7 @@ router.post('/', async (req, res) => {
 
     // 4. Create the real-time session with OpenAI (включая tools)
     const sessionConfig: any = {
-      model: 'gpt-4o-realtime-preview-2025-06-03',
+      model: 'gpt-realtime',
       modalities: ['text', 'audio'],
       voice: (botConfig as any).voice || 'alloy',
       instructions: widgetConfig.instructions

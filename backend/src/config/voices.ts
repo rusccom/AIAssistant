@@ -10,7 +10,8 @@ export const AVAILABLE_VOICES = [
   { id: 'ballad', name: 'Ballad', description: 'Smooth, musical voice' },
   { id: 'coral', name: 'Coral', description: 'Bright, energetic voice' },
   { id: 'sage', name: 'Sage', description: 'Calm, wise voice' },
-  { id: 'verse', name: 'Verse', description: 'Poetic, rhythmic voice' }
+  { id: 'verse', name: 'Verse', description: 'Poetic, rhythmic voice' },
+  { id: 'marin', name: 'Marin', description: 'Natural, friendly voice' }
 ] as const;
 
 export const DEFAULT_VOICE = 'alloy';

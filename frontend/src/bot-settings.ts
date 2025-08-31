@@ -771,9 +771,19 @@ async function initializeBotSettings(token: string) {
                         <p class="domain-status">Click to configure bot settings</p>
                     </div>
                 </div>
+                <div class="domain-actions">
+                    <button class="btn btn-secondary btn-sm test-bot-btn" data-hostname="${domain.hostname}">
+                        🎤 Test Bot
+                    </button>
+                </div>
             `;
             
-            domainItem.addEventListener('click', () => {
+            domainItem.addEventListener('click', (e) => {
+                // Проверяем, что клик не по кнопке test bot
+                if ((e.target as HTMLElement).classList.contains('test-bot-btn')) {
+                    return;
+                }
+                
                 document.querySelectorAll('.domain-item').forEach(el => el.classList.remove('selected'));
                 domainItem.classList.add('selected');
                 selectedDomain = domain.hostname;
@@ -781,6 +791,13 @@ async function initializeBotSettings(token: string) {
                 // Update domain indicator and load products
                 updateDomainIndicator(domain.hostname);
                 loadProducts(1, currentSearch);
+            });
+
+            // Добавляем обработчик для кнопки Test Bot
+            const testBotBtn = domainItem.querySelector('.test-bot-btn');
+            testBotBtn?.addEventListener('click', (e) => {
+                e.stopPropagation(); // Останавливаем всплытие события
+                openWidgetModal(domain.hostname);
             });
 
             domainsList.appendChild(domainItem);
@@ -800,6 +817,176 @@ async function initializeBotSettings(token: string) {
         domainNameInput.value = '';
         document.body.style.overflow = 'auto';
     };
+
+    // Widget Modal Management
+    const widgetModal = document.getElementById('widget-modal') as HTMLDivElement;
+    const closeWidgetModalBtn = document.getElementById('close-widget-modal-btn') as HTMLButtonElement;
+    const widgetDomainLabel = document.getElementById('widget-domain-label') as HTMLSpanElement;
+    const widgetContainer = document.getElementById('widget-container') as HTMLDivElement;
+
+    let currentWidgetSession: any = null;
+
+    const openWidgetModal = (hostname: string) => {
+        if (!widgetModal || !widgetDomainLabel || !widgetContainer) return;
+        
+        // Показываем модальное окно
+        widgetModal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        
+        // Обновляем заголовок с доменом
+        widgetDomainLabel.textContent = `Testing: ${hostname}`;
+        
+        // Загружаем виджет
+        loadWidget(hostname);
+    };
+
+    const closeWidgetModal = () => {
+        if (!widgetModal || !widgetContainer) return;
+        
+        // Останавливаем текущую сессию виджета если есть
+        const widgetInstance = (window as any).currentWidgetInstance;
+        if (widgetInstance && widgetInstance.session) {
+            try {
+                widgetInstance.session.close();
+                console.log('🔄 Widget session closed');
+            } catch (error) {
+                console.log('Error closing widget session:', error);
+            }
+        }
+        
+        // Очищаем глобальные ссылки
+        currentWidgetSession = null;
+        delete (window as any).currentWidgetInstance;
+        
+        widgetModal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+        
+        // Очищаем контейнер
+        widgetContainer.innerHTML = `
+            <div class="widget-loading">
+                <p>Loading AI Assistant...</p>
+                <div class="loading-spinner"></div>
+            </div>
+        `;
+        
+        // Очищаем поле хоста
+        const hostInput = document.getElementById('widget-host-input') as HTMLInputElement;
+        if (hostInput) {
+            hostInput.value = '';
+        }
+        
+        console.log('🔄 Widget modal closed and cleaned up');
+    };
+
+    const loadWidget = async (hostname: string) => {
+        if (!widgetContainer) return;
+        
+        try {
+            // Создаем временный контейнер для виджета
+            const widgetId = `widget-${Date.now()}`;
+            widgetContainer.innerHTML = `<div id="${widgetId}"></div>`;
+
+            // Загружаем script виджета если еще не загружен
+            if (!document.querySelector('script[src="/widget/widget.js"]')) {
+                const script = document.createElement('script');
+                script.src = '/widget/widget.js';
+                script.onload = () => {
+                    console.log('✅ Widget script loaded successfully!');
+                    initializeWidgetWithNewAPI(hostname, widgetId);
+                };
+                script.onerror = () => {
+                    widgetContainer.innerHTML = `
+                        <div class="widget-error">
+                            <p>❌ Failed to load widget</p>
+                            <p>Make sure the backend server is running</p>
+                        </div>
+                    `;
+                };
+                document.head.appendChild(script);
+            } else {
+                console.log('✅ Widget script already loaded!');
+                initializeWidgetWithNewAPI(hostname, widgetId);
+            }
+            
+        } catch (error) {
+            console.error('Error loading widget:', error);
+            widgetContainer.innerHTML = `
+                <div class="widget-error">
+                    <p>❌ Error loading widget</p>
+                    <p>${error}</p>
+                </div>
+            `;
+        }
+    };
+
+    const initializeWidgetWithNewAPI = (hostname: string, widgetId: string) => {
+        console.log(`🎯 Initializing widget for hostname: ${hostname}`);
+        
+        // Получаем значение хоста из поля ввода
+        const hostInput = document.getElementById('widget-host-input') as HTMLInputElement;
+        const customHost = hostInput?.value.trim();
+        
+        // Подготавливаем конфигурацию для виджета
+        const widgetConfig: any = {
+            container: widgetId,
+            hostname: hostname
+        };
+        
+        // Добавляем кастомный хост если указан
+        if (customHost) {
+            widgetConfig.apiHost = customHost;
+            console.log(`🔧 Using custom API host: ${customHost}`);
+        } else {
+            console.log(`🔧 Using auto-detected API host`);
+        }
+        
+        // Инициализируем виджет с новым API
+        try {
+            const AIWidget = (window as any).AIWidget;
+            if (!AIWidget) {
+                throw new Error('AIWidget API not available');
+            }
+            
+            const widgetInstance = AIWidget.init(widgetConfig);
+            
+            if (widgetInstance) {
+                console.log('✅ Widget initialized successfully with new API');
+                currentWidgetSession = widgetInstance;
+                
+                // Сохраняем экземпляр для очистки при закрытии модала
+                (window as any).currentWidgetInstance = widgetInstance;
+            } else {
+                throw new Error('Widget initialization returned null');
+            }
+            
+        } catch (error) {
+            console.error('❌ Failed to initialize widget with new API:', error);
+            
+            // Показываем ошибку пользователю
+            if (widgetContainer) {
+                widgetContainer.innerHTML = `
+                    <div class="widget-error">
+                        <p>❌ Failed to initialize widget</p>
+                        <p>${error}</p>
+                        <p>Please check console for details</p>
+                    </div>
+                `;
+            }
+        }
+    };
+
+    // Обработчики для закрытия виджет модала
+    if (closeWidgetModalBtn) {
+        closeWidgetModalBtn.addEventListener('click', closeWidgetModal);
+    }
+
+    if (widgetModal) {
+        widgetModal.addEventListener('click', (e) => {
+            if (e.target === widgetModal) {
+                closeWidgetModal();
+            }
+        });
+    }
 
     const addDomain = async (event: Event) => {
         event.preventDefault();

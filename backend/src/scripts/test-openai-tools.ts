@@ -54,7 +54,7 @@ async function testOpenAITools() {
         console.log('\n🌐 Создаем OpenAI Realtime session с tools...');
         
         const sessionConfig: any = {
-            model: 'gpt-4o-realtime-preview-2025-06-03',
+            model: 'gpt-realtime',
             modalities: ['text', 'audio'],
             voice: botConfig.voice || 'alloy',
             instructions: widgetConfig.instructions

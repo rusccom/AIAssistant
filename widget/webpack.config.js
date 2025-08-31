@@ -20,8 +20,11 @@ module.exports = {
     extensions: ['.ts', '.js'],
   },
   output: {
-    filename: 'bundle.js',
-    path: path.resolve(__dirname, 'dist'),
+    filename: 'widget.js',
+    path: path.resolve(__dirname, '../backend/public/widget'),
+    library: 'AIWidget',
+    libraryTarget: 'umd',
+    clean: true, // Очищаем папку перед сборкой
   },
   plugins: [
     new HtmlWebpackPlugin({

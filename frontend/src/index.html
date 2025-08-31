@@ -4,51 +4,183 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= htmlWebpackPlugin.options.title %></title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="<%= htmlWebpackPlugin.options.seoDescription %>">
+    <meta name="keywords" content="<%= htmlWebpackPlugin.options.seoKeywords %>">
+    <meta name="author" content="<%= htmlWebpackPlugin.options.author %>">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="<%= htmlWebpackPlugin.options.ogUrl %>">
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="<%= htmlWebpackPlugin.options.ogTitle %>">
+    <meta property="og:description" content="<%= htmlWebpackPlugin.options.ogDescription %>">
+    <meta property="og:image" content="<%= htmlWebpackPlugin.options.ogImage %>">
+    <meta property="og:url" content="<%= htmlWebpackPlugin.options.ogUrl %>">
+    <meta property="og:type" content="<%= htmlWebpackPlugin.options.ogType %>">
+    <meta property="og:site_name" content="<%= htmlWebpackPlugin.options.siteName %>">
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="<%= htmlWebpackPlugin.options.ogTitle %>">
+    <meta name="twitter:description" content="<%= htmlWebpackPlugin.options.ogDescription %>">
+    <meta name="twitter:image" content="<%= htmlWebpackPlugin.options.ogImage %>">
+    <meta name="twitter:site" content="<%= htmlWebpackPlugin.options.twitterHandle %>">
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="<%= htmlWebpackPlugin.options.themeColor %>">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="<%= htmlWebpackPlugin.options.siteName %>">
+    
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "<%= htmlWebpackPlugin.options.siteName %>",
+      "description": "<%= htmlWebpackPlugin.options.seoDescription %>",
+      "url": "<%= htmlWebpackPlugin.options.ogUrl %>",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Web Browser",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD",
+        "description": "Free trial available"
+      }
+    }
+    </script>
+    
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.6.0/remixicon.min.css">
     <%= htmlWebpackPlugin.options.criticalCss %>
     <!-- Favicon will be injected by HtmlWebpackPlugin -->
 </head>
 <body>
-    <div class="main-container">
         <div id="app">
             <!-- Header will be inserted here -->
+        
+        <div class="container">
+            <!-- Side Navigation -->
+            <div class="side-nav">
+            <div class="nav-item active" data-target="hero" data-label="Home"></div>
+            <div class="nav-item" data-target="target-audience" data-label="Made For"></div>
+            <div class="nav-item" data-target="voice-bot" data-label="Voice Bot"></div>
+            <div class="nav-item" data-target="smart-search" data-label="Smart Search"></div>
+            <div class="nav-item" data-target="visual-editor" data-label="Visual Editor"></div>
+            <div class="nav-item" data-target="widget-integration" data-label="Website Widget"></div>
+            <div class="nav-item" data-target="phone-connection" data-label="Phone Setup"></div>
+            <div class="nav-item" data-target="multilang" data-label="Multi-language"></div>
+            <div class="nav-item" data-target="statistics" data-label="Analytics"></div>
+            <div class="nav-item" data-target="demo" data-label="Get Started"></div>
+        </div>
             
             <!-- Hero Section -->
-            <section class="hero">
+            <section class="hero" id="hero">
                 <div class="hero-container">
                     <div class="hero-content">
                         <h1 class="hero-title">
-                            Голосовой AI‑ассистент для e‑commerce<br>
-                            в <span class="hero-highlight">реальном времени</span>
+                            AI Call Center<br><span class="hero-highlight">Next Generation</span>
                         </h1>
                         <p class="hero-description">
-                            Виджет с OpenAI Realtime, семантический поиск по товарам, корзина, дашборд и визуальный редактор сценариев — полный стек для продаж и поддержки.
+                            Revolutionary contact center automation system powered by artificial intelligence. Handle calls 24/7, increase conversion rates and reduce operator workload.
                         </p>
                         <div class="hero-actions">
-                            <a href="/login.html" class="btn btn-primary">
-                                Начать
+                            <a href="#demo" class="btn btn-primary">
+                                Try for Free
                             </a>
-                            <a href="/about.html" class="btn btn-secondary">
-                                Узнать больше
+                            <a href="/login.html" class="btn btn-secondary">
+                                Sign In
                             </a>
                         </div>
                     </div>
                     <div class="hero-visual">
-                        <div class="hero-card">
-                            <div class="hero-card-header">
-                                <div class="hero-card-icon">
-                                    
+                                                <!-- Visual content -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Target Audience & Industries Section -->
+            <section class="section" id="target-audience">
+                <div class="cyber-grid"></div>
+                <div class="section-inner">
+                    <div class="section-header">
+                        <h2 class="section-title">Made For and Industries</h2>
+                        <p class="section-subtitle">AI call center is perfectly suited for various types of businesses and industries</p>
+                    </div>
+                    
+                    <div class="audience-grid">
+                        <div class="audience-section">
+                            <h3 class="audience-section-title">
+                                <i class="ri-user-settings-line"></i>
+                                Made For
+                            </h3>
+                            <div class="audience-cards">
+                                <div class="audience-card">
+                                    <i class="ri-store-2-line audience-icon"></i>
+                                    <h4 class="audience-title">E-commerce Stores</h4>
+                                    <p class="audience-description">Automate order processing, product consultations and 24/7 customer support</p>
                                 </div>
-                                <div class="hero-card-title">Голосовой движок</div>
+                                <div class="audience-card">
+                                    <i class="ri-phone-line audience-icon"></i>
+                                    <h4 class="audience-title">Call Centers</h4>
+                                    <p class="audience-description">Reduce operator workload, handle routine queries and improve service quality</p>
+                                </div>
+                                <div class="audience-card">
+                                    <i class="ri-service-line audience-icon"></i>
+                                    <h4 class="audience-title">Service Companies</h4>
+                                    <p class="audience-description">Handle service requests, consultations and primary technical support</p>
+                                </div>
                             </div>
-                            <div class="hero-card-content">
-                                <div class="metric">
-                                    <span class="metric-value">99.9%</span>
-                                    <span class="metric-label">Готовность</span>
+                        </div>
+                        
+                        <div class="audience-section">
+                            <h3 class="audience-section-title">
+                                <i class="ri-building-line"></i>
+                                Industries
+                            </h3>
+                            <div class="industry-tags">
+                                <div class="industry-tag">
+                                    <i class="ri-shopping-cart-line"></i>
+                                    E-commerce
                                 </div>
-                                <div class="metric">
-                                    <span class="metric-value">< 100ms</span>
-                                    <span class="metric-label">Отклик</span>
+                                <div class="industry-tag">
+                                    <i class="ri-heart-pulse-line"></i>
+                                    Healthcare
+                                </div>
+                                <div class="industry-tag">
+                                    <i class="ri-bank-line"></i>
+                                    Finance
+                                </div>
+                                <div class="industry-tag">
+                                    <i class="ri-car-line"></i>
+                                    Automotive
+                                </div>
+                                <div class="industry-tag">
+                                    <i class="ri-home-line"></i>
+                                    Real Estate
+                                </div>
+                                <div class="industry-tag">
+                                    <i class="ri-restaurant-line"></i>
+                                    Restaurant
+                                </div>
+                                <div class="industry-tag">
+                                    <i class="ri-graduation-cap-line"></i>
+                                    Education
+                                </div>
+                                <div class="industry-tag">
+                                    <i class="ri-smartphone-line"></i>
+                                    IT & Telecom
+                                </div>
+                                <div class="industry-tag">
+                                    <i class="ri-scissors-cut-line"></i>
+                                    Beauty Salons
+                                </div>
+                                <div class="industry-tag">
+                                    <i class="ri-tools-line"></i>
+                                    Repair & Service
                                 </div>
                             </div>
                         </div>
@@ -56,105 +188,310 @@
                 </div>
             </section>
 
-            <!-- Features Section -->
-            <section class="features">
-                <div class="container">
+            <!-- Voice Bot Section -->
+            <section class="section section-diagonal" id="voice-bot">
+                <div class="cyber-grid"></div>
+                <div class="section-inner">
                     <div class="section-header">
-                        <h2 class="section-title">Ключевые возможности</h2>
-                        <p class="section-description">
-                            Полный стек для голосового ассистента и витрины товаров
-                        </p>
+                        <div class="icon-3d">
+                            <i class="ri-customer-service-2-fill"></i>
+                        </div>
+                        <h2 class="section-title">Voice Bot</h2>
+                        <p class="section-subtitle">Intelligent call processing system that understands natural speech and responds to customer questions like a live operator</p>
                     </div>
                     
-                    <div class="features-grid">
-                        <div class="feature-card">
-                            <div class="feature-icon">
-                                
-                            </div>
-                            <h3 class="feature-title">Голосовой виджет</h3>
-                            <p class="feature-description">
-                                OpenAI Realtime, выбор голоса (Alloy/Echo/Shimmer), запись аудио через WebSocket и мгновенные ответы.
-                            </p>
+                    <div class="feature-grid">
+                                                <div class="feature-card">
+                            <i class="ri-question-answer-line feature-icon"></i>
+                            <h3 class="feature-title">Automatic Responses</h3>
+                            <p class="feature-description">Instant responses to common customer questions without operator involvement. System handles most standard requests autonomously.</p>
                         </div>
                         
                         <div class="feature-card">
-                            <div class="feature-icon">
-                                
-                            </div>
-                            <h3 class="feature-title">Семантический поиск</h3>
-                            <p class="feature-description">
-                                Векторный поиск (pgvector, HNSW) по продуктам и вариантам на RU/EN с релевантными ответами для пользователя.
-                            </p>
+                            <i class="ri-voice-recognition-line feature-icon"></i>
+                            <h3 class="feature-title">Speech Recognition</h3>
+                            <p class="feature-description">Advanced natural speech recognition algorithms with high accuracy even in presence of noise and accents.</p>
                         </div>
                         
                         <div class="feature-card">
-                            <div class="feature-icon">
-                                
-                            </div>
-                            <h3 class="feature-title">Каталог и карточки</h3>
-                            <p class="feature-description">
-                                Продукты и варианты, цены и SKU, быстрый доступ к деталям через get_product_info.
-                            </p>
+                            <i class="ri-time-line feature-icon"></i>
+                            <h3 class="feature-title">24/7 Operation</h3>
+                            <p class="feature-description">Round-the-clock customer support without weekends or breaks. Your customers get help at any time of day.</p>
                         </div>
                         
                         <div class="feature-card">
-                            <div class="feature-icon">
-                                
+                            <i class="ri-user-voice-line feature-icon"></i>
+                            <h3 class="feature-title">Smart Routing</h3>
+                            <p class="feature-description">Automatic call transfer to live operator for complex queries or upon customer request.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Smart Search Section -->
+            <section class="section section-diagonal section-diagonal-reverse" id="smart-search">
+                <div class="cyber-grid"></div>
+                <div class="section-inner">
+                    <div class="section-header">
+                        <div class="icon-3d">
+                            <i class="ri-search-eye-line"></i>
+                        </div>
+                        <h2 class="section-title">Smart Search System</h2>
+                        <p class="section-subtitle">Product and service search technology using vector embeddings to understand query meaning</p>
                             </div>
-                            <h3 class="feature-title">Корзина и покупки</h3>
-                            <p class="feature-description">
-                                Добавление в корзину и просмотр содержимого через add_to_cart и get_cart_info с дружелюбными ответами.
-                            </p>
+                    
+                    <div class="feature-grid">
+                        <div class="feature-card">
+                            <i class="ri-brain-line feature-icon"></i>
+                            <h3 class="feature-title">Semantic Search</h3>
+                            <p class="feature-description">Search by query meaning, not just keywords. System understands context and finds relevant results even with imprecise formulations.</p>
                         </div>
                         
                         <div class="feature-card">
-                            <div class="feature-icon">
-                                
-                            </div>
-                            <h3 class="feature-title">Дашборд и домены</h3>
-                            <p class="feature-description">
-                                Единый /api/dashboard/data: домены, конфигурации ботов, доступные голоса; управление конфигурацией бота по домену.
-                            </p>
+                            <i class="ri-focus-3-line feature-icon"></i>
+                            <h3 class="feature-title">Contextual Understanding</h3>
+                            <p class="feature-description">Analysis of previous queries and interaction history for accurate understanding of customer needs.</p>
                         </div>
                         
                         <div class="feature-card">
-                            <div class="feature-icon">
-                                
+                            <i class="ri-product-hunt-line feature-icon"></i>
+                            <h3 class="feature-title">Smart Recommendations</h3>
+                            <p class="feature-description">Automatic selection of similar products and services based on customer preferences and behavior analysis.</p>
+                        </div>
+                        
+                        <div class="feature-card">
+                            <i class="ri-flashlight-line feature-icon"></i>
+                            <h3 class="feature-title">Fast Results</h3>
+                            <p class="feature-description">Instant delivery of relevant search results thanks to optimized algorithms and data indexing.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Visual Editor Section -->
+            <section class="section section-diagonal" id="visual-editor">
+                <div class="cyber-grid"></div>
+                <div class="section-inner">
+                    <div class="section-header">
+                        <div class="icon-3d">
+                            <i class="ri-flow-chart"></i>
+                        </div>
+                        <h2 class="section-title">Visual Scenario Editor</h2>
+                        <p class="section-subtitle">Intuitive tool for creating and configuring complex call handling scenarios without programming skills</p>
+                    </div>
+                    
+                    <div class="feature-grid">
+                                                <div class="feature-card">
+                            <i class="ri-drag-drop-line feature-icon"></i>
+                            <h3 class="feature-title">Drag-and-Drop Interface</h3>
+                            <p class="feature-description">Create scenarios by simply dragging blocks. Intuitive interface requires no technical knowledge.</p>
+                        </div>
+                        
+                        <div class="feature-card">
+                            <i class="ri-git-branch-line feature-icon"></i>
+                            <h3 class="feature-title">Scenario Branching</h3>
+                            <p class="feature-description">Configure complex scenarios with multiple conditions and dialog development options depending on customer responses.</p>
                             </div>
-                            <h3 class="feature-title">Визуальный редактор</h3>
-                            <p class="feature-description">
-                                Конструктор сценариев на Konva: START/END, связи, подсветка, отмена по Esc, высокая производительность.
-                            </p>
+                        
+                        <div class="feature-card">
+                            <i class="ri-plug-line feature-icon"></i>
+                            <h3 class="feature-title">API Integration</h3>
+                            <p class="feature-description">Connect external systems and databases to get up-to-date information about products, services and customers.</p>
+                        </div>
+                        
+                        <div class="feature-card">
+                            <i class="ri-test-tube-line feature-icon"></i>
+                            <h3 class="feature-title">Real-time Testing</h3>
+                            <p class="feature-description">Test scenario functionality before publishing with built-in call simulator and voice testing.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Widget Integration Section -->
+            <section class="section section-diagonal" id="widget-integration">
+                <div class="cyber-grid"></div>
+                <div class="section-inner">
+                    <div class="section-header">
+                        <div class="icon-3d">
+                            <i class="ri-window-line"></i>
+                        </div>
+                        <h2 class="section-title">Website Widget</h2>
+                        <p class="section-subtitle">Integrate voice assistant directly into your website in minutes without technical knowledge</p>
+                    </div>
+                    
+                    <div class="feature-grid">
+                        <div class="feature-card">
+                            <i class="ri-code-box-line feature-icon"></i>
+                            <h3 class="feature-title">Easy Integration</h3>
+                            <p class="feature-description">Copy one code snippet and paste it on your site. Widget automatically adapts to design and starts working instantly.</p>
+                        </div>
+                        
+                        <div class="feature-card">
+                            <i class="ri-palette-line feature-icon"></i>
+                            <h3 class="feature-title">Design Customization</h3>
+                            <p class="feature-description">Adapt widget appearance to your site style - colors, sizes, position and animations through simple interface.</p>
+                            </div>
+                        
+                        <div class="feature-card">
+                            <i class="ri-smartphone-line feature-icon"></i>
+                            <h3 class="feature-title">Responsive Design</h3>
+                            <p class="feature-description">Widget automatically adapts to mobile devices and tablets, ensuring excellent experience on any screen.</p>
+                        </div>
+                        
+                        <div class="feature-card">
+                            <i class="ri-speed-line feature-icon"></i>
+                            <h3 class="feature-title">Fast Loading</h3>
+                            <p class="feature-description">Lightweight widget code doesn't slow down site loading and works asynchronously without affecting performance.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Phone Connection Section -->
+            <section class="section section-diagonal section-diagonal-reverse" id="phone-connection">
+                <div class="cyber-grid"></div>
+                <div class="section-inner">
+                    <div class="section-header">
+                        <div class="icon-3d">
+                            <i class="ri-sim-card-line"></i>
+                        </div>
+                        <h2 class="section-title">Phone Number Setup</h2>
+                        <p class="section-subtitle">Fast and secure connection of existing numbers or getting new ones to work with AI call center system</p>
+                    </div>
+                    
+                    <div class="feature-grid">
+                                                <div class="feature-card">
+                            <i class="ri-phone-line feature-icon"></i>
+                            <h3 class="feature-title">Connect Existing Number</h3>
+                            <p class="feature-description">Integrate your current phone numbers with AI call center system without changing company contact details.</p>
+                        </div>
+                        
+                        <div class="feature-card">
+                            <i class="ri-phone-find-line feature-icon"></i>
+                            <h3 class="feature-title">Get New Number</h3>
+                            <p class="feature-description">Choose new virtual number from any region to expand your business geographic presence.</p>
+                            </div>
+                        
+                        <div class="feature-card">
+                            <i class="ri-voiceprint-line feature-icon"></i>
+                            <h3 class="feature-title">IP Telephony Integration</h3>
+                            <p class="feature-description">Seamless integration with existing IP telephony systems and call centers to expand their capabilities.</p>
+                        </div>
+                        
+                        <div class="feature-card">
+                            <i class="ri-route-line feature-icon"></i>
+                            <h3 class="feature-title">Call Routing</h3>
+                            <p class="feature-description">Flexible configuration of call routing rules between AI bot and live operators depending on load and query complexity.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Multilanguage Section -->
+            <section class="section section-diagonal" id="multilang">
+                <div class="cyber-grid"></div>
+                <div class="section-inner">
+                    <div class="section-header">
+                        <div class="icon-3d">
+                            <i class="ri-global-line"></i>
+                        </div>
+                        <h2 class="section-title">Multi-language Support</h2>
+                        <p class="section-subtitle">Multilingual customer service system for international markets and diverse audiences</p>
+                            </div>
+                    
+                    <div class="feature-grid">
+                                                <div class="feature-card">
+                            <i class="ri-translate-2 feature-icon"></i>
+                            <h3 class="feature-title">Automatic Language Detection</h3>
+                            <p class="feature-description">System instantly detects speaker language and switches to appropriate language mode without additional actions.</p>
+                        </div>
+                        
+                        <div class="feature-card">
+                            <i class="ri-list-check-3 feature-icon"></i>
+                            <h3 class="feature-title">Popular Language Support</h3>
+                            <p class="feature-description">Built-in support for Russian, English, Spanish, French and other popular languages for international business.</p>
+                        </div>
+                                
+                        <div class="feature-card">
+                            <i class="ri-settings-line feature-icon"></i>
+                            <h3 class="feature-title">Easy Language Setup</h3>
+                            <p class="feature-description">Convenient switching of interface language and voice responses through admin panel with one click.</p>
+                            </div>
+                        
+                        <div class="feature-card">
+                            <i class="ri-team-line feature-icon"></i>
+                            <h3 class="feature-title">Multilingual Team</h3>
+                            <p class="feature-description">Ability to work with customers in different languages, expand audience and improve customer experience.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Statistics Section -->
+            <section class="section section-diagonal section-diagonal-reverse" id="statistics">
+                <div class="cyber-grid"></div>
+                <div class="section-inner">
+                    <div class="section-header">
+                        <div class="icon-3d">
+                            <i class="ri-bar-chart-grouped-line"></i>
+                        </div>
+                        <h2 class="section-title">Statistics and Analytics</h2>
+                        <p class="section-subtitle">Detailed call and conversion analytics to optimize call center operations and improve business efficiency</p>
+                    </div>
+                    
+                    <div class="feature-grid">
+                                                <div class="feature-card">
+                            <i class="ri-line-chart-line feature-icon"></i>
+                            <h3 class="feature-title">Detailed Call Statistics</h3>
+                            <p class="feature-description">Track call quantity, duration and peak hours to optimize resources and plan workload.</p>
+                        </div>
+                        
+                        <div class="feature-card">
+                            <i class="ri-funds-box-line feature-icon"></i>
+                            <h3 class="feature-title">Conversion Analysis</h3>
+                            <p class="feature-description">Measure call center effectiveness by key metrics: sales conversion, customer satisfaction, problem resolution.</p>
+                        </div>
+                        
+                        <div class="feature-card">
+                            <i class="ri-error-warning-line feature-icon"></i>
+                            <h3 class="feature-title">Rejection Analysis</h3>
+                            <p class="feature-description">Identify typical reasons for failed calls and customer rejections to eliminate problem areas in service scenarios.</p>
+                        </div>
+                        
+                        <div class="feature-card">
+                            <i class="ri-rocket-line feature-icon"></i>
+                            <h3 class="feature-title">Optimization Recommendations</h3>
+                            <p class="feature-description">Get automatic recommendations for scenario improvements based on analysis of successful and unsuccessful calls.</p>
                         </div>
                     </div>
                 </div>
             </section>
 
             <!-- CTA Section -->
-            <section class="cta">
-                <div class="container">
-                    <div class="cta-content">
-                        <h2 class="cta-title">Готовы запустить голосового ассистента?</h2>
-                        <p class="cta-description">
-                            Подключите виджет к своему домену, настройте голос и инструкции, и начните общаться с клиентами сегодня.
-                        </p>
-                        <div class="cta-actions">
-                            <a href="/login.html" class="btn btn-primary btn-lg">
-                                Войти в дашборд
-                            </a>
-                            <a href="/visual-editor.html" class="btn btn-outline btn-lg">
-                                Открыть редактор
-                            </a>
-                        </div>
+            <section class="cta-section" id="demo">
+                <div class="cyber-grid"></div>
+                <div class="cta-container">
+                                        <h2 class="cta-title">Register and Test the System for Free</h2>
+                    <p class="cta-description">Create an account right now and get full access to all AI call center features. Test the voice bot, configure scenarios and evaluate results in 5 minutes</p>
+                    
+                    <div class="cta-actions">
+                        <a href="/register.html" class="cta-button">Register Now</a>
                     </div>
                 </div>
             </section>
+        </div>
 
             <!-- Footer will be inserted here -->
         </div>
-        <footer class="main-footer">
-            <!-- Footer content will be inserted here -->
-        </footer>
-    </div>
+    
+                    <!-- Fixed CTA Panel -->
+        <div class="fixed-cta">
+            <a href="#demo" class="fixed-cta-button primary">Try for Free</a>
+        </div>
+
+    <!-- 100% privacy-first analytics -->
+    <script data-collect-dnt="true" async src="https://scripts.simpleanalyticscdn.com/latest.js"></script>
+    <noscript><img src="https://queue.simpleanalyticscdn.com/noscript.gif?collect-dnt=true" alt="" referrerpolicy="no-referrer-when-downgrade"/></noscript>
 </body>
 </html> 

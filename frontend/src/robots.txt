@@ -1,0 +1,15 @@
+User-agent: *
+Allow: /
+
+# Main pages
+Allow: /index.html
+Allow: /login.html  
+Allow: /register.html
+
+# Block admin pages from indexing
+Disallow: /dashboard.html
+Disallow: /bot-settings.html
+Disallow: /visual-editor.html
+
+# Sitemap location
+Sitemap: https://yourdomain.com/sitemap.xml

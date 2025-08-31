@@ -55,7 +55,7 @@ export const prepareWidgetConfig = (botConfig: any) => {
         voice: botConfig.voice || 'alloy',
         
         // Другие готовые настройки
-        model: 'gpt-4o-realtime-preview-2025-06-03',
+        model: 'gpt-realtime',
         modalities: ['text', 'audio'],
         
         // Сырая конфигурация (если нужна виджету)

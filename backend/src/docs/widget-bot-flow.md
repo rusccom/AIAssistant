@@ -39,7 +39,7 @@ const agent = new RealtimeAgent({
 
 const session = new RealtimeSession(agent, {
   transport,
-  model: model,    // gpt-4o-realtime-preview-2025-06-03
+  model: model,    // gpt-realtime
   config: {
     voice: voice   // alloy/echo/shimmer/etc
   }

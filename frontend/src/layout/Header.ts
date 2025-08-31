@@ -30,18 +30,24 @@ const getHeaderTemplate = (): string => {
     const user = getUserFromStorage();
     const isLoggedIn = !!authToken;
 
+    const isHomePage = window.location.pathname === '/' || window.location.pathname === '/index.html';
+    
+    const isLoginPage = window.location.pathname === '/login.html';
+    const isRegisterPage = window.location.pathname === '/register.html';
+    
     const navLinks = isLoggedIn 
         ? `
             <a href="/dashboard.html" class="nav-link">Dashboard</a>
             <a href="/bot-settings.html" class="nav-link">Bot Settings</a>
             <a href="#" id="logout-button" class="nav-link">Sign Out</a>
         `
-        : `
-            <a href="/" class="nav-link">Home</a>
-            <a href="/about.html" class="nav-link">About</a>
-            <a href="/contacts.html" class="nav-link">Contact</a>
-            <a href="/login.html" class="btn btn-primary-sm">Sign In</a>
-        `;
+        : isHomePage ? `
+            <a href="#target-audience" class="nav-link">Made For</a>
+            <a href="#voice-bot" class="nav-link">Voice Bot</a>
+            <a href="#widget-integration" class="nav-link">Widget</a>
+            <a href="#visual-editor" class="nav-link">Editor</a>
+            <a href="#statistics" class="nav-link">Analytics</a>
+        ` : ``;
 
     const mobileNavLinks = isLoggedIn 
         ? `
@@ -49,11 +55,42 @@ const getHeaderTemplate = (): string => {
             <a href="/bot-settings.html" class="mobile-nav-link">Bot Settings</a>
             <a href="#" id="mobile-logout-button" class="mobile-nav-link">Sign Out</a>
         `
-        : `
-            <a href="/" class="mobile-nav-link">Home</a>
-            <a href="/about.html" class="mobile-nav-link">About</a>
-            <a href="/contacts.html" class="mobile-nav-link">Contact</a>
+        : isHomePage ? `
+            <a href="#target-audience" class="mobile-nav-link">Made For</a>
+            <a href="#voice-bot" class="mobile-nav-link">Voice Bot</a>
+            <a href="#widget-integration" class="mobile-nav-link">Widget</a>
+            <a href="#visual-editor" class="mobile-nav-link">Editor</a>
+            <a href="#statistics" class="mobile-nav-link">Analytics</a>
             <div class="mobile-nav-auth">
+                <a href="/login.html" class="header-btn">Sign In</a>
+            </div>
+        ` : `
+            <div class="mobile-nav-auth">
+                <a href="/" class="header-btn header-btn-secondary">Home</a>
+                ${isLoginPage ? '<a href="/register.html" class="header-btn header-btn-secondary">Register</a>' : '<a href="/login.html" class="header-btn">Sign In</a>'}
+            </div>
+        `;
+
+    const authButtons = isLoggedIn 
+        ? `
+            <div class="header-auth">
+                <a href="/dashboard.html" class="header-btn header-btn-secondary">Dashboard</a>
+                <a href="#" id="logout-button" class="header-btn header-btn-danger">Sign Out</a>
+            </div>
+        `
+        : isLoginPage ? `
+            <div class="header-auth">
+                <a href="/" class="header-btn header-btn-secondary">Home</a>
+                <a href="/register.html" class="header-btn header-btn-secondary">Register</a>
+            </div>
+        ` : isRegisterPage ? `
+            <div class="header-auth">
+                <a href="/" class="header-btn header-btn-secondary">Home</a>
+                <a href="/login.html" class="header-btn">Sign In</a>
+            </div>
+        ` : `
+            <div class="header-auth">
+                <a href="/" class="header-btn header-btn-secondary">Home</a>
                 <a href="/login.html" class="header-btn">Sign In</a>
             </div>
         `;
@@ -62,14 +99,10 @@ const getHeaderTemplate = (): string => {
     <header class="main-header">
         <div class="header-container">
             <a href="/" class="header-logo" aria-label="AIAssistant Home">
-                <div class="logo-icon">
-                    <i>🤖</i>
-                </div>
-                <span class="logo-text">AIAssistant</span>
+                <img src="./logoAi.png" alt="AIAssistant" class="header-logo-image">
             </a>
-            <nav id="main-nav" class="header-nav">
-                ${navLinks}
-            </nav>
+            ${navLinks ? `<nav id="main-nav" class="header-nav">${navLinks}</nav>` : ''}
+            ${authButtons}
             <button id="mobile-menu-toggle" class="mobile-menu-toggle" aria-label="Toggle Menu">
                 <div class="hamburger">
                     <span></span>

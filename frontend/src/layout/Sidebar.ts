@@ -6,8 +6,7 @@ const sidebarTemplate = `
     <aside class="dashboard-sidebar">
         <div class="sidebar-header">
             <a href="/" class="sidebar-brand">
-                <div class="brand-icon">🤖</div>
-                <span class="brand-text">AIAssistant</span>
+                <img src="./logoAi.png" alt="AIAssistant" class="sidebar-brand-logo">
             </a>
         </div>
         <nav class="sidebar-nav">

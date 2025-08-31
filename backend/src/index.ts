@@ -28,6 +28,11 @@ const port = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
+// --- Static Files ---
+// Раздаем виджет как статические файлы
+app.use('/widget', express.static(path.join(__dirname, '../public/widget')));
+app.use('/public', express.static(path.join(__dirname, '../public')));
+
 // --- API Routes ---
 // Подключаем все роуты
 app.use('/api/auth', authRoutes);

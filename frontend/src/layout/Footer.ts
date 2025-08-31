@@ -1,6 +1,6 @@
 const footerTemplate = `
     <footer class="main-footer">
-        <p>&copy; 2024 AIAssistant. All rights reserved.</p>
+        <p>&copy; 2025 AIAssistant. All rights reserved.</p>
     </footer>
 `;
 
