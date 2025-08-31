@@ -19,7 +19,7 @@ if (isProduction) {
     console.log('🔒 Production mode: Security features active, logging minimized');
 }
 
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import http from 'http';
 import { WebSocketServer, WebSocket } from 'ws';
@@ -82,7 +82,7 @@ if (isProduction) {
     app.use(express.static(frontendPath));
     
     // Обрабатываем SPA routes (всегда отдаем index.html для frontend маршrutов)
-    app.get('*', (req, res, next) => {
+    app.get('*', (req: Request, res: Response, next: NextFunction) => {
         // Пропускаем API routes и статические файлы
         if (req.path.startsWith('/api/') || 
             req.path.startsWith('/widget/') || 

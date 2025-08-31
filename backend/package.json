@@ -20,11 +20,7 @@
     "jsonwebtoken": "^9.0.2",
     "openai": "^4.104.0",
     "ws": "^8.18.0",
-    "typescript": "latest"
-  },
-  "devDependencies": {
-    "ts-node": "^10.9.2",
-    "ts-node-dev": "^2.0.0",
+    "typescript": "latest",
     "@types/pg": "^8.15.4",
     "@types/bcryptjs": "^2.4.6",
     "@types/cors": "^2.8.17",
@@ -32,6 +28,10 @@
     "@types/jsonwebtoken": "^9.0.6",
     "@types/node": "^20.14.12",
     "@types/ws": "^8.5.11"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.2",
+    "ts-node-dev": "^2.0.0"
   },
   "keywords": [],
   "author": "",

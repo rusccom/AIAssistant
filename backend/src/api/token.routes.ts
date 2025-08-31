@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import OpenAI from 'openai';
 import * as botConfigService from '../services/bot-config.service';
 import { prepareWidgetConfig } from '../services/instructions.service';
@@ -11,7 +11,7 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-router.post('/', async (req, res) => {
+router.post('/', async (req: Request, res: Response) => {
   const { hostname } = req.body;
   if (!hostname) {
     return res.status(400).json({ error: 'Hostname is required' });

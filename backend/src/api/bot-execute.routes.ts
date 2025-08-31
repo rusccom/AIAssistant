@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import { executeBotFunction } from '../bot-functions';
 
 const router = Router();
@@ -7,7 +7,7 @@ const router = Router();
  * Универсальный endpoint для выполнения bot functions
  * POST /api/bot-execute/:functionName
  */
-router.post('/:functionName', async (req, res) => {
+router.post('/:functionName', async (req: Request, res: Response) => {
     const { functionName } = req.params;
     const args = req.body;
 
@@ -50,7 +50,7 @@ router.post('/:functionName', async (req, res) => {
  * Получить список всех доступных bot functions
  * GET /api/bot-execute
  */
-router.get('/', async (req, res) => {
+router.get('/', async (req: Request, res: Response) => {
     try {
         const { getAllFunctionDefinitions } = await import('../bot-functions');
         const functions = getAllFunctionDefinitions();

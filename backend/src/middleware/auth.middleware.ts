@@ -8,6 +8,8 @@ export interface AuthRequest extends Request {
     user?: { id: number };
     body: Request['body'];
     query: Request['query'];
+    params: Request['params'];
+    headers: Request['headers'];
 }
 
 export const authMiddleware = async (req: AuthRequest, res: Response, next: NextFunction) => {
