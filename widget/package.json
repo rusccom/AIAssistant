@@ -7,16 +7,16 @@
   },
   "dependencies": {
     "@openai/agents": "latest",
-    "@openai/agents-realtime": "latest"
-  },
-  "devDependencies": {
+    "@openai/agents-realtime": "latest",
     "css-loader": "latest",
     "html-webpack-plugin": "latest",
     "style-loader": "latest",
     "ts-loader": "latest",
     "typescript": "latest",
     "webpack": "latest",
-    "webpack-cli": "latest",
+    "webpack-cli": "latest"
+  },
+  "devDependencies": {
     "webpack-dev-server": "latest"
   }
 } 
