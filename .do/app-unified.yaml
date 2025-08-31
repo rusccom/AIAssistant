@@ -1,0 +1,53 @@
+# DigitalOcean App Platform - Backend + Frontend + Widget
+name: aiassistant
+
+services:
+# Единый сервис который обслуживает API + Frontend + Widget
+- name: web
+  source_dir: /
+  github:
+    repo: your-username/AIAssistant-3
+    branch: main
+    deploy_on_push: true
+  
+  # Команды сборки - билдим все компоненты
+  build_command: |
+    echo "🔨 Installing dependencies..."
+    npm run install-all
+    echo "🏗️  Building all components..."
+    npm run build:all
+    echo "📦 Build completed successfully!"
+    ls -la backend/dist/
+    ls -la frontend/dist/
+    ls -la backend/public/widget/
+  
+  # Запуск backend сервера (который раздает API + статику)
+  run_command: npm start
+  
+  # Настройки Node.js
+  environment_slug: node-js
+  instance_count: 1
+  instance_size_slug: basic-xxs
+  http_port: 3001
+  
+  # Все routes обрабатываются одним сервисом
+  routes:
+  - path: /
+  
+  # Переменные окружения
+  envs:
+  - key: NODE_ENV
+    value: production
+  - key: DATABASE_URL
+    type: SECRET
+    # Укажите URL вашей внешней базы данных
+  - key: OPENAI_API_KEY
+    type: SECRET
+    # Ваш OpenAI ключ
+  - key: JWT_SECRET  
+    type: SECRET
+    # Сильный секрет для JWT (32+ символов)
+  - key: ALLOWED_ORIGINS
+    value: https://${_self.DOMAIN}
+  - key: PORT
+    value: "3001"

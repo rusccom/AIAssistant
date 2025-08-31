@@ -75,6 +75,29 @@ app.use(express.json());
 app.use('/widget', express.static(path.join(__dirname, '../public/widget')));
 app.use('/public', express.static(path.join(__dirname, '../public')));
 
+// Раздаем frontend статические файлы (для App Platform)
+if (isProduction) {
+    console.log('🌐 Setting up frontend static files serving...');
+    const frontendPath = path.join(__dirname, '../../frontend/dist');
+    app.use(express.static(frontendPath));
+    
+    // Обрабатываем SPA routes (всегда отдаем index.html для frontend маршrutов)
+    app.get('*', (req, res, next) => {
+        // Пропускаем API routes и статические файлы
+        if (req.path.startsWith('/api/') || 
+            req.path.startsWith('/widget/') || 
+            req.path.startsWith('/public/') ||
+            req.path.includes('.')) {
+            return next();
+        }
+        
+        // Для всех остальных routes отдаем index.html
+        res.sendFile(path.join(frontendPath, 'index.html'));
+    });
+    
+    console.log(`📁 Frontend static files: ${frontendPath}`);
+}
+
 // --- API Routes ---
 // Подключаем все роуты
 app.use('/api/auth', authRoutes);
