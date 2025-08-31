@@ -41,12 +41,10 @@ const port = process.env.PORT || 3000;
 
 // --- CORS Configuration ---
 // Настройте разрешенные домены в переменной окружения ALLOWED_ORIGINS
-// Пример в .env: ALLOWED_ORIGINS="http://localhost:9001,https://yourdomain.com"
+// Пример в .env: ALLOWED_ORIGINS="http://localhost:9001,https://yourdomain.com,*.ondigitalocean.app"
 const allowedOrigins = process.env.ALLOWED_ORIGINS 
     ? process.env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim())
-    : isDevelopment 
-        ? ['http://localhost:9001', 'http://localhost:9000'] // Development defaults
-        : []; // Production требует явного указания доменов
+    : [];
 
 const corsOptions = {
     origin: function (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
@@ -58,18 +56,27 @@ const corsOptions = {
             return callback(null, true);
         }
         
-        // В production разрешаем все DigitalOcean домены
-        if (isProduction && origin.includes('.ondigitalocean.app')) {
-            console.log(`✅ CORS: Allowing DigitalOcean origin: ${origin}`);
-            return callback(null, true);
-        }
+        // Проверяем точные совпадения и wildcard домены
+        const isAllowed = allowedOrigins.some(allowed => {
+            if (allowed === origin) {
+                return true; // Точное совпадение
+            }
+            
+            if (allowed.startsWith('*.')) {
+                // Wildcard домены: *.ondigitalocean.app
+                const domain = allowed.substring(2); // Убираем "*."
+                return origin.endsWith('.' + domain);
+            }
+            
+            return false;
+        });
         
-        if (allowedOrigins.includes(origin)) {
+        if (isAllowed) {
             console.log(`✅ CORS: Allowing configured origin: ${origin}`);
             callback(null, true);
         } else {
             console.warn(`❌ CORS: Blocked request from unauthorized origin: ${origin}`);
-            console.log(`📝 CORS: Add "${origin}" to ALLOWED_ORIGINS environment variable`);
+            console.log(`📝 CORS: Add "${origin}" or "*.domain.com" to ALLOWED_ORIGINS environment variable`);
             callback(new Error('Not allowed by CORS'));
         }
     },
