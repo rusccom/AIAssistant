@@ -28,14 +28,12 @@ model User {
 }
 
 model Session {
-  id                 String    @id @default(cuid())
-  domainId           String?
-  domain             Domain?   @relation(fields: [domainId], references: [id])
-  sessionId          String
-  clientRecordingUrl String?
-  assistRecordingUrl String?
-  userId             Int?
-  user               User?     @relation(fields: [userId], references: [id])
+  id        String  @id @default(cuid())
+  domainId  String?
+  domain    Domain? @relation(fields: [domainId], references: [id])
+  sessionId String
+  userId    Int?
+  user      User?   @relation(fields: [userId], references: [id])
 
   @@index([domainId])
   @@index([userId])
