@@ -32,8 +32,6 @@ model Session {
   domainId           String?
   domain             Domain?   @relation(fields: [domainId], references: [id])
   sessionId          String
-  conversationId     String?
-  transcriptionId    String?
   clientRecordingUrl String?
   assistRecordingUrl String?
   userId             Int?

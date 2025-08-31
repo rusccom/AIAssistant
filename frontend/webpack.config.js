@@ -1,5 +1,6 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 const fs = require('fs');
 
 const criticalCss = fs.readFileSync(path.resolve(__dirname, 'src/layout/critical-css.html'), 'utf-8');
@@ -81,7 +82,14 @@ module.exports = (env, argv) => {
         themeColor: globalSeo.themeColor,
         twitterHandle: globalSeo.twitterHandle
     });
-  }),
+  }).concat([
+    new CopyWebpackPlugin({
+      patterns: [
+        { from: 'src/logoAi.png', to: 'logoAi.png' },
+        { from: 'src/favicon.ico', to: 'favicon.ico' }
+      ]
+    })
+  ]),
   devServer: {
     static: [
       {
