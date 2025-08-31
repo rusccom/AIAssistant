@@ -6,14 +6,21 @@ import { setupPasswordToggle } from './utils/password-toggle';
 import { redirectIfAuthenticated } from './utils/auth';
 import { initNavigation } from './utils/navigation';
 
-// Redirect if user is already logged in
+// Redirect if user is already logged in - stop execution if redirecting
 redirectIfAuthenticated();
 
-// Initialize anti-FOUC system immediately
-initSimpleFouc();
+// Check if we're redirecting - if so, don't initialize page
+const token = localStorage.getItem('authToken');
+if (token) {
+    // We're being redirected, don't initialize this page
+    console.log('🔄 Redirecting authenticated user, skipping page initialization');
+} else {
+    // Initialize anti-FOUC system immediately
+    initSimpleFouc();
 
-// Initialize navigation highlighting
-initNavigation();
+    // Initialize navigation highlighting
+    initNavigation();
+}
 
 const initializePage = () => {
     resetHeader();
@@ -29,10 +36,13 @@ const initializePage = () => {
     }
 };
 
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initializePage);
-} else {
-    initializePage();
+// Only initialize page if we're not redirecting
+if (!token) {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializePage);
+    } else {
+        initializePage();
+    }
 }
 
 async function handleLoginFormSubmit(event: Event) {

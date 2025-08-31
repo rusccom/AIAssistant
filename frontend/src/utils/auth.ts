@@ -1,36 +1,15 @@
-export async function redirectIfAuthenticated() {
+export function redirectIfAuthenticated() {
     const token = localStorage.getItem('authToken');
     if (!token) {
         console.log('👤 На странице входа: токен отсутствует');
         return;
     }
 
-    try {
-        // Проверяем действительность токена
-        const response = await fetch('/api/auth/me', {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
-        });
-
-        if (response.ok) {
-            // Токен действителен - обновляем данные и перенаправляем
-            const user = await response.json();
-            localStorage.setItem('user', JSON.stringify(user));
-            
-            console.log(`✅ Автоматический вход: пользователь ${user.email}, перенаправляем на dashboard`);
-            window.location.href = '/dashboard.html';
-        } else if (response.status === 401) {
-            // Токен истек - очищаем данные
-            console.log('⚠️ Токен истек, очищаем localStorage');
-            localStorage.removeItem('authToken');
-            localStorage.removeItem('user');
-        }
-    } catch (error) {
-        console.warn('⚠️ Ошибка проверки токена:', error);
-    }
+    // Если токен есть - сразу редиректим (быстро, без API запроса)
+    console.log(`🚀 Быстрый редирект: токен найден, перенаправляем на dashboard`);
+    window.location.href = '/dashboard.html';
+    
+    // Валидацию токена сделаем уже на dashboard странице через protectPage()
 }
 
 export async function protectPage() {

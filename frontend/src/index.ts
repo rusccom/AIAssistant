@@ -5,14 +5,21 @@ import { initSimpleFouc } from './utils/simple-fouc';
 import { initNavigation } from './utils/navigation';
 import { redirectIfAuthenticated } from './utils/auth';
 
-// Redirect authenticated users to dashboard
+// Redirect authenticated users to dashboard - stop execution if redirecting
 redirectIfAuthenticated();
 
-// Initialize anti-FOUC system immediately
-initSimpleFouc();
+// Check if we're redirecting - if so, don't initialize page
+const token = localStorage.getItem('authToken');
+if (token) {
+    // We're being redirected, don't initialize this page
+    console.log('🔄 Redirecting authenticated user, skipping page initialization');
+} else {
+    // Initialize anti-FOUC system immediately
+    initSimpleFouc();
 
-// Initialize navigation highlighting
-initNavigation();
+    // Initialize navigation highlighting
+    initNavigation();
+}
 
 // Initialize side navigation
 const initSideNavigation = () => {
@@ -90,9 +97,12 @@ const initializePage = () => {
     }, 100);
 };
 
-// Wait for the DOM to be fully loaded
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initializePage);
-} else {
-    initializePage();
+// Only initialize page if we're not redirecting
+if (!token) {
+    // Wait for the DOM to be fully loaded
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializePage);
+    } else {
+        initializePage();
+    }
 } 
