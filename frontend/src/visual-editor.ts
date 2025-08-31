@@ -2,12 +2,16 @@
 import './visual-editor/visual-editor.css';
 import { initSimpleFouc } from './utils/simple-fouc';
 import { initNavigation } from './utils/navigation';
+import { protectPage } from './utils/auth';
 import Konva from 'konva';
 import { Point, StateData, Connection, EditorSettings } from './visual-editor/types';
 import { SpecialBlock } from './visual-editor/components/SpecialBlock';
 import { StateBlock } from './visual-editor/components/StateBlock';
 import { ConnectionManager } from './visual-editor/managers/ConnectionManager';
 import { createKonvaStage, createBasicLayers } from './visual-editor/utils/konva-utils';
+
+// Protect this page - only authenticated users can access
+protectPage();
 
 // Упрощенный VisualEditor класс
 class VisualEditor {

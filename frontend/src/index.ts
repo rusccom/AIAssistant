@@ -3,6 +3,10 @@ import { insertHeader, resetHeader } from './layout/Header';
 import { insertFooter } from './layout/Footer';
 import { initSimpleFouc } from './utils/simple-fouc';
 import { initNavigation } from './utils/navigation';
+import { redirectIfAuthenticated } from './utils/auth';
+
+// Redirect authenticated users to dashboard
+redirectIfAuthenticated();
 
 // Initialize anti-FOUC system immediately
 initSimpleFouc();
