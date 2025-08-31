@@ -15,13 +15,16 @@ const pages = [
     { name: 'visual-editor', title: 'Visual State Editor - AIAssistant', template: './src/visual-editor.html', favicon: true }
 ];
 
-module.exports = {
-  mode: 'development',
+module.exports = (env, argv) => {
+  const isProduction = argv.mode === 'production';
+  
+  return {
+  mode: argv.mode || 'development',
   entry: pages.reduce((acc, page) => {
     acc[page.name.replace(/-/g, '_')] = `./src/${page.name}.ts`;
     return acc;
   }, {}),
-  devtool: 'inline-source-map',
+  devtool: isProduction ? 'source-map' : 'inline-source-map',
   module: {
     rules: [
       {
@@ -50,7 +53,7 @@ module.exports = {
     extensions: ['.tsx', '.ts', '.js'],
   },
   output: {
-    filename: '[name].bundle.js',
+    filename: isProduction ? '[name].[contenthash].bundle.js' : '[name].bundle.js',
     path: path.resolve(__dirname, 'dist'),
     clean: true,
   },
@@ -100,4 +103,5 @@ module.exports = {
     ],
     historyApiFallback: true,
   },
+  };
 }; 

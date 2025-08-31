@@ -1,0 +1,47 @@
+# Упрощенная конфигурация для DigitalOcean App Platform
+name: aiassistant
+
+services:
+- name: backend
+  source_dir: /
+  github:
+    repo: your-username/AIAssistant-3
+    branch: main
+    deploy_on_push: true
+  
+  # Команды для сборки и запуска
+  build_command: |
+    npm run install-all
+    npm run build:all
+  run_command: npm start
+  
+  # Настройки среды
+  environment_slug: node-js
+  instance_count: 1
+  instance_size_slug: basic-xxs
+  http_port: 3001
+  
+  # Переменные окружения
+  envs:
+  - key: NODE_ENV
+    value: production
+  - key: DATABASE_URL
+    value: ${aiassistant-db.DATABASE_URL}
+  - key: OPENAI_API_KEY
+    type: SECRET
+    # Значение установите в веб-интерфейсе
+  - key: JWT_SECRET  
+    type: SECRET
+    # Значение установите в веб-интерфейсе
+  - key: ALLOWED_ORIGINS
+    value: https://${_self.DOMAIN}
+  - key: PORT
+    value: "3001"
+
+# База данных PostgreSQL
+databases:
+- engine: PG
+  name: aiassistant-db
+  num_nodes: 1
+  size: db-s-dev-database
+  version: "14"

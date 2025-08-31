@@ -13,8 +13,11 @@
     "dev:frontend": "npm run dev --workspace=frontend",
     "dev:widget": "npm run start --workspace=widget",
     "dev:all": "concurrently \"npm:dev:backend\" \"npm:dev:frontend\" \"npm:dev:widget\"",
+    "build:backend": "npm run build --workspace=backend",
+    "build:frontend": "npm run build --workspace=frontend",
     "build:widget": "npm run build --workspace=widget",
-    "build:all": "npm run build:widget && npm run build --workspace=frontend",
+    "build:all": "npm run build:backend && npm run build:frontend && npm run build:widget",
+    "start": "cd backend && npm start",
     "install-all": "npm install && npm install --workspaces --if-present"
   },
   "overrides": {

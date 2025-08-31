@@ -1,0 +1,56 @@
+name: aiassistant
+services:
+- name: backend
+  source_dir: /
+  github:
+    repo: your-username/your-repo-name
+    branch: main
+    deploy_on_push: true
+  run_command: npm start
+  build_command: npm run install-all && npm run build:all
+  environment_slug: node-js
+  instance_count: 1
+  instance_size_slug: basic-xxs
+  http_port: 3001
+  routes:
+  - path: /api
+  - path: /widget
+  - path: /public
+  envs:
+  - key: NODE_ENV
+    value: production
+  - key: DATABASE_URL
+    value: ${aiassistant-db.DATABASE_URL}
+  - key: OPENAI_API_KEY
+    value: YOUR_OPENAI_KEY_HERE
+    type: SECRET
+  - key: JWT_SECRET
+    value: YOUR_JWT_SECRET_HERE
+    type: SECRET
+  - key: ALLOWED_ORIGINS
+    value: ${_self.DOMAIN}
+  - key: PORT
+    value: "3001"
+
+- name: frontend
+  source_dir: /frontend
+  github:
+    repo: your-username/your-repo-name
+    branch: main
+    deploy_on_push: true
+  build_command: npm install && npm run build
+  environment_slug: node-js
+  type: static_site
+  static_sites:
+  - name: frontend-static
+    source_dir: /dist
+    routes:
+    - path: /
+    catchall_document: index.html
+
+databases:
+- engine: PG
+  name: aiassistant-db
+  num_nodes: 1
+  size: db-s-dev-database
+  version: "14"
