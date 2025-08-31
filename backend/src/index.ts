@@ -50,15 +50,22 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
 
 const corsOptions = {
     origin: function (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
+        console.log(`🌐 CORS check: origin="${origin}", allowed origins:`, allowedOrigins);
+        
         // В development режиме разрешаем запросы без origin (Postman, тесты)
         if (!origin && isDevelopment) return callback(null, true);
+        
+        // В production временно разрешаем все DigitalOcean домены для диагностики
+        if (isProduction && origin && origin.includes('.ondigitalocean.app')) {
+            console.log(`✅ CORS: Allowing DigitalOcean origin: ${origin}`);
+            return callback(null, true);
+        }
         
         if (origin && allowedOrigins.includes(origin)) {
             callback(null, true);
         } else {
-            if (isDevelopment) {
-                console.warn(`CORS: Blocked request from unauthorized origin: ${origin}`);
-            }
+            console.warn(`❌ CORS: Blocked request from unauthorized origin: ${origin}`);
+            console.log(`📝 CORS: Add "${origin}" to ALLOWED_ORIGINS environment variable`);
             callback(new Error('Not allowed by CORS'));
         }
     },
