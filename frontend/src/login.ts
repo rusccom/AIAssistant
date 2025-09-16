@@ -5,6 +5,7 @@ import { initSimpleFouc } from './utils/simple-fouc';
 import { setupPasswordToggle } from './utils/password-toggle';
 import { redirectIfAuthenticated } from './utils/auth';
 import { initNavigation } from './utils/navigation';
+import { apiRequest, saveAuthData, API_ENDPOINTS, PAGES } from './utils/api-client';
 
 // Redirect if user is already logged in - stop execution if redirecting
 redirectIfAuthenticated();
@@ -61,21 +62,17 @@ async function handleLoginFormSubmit(event: Event) {
     }
 
     try {
-        const response = await fetch('/api/auth/login', {
+        const { data, response } = await apiRequest(API_ENDPOINTS.AUTH.LOGIN, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password }),
+            body: JSON.stringify({ email, password })
         });
 
-        const data = await response.json();
-
         if (response.ok) {
-            // Сохраняем токен и пользователя (токен автоматически на год)
-            localStorage.setItem('authToken', data.token);
-            localStorage.setItem('user', JSON.stringify(data.user));
+            // Сохраняем токен и пользователя через централизованную функцию
+            saveAuthData(data.token, data.user);
             
             console.log('✅ Логин успешен, токен сохранен на год');
-            window.location.href = '/dashboard.html';
+            window.location.href = PAGES.DASHBOARD;
         } else {
             showError(data.message || 'Login failed.');
         }

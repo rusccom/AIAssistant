@@ -1,5 +1,7 @@
+import { getAuthToken, apiRequest, clearAuthData, PAGES, API_ENDPOINTS } from './api-client';
+
 export function redirectIfAuthenticated() {
-    const token = localStorage.getItem('authToken');
+    const token = getAuthToken();
     if (!token) {
         console.log('👤 На странице входа: токен отсутствует');
         return;
@@ -7,102 +9,45 @@ export function redirectIfAuthenticated() {
 
     // Если токен есть - сразу редиректим (быстро, без API запроса)
     console.log(`🚀 Быстрый редирект: токен найден, перенаправляем на dashboard`);
-    window.location.href = '/dashboard.html';
-    
-    // Валидацию токена сделаем уже на dashboard странице через protectPage()
+    window.location.href = PAGES.DASHBOARD;
 }
 
 export async function protectPage() {
-    const token = localStorage.getItem('authToken');
+    const token = getAuthToken();
     if (!token) {
         console.log('🔒 Нет токена, перенаправляем на login');
-        window.location.href = '/login.html';
+        window.location.href = PAGES.LOGIN;
         return;
     }
 
     try {
-        // Проверяем действительность токена
-        const response = await fetch('/api/auth/me', {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
-        });
-
-        if (response.ok) {
-            // Токен действителен - обновляем данные пользователя
-            const user = await response.json();
-            localStorage.setItem('user', JSON.stringify(user));
-            console.log('✅ Защищенная страница: доступ разрешен');
-        } else if (response.status === 401) {
-            // Токен истек - перенаправляем на логин
-            console.log('⚠️ Токен истек, перенаправляем на login');
-            localStorage.removeItem('authToken');
-            localStorage.removeItem('user');
-            window.location.href = '/login.html';
-        }
+        // Проверяем действительность токена через централизованный API client
+        const { data: user } = await apiRequest(API_ENDPOINTS.AUTH.ME, { method: 'GET' });
+        
+        // Сохраняем данные пользователя
+        localStorage.setItem('user', JSON.stringify(user));
+        console.log('✅ Защищенная страница: доступ разрешен');
     } catch (error) {
         console.warn('⚠️ Ошибка проверки токена:', error);
-        // При сетевых ошибках не перенаправляем
+        // apiRequest уже обработал 401 и сделал редирект
     }
 }
 
-export function getUser() {
-    const userStr = localStorage.getItem('user');
-    if (!userStr || userStr === 'undefined' || userStr === 'null') {
-        return null;
-    }
-    try {
-        return JSON.parse(userStr);
-    } catch (e) {
-        console.error("Failed to parse user from localStorage", e);
-        return null;
-    }
-}
-
-/**
- * Выполняет logout пользователя
- * Простая версия - очищает все данные и перенаправляет на логин
- */
-export async function logout() {
-    try {
-        // Отправляем запрос на backend для logout (если необходимо)
-        const token = localStorage.getItem('authToken');
-        if (token) {
-            fetch('/api/auth/logout', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            }).catch(() => {
-                // Игнорируем ошибки logout на backend, т.к. локальный logout важнее
-            });
-        }
-    } finally {
-        // Очищаем все данные авторизации
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('user');
-        
-        console.log('🔓 Logout: Все данные очищены');
-        
-        // Перенаправляем на страницу логина
-        window.location.href = '/login.html';
-    }
-}
-
-
+// Переиспользуем функции из api-client для устранения дубликатов
+export { getStoredUser as getUser, performLogout as logout } from './api-client';
 
 /**
  * Показывает информацию о состоянии авторизации (для отладки)
  */
 export function getAuthInfo(): { hasToken: boolean; user?: any } {
-    const token = localStorage.getItem('authToken');
-    const user = getUser();
+    const token = getAuthToken();
+    const user = getStoredUser();
     
     return {
         hasToken: !!token,
         user: user || undefined
     };
-} 
+}
+
+// Импортируем функции для совместимости
+import { getStoredUser } from './api-client'; 

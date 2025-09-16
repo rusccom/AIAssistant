@@ -1,5 +1,10 @@
 import { getUser } from '../utils/auth';
 
+// Импортируем централизованные утилиты для устранения дубликатов
+import { apiRequest, getAuthToken, performLogout } from '../utils/api-client';
+import { API_ENDPOINTS, ROUTES } from '../utils/constants';
+import { showSuccess, handleApiError } from '../utils/error-handler';
+
 let sidebarInserted = false;
 
 const sidebarTemplate = `
@@ -37,12 +42,9 @@ const sidebarTemplate = `
     </aside>
 `;
 
-const handleSidebarLogout = () => {
-    // Простой logout - очищаем токен и перенаправляем
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('user');
-    console.log('🔓 Sidebar logout');
-    window.location.href = '/login.html';
+const handleSidebarLogout = async () => {
+    // Используем централизованную logout логику
+    await performLogout();
 };
 
 export const insertSidebar = () => {
@@ -102,25 +104,14 @@ const setupProfileModal = () => {
         }
 
         try {
-            const token = localStorage.getItem('authToken');
-            const response = await fetch('/api/auth/change-password', {
+            const { data, response } = await apiRequest(API_ENDPOINTS.AUTH.CHANGE_PASSWORD, {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
                 body: JSON.stringify({ currentPassword, newPassword })
             });
 
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.message || 'Failed to update password.');
-            }
-
             // Success
             closeModal();
-            alert('Password updated successfully!'); // Or show a more subtle notification
+            showSuccess('Password updated successfully!');
             (form as HTMLFormElement).reset();
             errorDiv.style.display = 'none';
 
@@ -143,19 +134,13 @@ const setupLogout = () => {
 }
 
 async function fetchAndCacheUser() {
-    const token = localStorage.getItem('authToken');
+    const token = getAuthToken();
     if (!token) return null;
 
     try {
-        const response = await fetch('/api/auth/me', {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (response.ok) {
-            const user = await response.json();
-            localStorage.setItem('user', JSON.stringify(user));
-            return user;
-        }
-        return null;
+        const { data: user } = await apiRequest(API_ENDPOINTS.AUTH.ME);
+        localStorage.setItem('user', JSON.stringify(user));
+        return user;
     } catch (error) {
         console.error('Failed to fetch user:', error);
         return null;

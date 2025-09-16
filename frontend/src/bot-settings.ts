@@ -5,6 +5,13 @@ import { initNavigation } from './utils/navigation';
 import { setupPage } from './layout/page-container';
 import pageContent from './bot-settings.content.html';
 
+// Централизованные утилиты для устранения 19 дубликатов
+import { apiRequest, getAuthToken } from './utils/api-client';
+import { ROUTES, API_ENDPOINTS, MESSAGES } from './utils/constants';
+import { showError, showSuccess, showWarning, handleApiError } from './utils/error-handler';
+import { Modal, LoadingSpinner, showToast } from './components';
+import { validateForm, getFormData, setFormLoading } from './utils/form-utils';
+
 // Protect this page
 protectPage();
 
@@ -67,7 +74,7 @@ function updateDomainIndicator(domain: string | null) {
 
 // Function to load products from API with pagination and search
 async function loadProducts(page: number = 1, search: string = '') {
-    const token = localStorage.getItem('authToken');
+    const token = getAuthToken();
     if (!token) return;
 
     if (!selectedDomain) {
@@ -89,15 +96,8 @@ async function loadProducts(page: number = 1, search: string = '') {
             params.append('search', search.trim());
         }
 
-        const response = await fetch(`/api/products?${params}`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-
-        if (!response.ok) {
-            throw new Error('Failed to fetch products');
-        }
-
-        const data = await response.json();
+        const { data } = await apiRequest(`${API_ENDPOINTS.PRODUCTS.BASE}?${params}`);
+        
         priceListData = data.products;
         currentPage = data.pagination.page;
         totalPages = data.pagination.totalPages;
@@ -449,34 +449,34 @@ async function deleteProduct(productId: number) {
     if (!product) return;
 
     const confirmMessage = `Are you sure you want to delete "${product.title}"?\n\nThis action cannot be undone.`;
-    if (!confirm(confirmMessage)) return;
+    
+    // Используем новый Modal компонент вместо confirm()
+    Modal.confirm(confirmMessage, 'Delete Product', async () => {
+        await performProductDelete(productId);
+    });
+}
 
-    const token = localStorage.getItem('authToken');
+async function performProductDelete(productId: number) {
+    const token = getAuthToken();
     if (!token) return;
 
     try {
         if (!selectedDomain) {
-            alert('Please select a domain first');
+            showError('Please select a domain first');
             return;
         }
 
         const params = new URLSearchParams({ domain: selectedDomain });
-        const response = await fetch(`/api/products/${productId}?${params}`, {
-            method: 'DELETE',
-            headers: { 'Authorization': `Bearer ${token}` }
+        await apiRequest(`${API_ENDPOINTS.PRODUCTS.BASE}/${productId}?${params}`, {
+            method: 'DELETE'
         });
-
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-            throw new Error(errorData.error || 'Failed to delete product');
-        }
 
         // Reload current page/search to update the list
         await loadProducts(currentPage, currentSearch);
-        alert('Product deleted successfully! 🗑️');
+        showSuccess('Product deleted successfully! 🗑️');
     } catch (error) {
         console.error('Error deleting product:', error);
-        alert(`Error deleting product: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        handleApiError(error, 'deleting product');
     }
 }
 
@@ -568,10 +568,10 @@ const renderPriceList = () => {
 function initializePage() {
     setupPage(pageContent);
 
-    const token = localStorage.getItem('authToken');
+    const token = getAuthToken();
     if (!token) {
         // Fallback, should be handled by protectPage
-        window.location.href = '/login.html';
+        window.location.href = ROUTES.LOGIN;
         return;
     }
     
@@ -707,12 +707,7 @@ async function initializeBotSettings(token: string) {
 
     const fetchDashboardData = async () => {
         try {
-            const response = await fetch('/api/dashboard/data', {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (!response.ok) throw new Error('Failed to fetch dashboard data');
-            
-            const data = await response.json();
+            const { data } = await apiRequest(API_ENDPOINTS.DASHBOARD.DATA);
 
             if (!data.success) {
                 throw new Error(data.message || 'Server error');
@@ -738,7 +733,7 @@ async function initializeBotSettings(token: string) {
             }
         } catch (error) {
             console.error(error);
-            alert('Could not load dashboard data.');
+            handleApiError(error, 'loading dashboard data');
         }
     };
 
@@ -771,19 +766,43 @@ async function initializeBotSettings(token: string) {
                         <p class="domain-status">Click to configure bot settings</p>
                     </div>
                 </div>
-                <div class="domain-actions">
-                    <button class="btn btn-secondary btn-sm test-bot-btn" data-hostname="${domain.hostname}">
-                        🎤 Test Bot
-                    </button>
-                </div>
             `;
             
-            domainItem.addEventListener('click', (e) => {
-                // Проверяем, что клик не по кнопке test bot
-                if ((e.target as HTMLElement).classList.contains('test-bot-btn')) {
-                    return;
+            // Minimal addition: add "Test Bot" button to inject widget script with sethost=domain
+            const actions = document.createElement('div');
+            actions.className = 'domain-actions';
+            const testBtn = document.createElement('button');
+            testBtn.type = 'button';
+            testBtn.className = 'btn btn-secondary btn-sm';
+            testBtn.textContent = 'Test Bot';
+            testBtn.addEventListener('click', (ev) => {
+                ev.stopPropagation();
+                try {
+                    // Удаляем старые script теги виджета чтобы избежать дублирования
+                    const oldScripts = document.querySelectorAll('script[src*="widget.js"]');
+                    oldScripts.forEach(script => script.remove());
+                    
+                    // Удаляем старые виджеты
+                    const oldWidgets = document.querySelectorAll('[id^="ai-widget-"]');
+                    oldWidgets.forEach(widget => widget.remove());
+                    
+                    const script = document.createElement('script');
+                    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+                    const widgetSrc = isLocalhost ? 'http://localhost:3000/widget/widget.js' : '/widget/widget.js';
+                    script.src = widgetSrc;
+                    script.setAttribute('sethost', domain.hostname);
+                    script.id = `ai-widget-${Date.now()}`;
+                    document.head.appendChild(script);
+                    showToast(`Widget injected for ${domain.hostname}`, 'success');
+                } catch (err) {
+                    console.error('Widget injection error:', err);
+                    showToast('Failed to inject widget script', 'error');
                 }
-                
+            });
+            actions.appendChild(testBtn);
+            domainItem.appendChild(actions);
+            
+            domainItem.addEventListener('click', (e) => {
                 document.querySelectorAll('.domain-item').forEach(el => el.classList.remove('selected'));
                 domainItem.classList.add('selected');
                 selectedDomain = domain.hostname;
@@ -791,13 +810,6 @@ async function initializeBotSettings(token: string) {
                 // Update domain indicator and load products
                 updateDomainIndicator(domain.hostname);
                 loadProducts(1, currentSearch);
-            });
-
-            // Добавляем обработчик для кнопки Test Bot
-            const testBotBtn = domainItem.querySelector('.test-bot-btn');
-            testBotBtn?.addEventListener('click', (e) => {
-                e.stopPropagation(); // Останавливаем всплытие события
-                openWidgetModal(domain.hostname);
             });
 
             domainsList.appendChild(domainItem);
@@ -818,197 +830,29 @@ async function initializeBotSettings(token: string) {
         document.body.style.overflow = 'auto';
     };
 
-    // Widget Modal Management
-    const widgetModal = document.getElementById('widget-modal') as HTMLDivElement;
-    const closeWidgetModalBtn = document.getElementById('close-widget-modal-btn') as HTMLButtonElement;
-    const widgetDomainLabel = document.getElementById('widget-domain-label') as HTMLSpanElement;
-    const widgetContainer = document.getElementById('widget-container') as HTMLDivElement;
 
-    let currentWidgetSession: any = null;
 
-    const openWidgetModal = (hostname: string) => {
-        if (!widgetModal || !widgetDomainLabel || !widgetContainer) return;
-        
-        // Показываем модальное окно
-        widgetModal.style.display = 'flex';
-        document.body.style.overflow = 'hidden';
-        
-        // Обновляем заголовок с доменом
-        widgetDomainLabel.textContent = `Testing: ${hostname}`;
-        
-        // Загружаем виджет
-        loadWidget(hostname);
-    };
 
-    const closeWidgetModal = () => {
-        if (!widgetModal || !widgetContainer) return;
-        
-        // Останавливаем текущую сессию виджета если есть
-        const widgetInstance = (window as any).currentWidgetInstance;
-        if (widgetInstance && widgetInstance.session) {
-            try {
-                widgetInstance.session.close();
-                console.log('🔄 Widget session closed');
-            } catch (error) {
-                console.log('Error closing widget session:', error);
-            }
-        }
-        
-        // Очищаем глобальные ссылки
-        currentWidgetSession = null;
-        delete (window as any).currentWidgetInstance;
-        
-        widgetModal.style.display = 'none';
-        document.body.style.overflow = 'auto';
-        
-        // Очищаем контейнер
-        widgetContainer.innerHTML = `
-            <div class="widget-loading">
-                <p>Loading AI Assistant...</p>
-                <div class="loading-spinner"></div>
-            </div>
-        `;
-        
-        // Очищаем поле хоста
-        const hostInput = document.getElementById('widget-host-input') as HTMLInputElement;
-        if (hostInput) {
-            hostInput.value = '';
-        }
-        
-        console.log('🔄 Widget modal closed and cleaned up');
-    };
 
-    const loadWidget = async (hostname: string) => {
-        if (!widgetContainer) return;
-        
-        try {
-            // Создаем временный контейнер для виджета
-            const widgetId = `widget-${Date.now()}`;
-            widgetContainer.innerHTML = `<div id="${widgetId}"></div>`;
 
-            // Загружаем script виджета если еще не загружен
-            if (!document.querySelector('script[src="/widget/widget.js"]')) {
-                const script = document.createElement('script');
-                script.src = '/widget/widget.js';
-                script.onload = () => {
-                    console.log('✅ Widget script loaded successfully!');
-                    initializeWidgetWithNewAPI(hostname, widgetId);
-                };
-                script.onerror = () => {
-                    widgetContainer.innerHTML = `
-                        <div class="widget-error">
-                            <p>❌ Failed to load widget</p>
-                            <p>Make sure the backend server is running</p>
-                        </div>
-                    `;
-                };
-                document.head.appendChild(script);
-            } else {
-                console.log('✅ Widget script already loaded!');
-                initializeWidgetWithNewAPI(hostname, widgetId);
-            }
-            
-        } catch (error) {
-            console.error('Error loading widget:', error);
-            widgetContainer.innerHTML = `
-                <div class="widget-error">
-                    <p>❌ Error loading widget</p>
-                    <p>${error}</p>
-                </div>
-            `;
-        }
-    };
-
-    const initializeWidgetWithNewAPI = (hostname: string, widgetId: string) => {
-        console.log(`🎯 Initializing widget for hostname: ${hostname}`);
-        
-        // Получаем значение хоста из поля ввода
-        const hostInput = document.getElementById('widget-host-input') as HTMLInputElement;
-        const customHost = hostInput?.value.trim();
-        
-        // Подготавливаем конфигурацию для виджета
-        const widgetConfig: any = {
-            container: widgetId,
-            hostname: hostname
-        };
-        
-        // Добавляем кастомный хост если указан
-        if (customHost) {
-            widgetConfig.apiHost = customHost;
-            console.log(`🔧 Using custom API host: ${customHost}`);
-        } else {
-            console.log(`🔧 Using auto-detected API host`);
-        }
-        
-        // Инициализируем виджет с новым API
-        try {
-            const AIWidget = (window as any).AIWidget;
-            if (!AIWidget) {
-                throw new Error('AIWidget API not available');
-            }
-            
-            const widgetInstance = AIWidget.init(widgetConfig);
-            
-            if (widgetInstance) {
-                console.log('✅ Widget initialized successfully with new API');
-                currentWidgetSession = widgetInstance;
-                
-                // Сохраняем экземпляр для очистки при закрытии модала
-                (window as any).currentWidgetInstance = widgetInstance;
-            } else {
-                throw new Error('Widget initialization returned null');
-            }
-            
-        } catch (error) {
-            console.error('❌ Failed to initialize widget with new API:', error);
-            
-            // Показываем ошибку пользователю
-            if (widgetContainer) {
-                widgetContainer.innerHTML = `
-                    <div class="widget-error">
-                        <p>❌ Failed to initialize widget</p>
-                        <p>${error}</p>
-                        <p>Please check console for details</p>
-                    </div>
-                `;
-            }
-        }
-    };
-
-    // Обработчики для закрытия виджет модала
-    if (closeWidgetModalBtn) {
-        closeWidgetModalBtn.addEventListener('click', closeWidgetModal);
-    }
-
-    if (widgetModal) {
-        widgetModal.addEventListener('click', (e) => {
-            if (e.target === widgetModal) {
-                closeWidgetModal();
-            }
-        });
-    }
 
     const addDomain = async (event: Event) => {
         event.preventDefault();
         if (!domainNameInput) return;
         const hostname = domainNameInput.value.trim();
         if (!hostname) {
-            alert('Please enter a domain name.');
+            showError('Please enter a domain name.');
             return;
         }
 
         try {
-            const response = await fetch('/api/dashboard/domains', {
+            const { data, response } = await apiRequest('/api/dashboard/domains', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
                 body: JSON.stringify({ hostname })
             });
 
             if (response.status === 409) {
-                alert('This domain has already been added.');
+                showError('This domain has already been added.');
                 return;
             }
 
@@ -1018,9 +862,10 @@ async function initializeBotSettings(token: string) {
             
             closeModal();
             fetchDashboardData();
+            showSuccess('Domain added successfully!');
         } catch (error) {
             console.error(error);
-            alert('Could not add domain.');
+            handleApiError(error, 'adding domain');
         }
     };
 
@@ -1052,7 +897,7 @@ async function initializeBotSettings(token: string) {
 
         } catch (error) {
             console.error(error);
-            alert(`Could not load configuration for ${domain}.`);
+            handleApiError(error, `loading configuration for ${domain}`);
         }
     };
 
@@ -1076,16 +921,10 @@ async function initializeBotSettings(token: string) {
         };
 
         try {
-            const response = await fetch(`/api/bot-config?domain=${selectedDomain}`, {
+            const { data } = await apiRequest(`${API_ENDPOINTS.BOT_CONFIG.BASE}?domain=${selectedDomain}`, {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
                 body: JSON.stringify(configData)
             });
-
-            if (!response.ok) throw new Error('Failed to save configuration');
             
             // Обновляем локальный кэш с новыми данными
             if (domainConfigs[selectedDomain]) {
@@ -1095,11 +934,11 @@ async function initializeBotSettings(token: string) {
                 };
             }
             
-            alert('Configuration saved successfully!');
+            showSuccess('Configuration saved successfully!');
 
         } catch (error) {
             console.error(error);
-            alert('Failed to save configuration.');
+            handleApiError(error, 'saving configuration');
         }
     };
 
@@ -1122,7 +961,7 @@ async function initializeBotSettings(token: string) {
                 visualEditorBtn.href = `/visual-editor.html?domain=${encodeURIComponent(selectedDomain)}`;
             } else {
                 e.preventDefault();
-                alert('Please select a domain first');
+                showError('Please select a domain first');
             }
         });
     }
@@ -1169,10 +1008,10 @@ async function initializeBotSettings(token: string) {
     const handleImport = async (event: Event) => {
         event.preventDefault();
         const fileInput = document.getElementById('price-list-file') as HTMLInputElement;
-        if (!fileInput?.files || fileInput.files.length === 0) {
-            alert('Please select a file.');
+                if (!fileInput?.files || fileInput.files.length === 0) {
+            showError('Please select a file.');
             return;
-            }
+        }
 
         const file = fileInput.files[0];
         const reader = new FileReader();
@@ -1188,7 +1027,7 @@ async function initializeBotSettings(token: string) {
                 } else if (file.type === 'text/csv' || file.name.endsWith('.csv')) {
                     const lines = content.split('\n').filter(line => line.trim());
                     if (lines.length < 2) {
-                        alert('CSV file must have at least a header and one data row.');
+                        showError('CSV file must have at least a header and one data row.');
                         return;
                     }
                     // Skip header row and parse data
@@ -1204,16 +1043,16 @@ async function initializeBotSettings(token: string) {
                 }
                 
                 // Add parsed products to the list
-                // Импорт товаров через API (пока просто показываем алерт)
-                alert(`Импорт ${parsed.length} товаров. Функция будет реализована позже.`);
+                // Импорт товаров через API (пока просто показываем сообщение)
+                showWarning(`Импорт ${parsed.length} товаров. Функция будет реализована позже.`);
                 
                 renderPriceList();
                 closeImportModal();
-                alert(`Successfully imported ${parsed.length} products!`);
+                showSuccess(`Successfully imported ${parsed.length} products!`);
                 
             } catch (error) {
                 console.error('Import error:', error);
-                alert('Error parsing file. Please check the file format.');
+                showError('Error parsing file. Please check the file format.');
             }
         };
         
@@ -1324,7 +1163,7 @@ async function initializeBotSettings(token: string) {
             const selectedType = (document.querySelector('input[name="product-type"]:checked') as HTMLInputElement)?.value;
 
             if (!productName) {
-                alert('Please enter a product name');
+                showError('Please enter a product name');
                 return;
             }
 
@@ -1337,7 +1176,7 @@ async function initializeBotSettings(token: string) {
                 const price = parseFloat(priceInput?.value || '0');
 
                 if (price <= 0) {
-                    alert('Please enter a valid price');
+                    showError('Please enter a valid price');
                     return;
                 }
 
@@ -1351,7 +1190,7 @@ async function initializeBotSettings(token: string) {
                 const variantRows = Array.from(variantsContainer.querySelectorAll('.dynamic-variant-row'));
                 
                 if (variantRows.length === 0) {
-                    alert('Please add at least one product variant');
+                    showError('Please add at least one product variant');
                     return;
                 }
 
@@ -1521,7 +1360,7 @@ async function initializeBotSettings(token: string) {
 
 // Function to handle adding a product
 async function handleAddProduct(productName: string, productDesc: string, variants: any[]) {
-    const token = localStorage.getItem('authToken');
+    const token = getAuthToken();
     if (!token) return;
 
     try {
@@ -1532,24 +1371,15 @@ async function handleAddProduct(productName: string, productDesc: string, varian
         };
 
         if (!selectedDomain) {
-            alert('Please select a domain first');
+            showError('Please select a domain first');
             return;
         }
 
         const params = new URLSearchParams({ domain: selectedDomain });
-        const response = await fetch(`/api/products?${params}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
+        await apiRequest(`${API_ENDPOINTS.PRODUCTS.BASE}?${params}`, {
+            method: 'POST',
             body: JSON.stringify(productData)
-            });
-
-            if (!response.ok) {
-            const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-            throw new Error(errorData.error || 'Failed to create product');
-        }
+        });
 
         // Update the product list - stay on current page if searching, go to first page if not
         if (currentSearch.trim()) {
@@ -1559,23 +1389,23 @@ async function handleAddProduct(productName: string, productDesc: string, varian
             await loadProducts(1, '');
         }
         closeProductModal();
-        alert('Product created successfully! 🎉');
+        showSuccess('Product created successfully! 🎉');
     } catch (error) {
         console.error('Error creating product:', error);
-        alert(`Error creating product: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        handleApiError(error, 'creating product');
     }
 }
 
 // Function to handle editing a product
 async function handleEditProduct(productName: string, productDesc: string, variants: any[]) {
-    const token = localStorage.getItem('authToken');
+    const token = getAuthToken();
     if (!token) return;
 
     const productIdInput = document.getElementById('product-id') as HTMLInputElement;
     const productId = parseInt(productIdInput?.value || '0');
     
     if (!productId) {
-        alert('Product ID not found');
+        showError('Product ID not found');
         return;
     }
 
@@ -1587,31 +1417,22 @@ async function handleEditProduct(productName: string, productDesc: string, varia
         };
 
         if (!selectedDomain) {
-            alert('Please select a domain first');
+            showError('Please select a domain first');
             return;
         }
 
         const params = new URLSearchParams({ domain: selectedDomain });
-        const response = await fetch(`/api/products/${productId}?${params}`, {
+        await apiRequest(`${API_ENDPOINTS.PRODUCTS.BASE}/${productId}?${params}`, {
             method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
             body: JSON.stringify(productData)
         });
-
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-            throw new Error(errorData.error || 'Failed to update product');
-        }
 
         // Update product list
         await loadProducts(currentPage, currentSearch);
         closeProductModal();
-        alert('Product updated successfully! ✏️');
+        showSuccess('Product updated successfully! ✏️');
     } catch (error) {
         console.error('Error updating product:', error);
-        alert(`Error updating product: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        handleApiError(error, 'updating product');
     }
 } 

@@ -2,6 +2,10 @@ import { insertSidebar } from './Sidebar';
 import './layout.css';
 import { getUser } from '../utils/auth';
 
+// Импортируем централизованные утилиты для устранения дубликатов
+import { apiRequest, getAuthToken, clearAuthData } from '../utils/api-client';
+import { API_ENDPOINTS, ROUTES } from '../utils/constants';
+
 function setupMobileNavigation() {
     const toggleButton = document.getElementById('mobile-nav-toggle');
     const mobileMenu = document.getElementById('mobile-nav-menu');
@@ -41,11 +45,10 @@ function setupMobileNavigation() {
 
     // Handle logout
     if (logoutLink) {
-        logoutLink.addEventListener('click', (e) => {
+        logoutLink.addEventListener('click', async (e) => {
             e.preventDefault();
-            localStorage.removeItem('authToken');
-            localStorage.removeItem('user');
-            window.location.href = '/';
+            clearAuthData();
+            window.location.href = ROUTES.HOME;
         });
     }
 }
@@ -57,16 +60,12 @@ async function updateMobileUserEmail() {
     let user = getUser();
     if (!user) {
         // Try to fetch user data
-        const token = localStorage.getItem('authToken');
+        const token = getAuthToken();
         if (token) {
             try {
-                const response = await fetch('/api/auth/me', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (response.ok) {
-                    user = await response.json();
-                    localStorage.setItem('user', JSON.stringify(user));
-                }
+                const { data: userData } = await apiRequest(API_ENDPOINTS.AUTH.ME);
+                user = userData;
+                localStorage.setItem('user', JSON.stringify(user));
             } catch (error) {
                 console.error('Failed to fetch user:', error);
             }

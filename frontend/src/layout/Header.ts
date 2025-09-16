@@ -1,5 +1,9 @@
 // /frontend/src/layout/Header.ts
 
+// Импортируем централизованные утилиты для устранения дубликатов
+import { getStoredUser, getAuthToken, performLogout } from '../utils/api-client';
+import { ROUTES } from '../utils/constants';
+
 let headerInserted = false;
 
 // Reset function to force header re-render
@@ -12,21 +16,11 @@ export const resetHeader = () => {
 };
 
 const getUserFromStorage = () => {
-    const userString = localStorage.getItem('user');
-    if (!userString || userString === 'undefined') {
-        return {};
-    }
-    try {
-        return JSON.parse(userString);
-    } catch (error) {
-        console.error('Error parsing user from localStorage:', error);
-        localStorage.removeItem('user'); // Clear corrupted data
-        return {};
-    }
+    return getStoredUser() || {};
 }
 
 const getHeaderTemplate = (): string => {
-    const authToken = localStorage.getItem('authToken');
+    const authToken = getAuthToken();
     const user = getUserFromStorage();
     const isLoggedIn = !!authToken;
 
@@ -119,14 +113,11 @@ const getHeaderTemplate = (): string => {
     `;
 };
 
-const handleLogout = (e: Event) => {
+const handleLogout = async (e: Event) => {
     e.preventDefault();
     
-    // Простой logout - очищаем токен и перенаправляем
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('user');
-    console.log('🔓 Header logout');
-    window.location.href = '/login.html';
+    // Используем централизованную logout логику
+    await performLogout();
 };
 
 const setupMobileMenuToggle = () => {

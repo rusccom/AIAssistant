@@ -5,6 +5,12 @@ import { initNavigation } from './utils/navigation';
 import { setupPage } from './layout/page-container';
 import pageContent from './dashboard.content.html';
 
+// Новые централизованные утилиты
+import { apiRequest, getAuthToken } from './utils/api-client';
+import { ROUTES, API_ENDPOINTS } from './utils/constants';
+import { showError, handleApiError } from './utils/error-handler';
+import { LoadingSpinner } from './components';
+
 // Protect this page
 protectPage();
 
@@ -43,10 +49,10 @@ let filteredSessions: SessionData[] = [];
 function initializePage() {
     setupPage(pageContent);
     
-    const token = localStorage.getItem('authToken');
+    const token = getAuthToken();
     if (!token) {
         // protectPage already handles this, but as a fallback
-        window.location.href = '/login.html';
+        window.location.href = ROUTES.LOGIN;
         return;
     }
 
@@ -178,28 +184,14 @@ function showEmptyState() {
 }
 
 async function loadDashboardData() {
-    const token = localStorage.getItem('authToken');
+    const token = getAuthToken();
     if (!token) return;
 
     showLoadingSkeleton();
 
-        try {
-            const response = await fetch('/api/dashboard/sessions', {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-
-            if (response.status === 401) {
-                localStorage.removeItem('authToken');
-                window.location.href = '/login.html';
-                return;
-            }
-
-            if (!response.ok) {
-                throw new Error('Failed to fetch sessions');
-            }
-            
-            const sessions = await response.json();
-            console.log(`✅ Dashboard: Получено ${sessions.length} сессий`);
+    try {
+        const { data: sessions } = await apiRequest(API_ENDPOINTS.DASHBOARD.SESSIONS);
+        console.log(`✅ Dashboard: Получено ${sessions.length} сессий`);
             
         allSessions = sessions || [];
         filteredSessions = [...allSessions];
@@ -319,17 +311,11 @@ function renderSessions(sessions: SessionData[]) {
 }
 
 async function downloadSession(sessionId: string) {
-    const token = localStorage.getItem('authToken');
+    const token = getAuthToken();
     if (!token) return;
 
     try {
-        const response = await fetch(`/api/sessions/${sessionId}/export`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-
-        if (!response.ok) {
-            throw new Error('Failed to download session');
-        }
+        const { response } = await apiRequest(`${API_ENDPOINTS.SESSIONS.EXPORT}/${sessionId}/export`);
 
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
@@ -342,7 +328,7 @@ async function downloadSession(sessionId: string) {
         document.body.removeChild(a);
     } catch (error) {
         console.error('Failed to download session:', error);
-        alert('Failed to download session. Please try again.');
+        showError('Failed to download session. Please try again.');
     }
 }
 

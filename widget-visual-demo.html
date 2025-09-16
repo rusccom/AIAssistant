@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎨 Визуальная демонстрация AI Виджета</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        
+        .demo-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #3b82f6, #1e40af);
+            color: white;
+            padding: 3rem;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 3rem;
+        }
+        
+        .preview-section {
+            margin-bottom: 3rem;
+        }
+        
+        .preview-title {
+            font-size: 1.5rem;
+            color: #1f2937;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        /* Имитация клиентского сайта */
+        .client-site-mockup {
+            background: #f8fafc;
+            border: 2px dashed #cbd5e1;
+            border-radius: 12px;
+            padding: 2rem;
+            position: relative;
+            min-height: 400px;
+            margin-bottom: 2rem;
+        }
+        
+        .client-content {
+            text-align: center;
+            color: #64748b;
+        }
+        
+        .client-content h2 {
+            color: #334155;
+            margin-bottom: 1rem;
+        }
+        
+        .integration-code {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.9rem;
+            margin: 1rem 0;
+            border: 1px solid #334155;
+        }
+        
+        /* ТОЧНАЯ КОПИЯ ВИДЖЕТА */
+        .ai-widget-demo {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 9999;
+            max-width: 400px;
+        }
+        
+        .voice-widget {
+            text-align: center;
+            padding: 2rem;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            position: relative;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .voice-widget h1 {
+            margin: 0 0 1rem 0;
+            color: #1f2937;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+        
+        .voice-widget #status {
+            margin: 1.5rem 0;
+            color: #6b7280;
+            font-size: 0.95rem;
+            line-height: 1.4;
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .voice-widget #talk-button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            width: 100%;
+            max-width: 200px;
+        }
+        
+        .voice-widget #talk-button:hover {
+            background: #2563eb;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+        }
+        
+        .voice-widget #talk-button:active {
+            transform: translateY(0);
+        }
+        
+        .voice-widget #talk-button.connecting {
+            background: #f59e0b;
+            cursor: not-allowed;
+        }
+        
+        .voice-widget #talk-button.active {
+            background: #dc2626;
+        }
+        
+        .voice-widget #talk-button.active:hover {
+            background: #b91c1c;
+        }
+        
+        .close-button {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: none;
+            background: #dc2626;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            transition: all 0.2s ease;
+        }
+        
+        .close-button:hover {
+            background: #b91c1c;
+            transform: scale(1.1);
+        }
+        
+        .states-demo {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+        
+        .state-example {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+        
+        .state-title {
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 1rem;
+        }
+        
+        .mobile-preview {
+            max-width: 375px;
+            margin: 2rem auto;
+            background: #1f2937;
+            border-radius: 25px;
+            padding: 1rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        .mobile-screen {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+            height: 600px;
+        }
+        
+        .mobile-content {
+            padding: 2rem 1rem;
+            text-align: center;
+            color: #64748b;
+        }
+        
+        .specs-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2rem 0;
+        }
+        
+        .specs-table th,
+        .specs-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .specs-table th {
+            background: #f8fafc;
+            font-weight: 600;
+            color: #1f2937;
+        }
+        
+        .color-palette {
+            display: flex;
+            gap: 1rem;
+            margin: 1rem 0;
+            flex-wrap: wrap;
+        }
+        
+        .color-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .color-circle {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 0 0 1px rgba(0,0,0,0.1);
+        }
+        
+        .responsive-note {
+            background: #fef3c7;
+            border: 1px solid #fbbf24;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            color: #92400e;
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <div class="header">
+            <h1>🎨 AI Виджет - Визуальная Демонстрация</h1>
+            <p>Как выглядит виджет у клиентов после встраивания одной строкой кода</p>
+        </div>
+        
+        <div class="content">
+            <!-- Основной превью -->
+            <div class="preview-section">
+                <div class="preview-title">
+                    🖥️ Основной внешний вид виджета
+                </div>
+                
+                <div class="client-site-mockup">
+                    <div class="client-content">
+                        <h2>Сайт клиента example.com</h2>
+                        <p>Обычная страница с контентом клиента...</p>
+                        
+                        <div class="integration-code">
+                            &lt;script src="https://yourdomain.com/widget/widget.js"&gt;&lt;/script&gt;
+                        </div>
+                        
+                        <p>↗️ <strong>Виджет появляется автоматически в правом нижнем углу</strong></p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Состояния виджета -->
+            <div class="preview-section">
+                <div class="preview-title">
+                    🔄 Состояния виджета
+                </div>
+                
+                <div class="states-demo">
+                    <div class="state-example">
+                        <div class="state-title">Состояние: Готов</div>
+                        <div class="voice-widget" style="position: static; max-width: none; margin: 0;">
+                            <h1>Voice Assistant</h1>
+                            <p id="status">Ready for example.com. Click to start!</p>
+                            <button id="talk-button">Start Talking</button>
+                        </div>
+                    </div>
+                    
+                    <div class="state-example">
+                        <div class="state-title">Состояние: Подключение</div>
+                        <div class="voice-widget" style="position: static; max-width: none; margin: 0;">
+                            <h1>Voice Assistant</h1>
+                            <p id="status">Connecting...</p>
+                            <button id="talk-button" class="connecting">Connecting...</button>
+                        </div>
+                    </div>
+                    
+                    <div class="state-example">
+                        <div class="state-title">Состояние: Активный</div>
+                        <div class="voice-widget" style="position: static; max-width: none; margin: 0;">
+                            <h1>Voice Assistant</h1>
+                            <p id="status">Connected. You can speak now.</p>
+                            <button id="talk-button" class="active">Stop Talking</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Мобильный превью -->
+            <div class="preview-section">
+                <div class="preview-title">
+                    📱 Мобильная версия
+                </div>
+                
+                <div class="mobile-preview">
+                    <div class="mobile-screen">
+                        <div class="mobile-content">
+                            <h3>Мобильный сайт</h3>
+                            <p>Контент адаптируется под экран...</p>
+                        </div>
+                        
+                        <!-- Мобильный виджет -->
+                        <div style="position: absolute; bottom: 10px; right: 10px; max-width: 280px;">
+                            <div class="voice-widget" style="position: static; padding: 1.5rem;">
+                                <h1 style="font-size: 1.1rem;">Voice Assistant</h1>
+                                <p style="margin: 1rem 0; font-size: 0.9rem;">Ready to help!</p>
+                                <button style="padding: 0.75rem 1.5rem; font-size: 0.9rem;">Start Talking</button>
+                                <div class="close-button">×</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="responsive-note">
+                    <strong>📱 Адаптивность:</strong> На мобильных устройствах виджет автоматически уменьшается 
+                    и оптимизируется для сенсорного управления.
+                </div>
+            </div>
+            
+            <!-- Технические характеристики -->
+            <div class="preview-section">
+                <div class="preview-title">
+                    📊 Технические характеристики
+                </div>
+                
+                <table class="specs-table">
+                    <tr>
+                        <th>Свойство</th>
+                        <th>Значение</th>
+                        <th>Описание</th>
+                    </tr>
+                    <tr>
+                        <td><strong>Позиция</strong></td>
+                        <td>position: fixed</td>
+                        <td>Фиксированное позиционирование относительно экрана</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Расположение</strong></td>
+                        <td>bottom: 20px, right: 20px</td>
+                        <td>Правый нижний угол с отступами</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Z-index</strong></td>
+                        <td>9999</td>
+                        <td>Гарантированно поверх всего контента</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Максимальная ширина</strong></td>
+                        <td>400px</td>
+                        <td>Ограничение для больших экранов</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Тень</strong></td>
+                        <td>0 4px 12px rgba(0,0,0,0.1)</td>
+                        <td>Мягкая тень для глубины</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Скругление</strong></td>
+                        <td>border-radius: 12px</td>
+                        <td>Современные округлые углы</td>
+                    </tr>
+                </table>
+            </div>
+            
+            <!-- Цветовая палитра -->
+            <div class="preview-section">
+                <div class="preview-title">
+                    🎨 Цветовая палитра
+                </div>
+                
+                <div class="color-palette">
+                    <div class="color-item">
+                        <div class="color-circle" style="background: #3b82f6;"></div>
+                        <span><strong>Основная кнопка:</strong> #3b82f6</span>
+                    </div>
+                    <div class="color-item">
+                        <div class="color-circle" style="background: #1f2937;"></div>
+                        <span><strong>Заголовок:</strong> #1f2937</span>
+                    </div>
+                    <div class="color-item">
+                        <div class="color-circle" style="background: #6b7280;"></div>
+                        <span><strong>Текст статуса:</strong> #6b7280</span>
+                    </div>
+                    <div class="color-item">
+                        <div class="color-circle" style="background: #dc2626;"></div>
+                        <span><strong>Активная кнопка:</strong> #dc2626</span>
+                    </div>
+                    <div class="color-item">
+                        <div class="color-circle" style="background: #f59e0b;"></div>
+                        <span><strong>Подключение:</strong> #f59e0b</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- ЖИВАЯ ДЕМОНСТРАЦИЯ -->
+    <div class="ai-widget-demo" id="live-demo">
+        <div class="voice-widget">
+            <div class="close-button" onclick="toggleDemo()">×</div>
+            <h1>Voice Assistant</h1>
+            <p id="status">🎯 LIVE DEMO - Ready for localhost</p>
+            <button id="talk-button" onclick="cycleStates()">Start Talking</button>
+        </div>
+    </div>
+    
+    <script>
+        // Демонстрация состояний
+        let currentState = 0;
+        const states = [
+            { text: '🎯 LIVE DEMO - Ready for localhost', button: 'Start Talking', class: '' },
+            { text: 'Connecting...', button: 'Connecting...', class: 'connecting' },
+            { text: 'Connected. You can speak now.', button: 'Stop Talking', class: 'active' }
+        ];
+        
+        function cycleStates() {
+            currentState = (currentState + 1) % states.length;
+            const state = states[currentState];
+            
+            document.getElementById('status').textContent = state.text;
+            const button = document.getElementById('talk-button');
+            button.textContent = state.button;
+            button.className = state.class;
+        }
+        
+        function toggleDemo() {
+            const demo = document.getElementById('live-demo');
+            demo.style.display = demo.style.display === 'none' ? 'block' : 'none';
+        }
+        
+        // Инициализация
+        console.log('🎨 Виджет демо загружен');
+        console.log('👆 Кликните на кнопку виджета в правом нижнем углу для демонстрации состояний');
+    </script>
+</body>
+</html>

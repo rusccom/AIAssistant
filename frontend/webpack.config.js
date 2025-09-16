@@ -104,7 +104,7 @@ module.exports = (env, argv) => {
     proxy: [
       {
         context: ['/api'],
-        target: 'http://localhost:3000',
+        target: 'http://localhost:3000',  // Backend реально работает на порту 3000
         secure: false,
         changeOrigin: true,
       }

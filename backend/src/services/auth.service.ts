@@ -5,9 +5,18 @@ import { Prisma, User } from '@prisma/client';
 import { BOT_DEFAULTS } from '../config/bot-defaults';
 import { SYSTEM_DEFAULTS } from '../config/system-defaults';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-key';
-if (JWT_SECRET === 'your-super-secret-key') {
-    console.warn('WARNING: JWT_SECRET is not set in .env file. Using a default insecure key.');
+// Импортируем централизованную конфигурацию
+import { JWT_CONFIG, IS_PRODUCTION } from '../config/app-config';
+import { logAuth, logError } from '../utils/logger';
+import { AppError, AuthenticationError } from '../utils/error-handler';
+
+if (JWT_CONFIG.SECRET === 'your-super-secret-key') {
+    if (IS_PRODUCTION) {
+        logError('AUTH', 'CRITICAL: JWT_SECRET not set in production!');
+        process.exit(1);
+    } else {
+        logAuth('WARNING: Using default JWT_SECRET in development');
+    }
 }
 
 /**
@@ -20,7 +29,7 @@ export const registerUser = async (data: Pick<User, 'email' | 'password' | 'firs
 
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
-        throw new Error('User with this email already exists.');
+        throw new AppError('User with this email already exists.', 409);
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -46,16 +55,18 @@ export const loginUser = async (data: Pick<User, 'email' | 'password'>) => {
 
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
-        throw new Error('Invalid credentials.');
+        throw new AuthenticationError('Invalid credentials.');
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
-        throw new Error('Invalid credentials.');
+        throw new AuthenticationError('Invalid credentials.');
     }
 
     // Всегда выдаем токен на 1 год для удобства пользователей
-    const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '365d' });
+    const token = jwt.sign({ userId: user.id }, JWT_CONFIG.SECRET, { expiresIn: JWT_CONFIG.EXPIRES_IN });
+    
+    logAuth(`User ${email} logged in successfully`);
     
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password: _, ...userWithoutPassword } = user;

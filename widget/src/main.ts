@@ -321,8 +321,30 @@ const AIWidget = {
 // Export to global scope
 (window as any).AIWidget = AIWidget;
 
-// Auto-initialize widget based on script tag
-function autoInitializeWidget() {
+// Универсальная функция создания центрированного контейнера
+function createCenteredContainer(id: string): HTMLElement {
+  const viewportHeight = window.innerHeight;
+  const viewportWidth = window.innerWidth;
+  
+  const container = document.createElement('div');
+  container.id = id;
+  container.style.cssText = `
+    position: fixed;
+    top: ${viewportHeight / 2}px;
+    left: ${viewportWidth / 2}px;
+    transform: translate(-50%, -50%);
+    z-index: 10000;
+    max-width: 320px;
+    width: 90%;
+  `;
+  document.body.appendChild(container);
+  return container;
+}
+
+// Единая функция инициализации виджета
+function initializeWidget() {
+  console.log('🚀 AIWidget: Starting initialization...');
+  
   // Find our script tag
   const scripts = Array.from(document.getElementsByTagName('script'));
   const currentScript = scripts.find(script => script.src && script.src.includes('widget.js'));
@@ -336,18 +358,9 @@ function autoInitializeWidget() {
   const customHost = currentScript.getAttribute('sethost');
   const currentHostname = window.location.hostname;
   
-  // Create container automatically  
-  const containerId = 'ai-widget-auto-' + Date.now();
-  const container = document.createElement('div');
-  container.id = containerId;
-  container.style.cssText = `
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    z-index: 9999;
-    max-width: 400px;
-  `;
-  document.body.appendChild(container);
+  // Create centered container
+  const containerId = 'ai-widget-' + Date.now();
+  const container = createCenteredContainer(containerId);
   
   // Prepare configuration
   const widgetConfig: WidgetConfig = {
@@ -363,7 +376,7 @@ function autoInitializeWidget() {
   // Initialize widget
   const instance = initWidget(widgetConfig);
   if (instance) {
-    (window as any).autoAIWidget = instance;
+    (window as any).AIWidget.instance = instance;
     addCloseButton(container, instance);
   }
 }
@@ -396,51 +409,15 @@ function addCloseButton(container: HTMLElement, instance: WidgetInstance) {
     container.remove();
   };
   
-  container.style.position = 'relative';
+  // НЕ меняем position - контейнер уже правильно настроен как fixed
   container.appendChild(closeBtn);
 }
 
-// Legacy compatibility check
-function checkLegacyCompatibility(): boolean {
-  const oldStatusElement = document.getElementById('status');
-  const oldTalkButton = document.getElementById('talk-button');
-  
-  if (!oldStatusElement || !oldTalkButton) return false;
-  
-  const legacyContainer = document.createElement('div');
-  legacyContainer.id = 'legacy-widget-container';
-  legacyContainer.style.display = 'none';
-  document.body.appendChild(legacyContainer);
-  
-  const instance = initWidget({
-    container: 'legacy-widget-container',
-    hostname: window.location.hostname
-  });
-  
-  if (instance) {
-    instance.statusElement = oldStatusElement as HTMLParagraphElement;
-    instance.talkButton = oldTalkButton as HTMLButtonElement;
-    
-    const startSession = createStartSession(instance);
-    const stopSession = createStopSession(instance);
-    
-    oldTalkButton.addEventListener('click', () => {
-      if (instance.appState === 'idle') {
-        startSession();
-      } else if (instance.appState === 'connected') {
-        stopSession('Conversation ended.');
-      }
-    });
-  }
-  
-  return true;
-}
+// Удалена legacy функция - теперь используем универсальное решение
 
-// Initialize widget
+// Initialize widget - простое универсальное решение
 const initialize = () => {
-  if (!checkLegacyCompatibility()) {
-    autoInitializeWidget();
-  }
+  initializeWidget();
 };
 
 if (document.readyState === 'loading') {

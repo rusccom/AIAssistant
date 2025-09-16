@@ -3,6 +3,10 @@ import './visual-editor/visual-editor.css';
 import { initSimpleFouc } from './utils/simple-fouc';
 import { initNavigation } from './utils/navigation';
 import { protectPage } from './utils/auth';
+
+// Минимальный импорт для безопасных изменений
+import { showError, showSuccess } from './utils/error-handler';
+import { ROUTES } from './utils/constants';
 import Konva from 'konva';
 import { Point, StateData, Connection, EditorSettings } from './visual-editor/types';
 import { SpecialBlock } from './visual-editor/components/SpecialBlock';
@@ -335,7 +339,7 @@ class VisualEditor {
                 if (this.canCreateConnection(fromState.id, targetStateId)) {
                     this.createConnection(fromState.id, targetStateId);
                 } else {
-                    alert('Cannot create this connection');
+                    showError('Cannot create this connection');
                 }
             }
             
@@ -949,7 +953,7 @@ class VisualEditor {
             console.log('Loaded editorSettings from database:', editorSettings);
         } catch (error) {
             console.error('Error loading states from domain:', error);
-            alert(`Could not load configuration for ${domain}.`);
+            showError(`Could not load configuration for ${domain}.`);
         }
     }
 
@@ -1106,7 +1110,7 @@ class VisualEditor {
 
     private async saveStatesToDomain(): Promise<void> {
         if (!this.selectedDomain) {
-            alert('Please select a domain first');
+            showError('Please select a domain first');
             return;
         }
 
@@ -1172,10 +1176,10 @@ class VisualEditor {
                 throw new Error('Failed to save configuration');
             }
 
-            alert('States and editor settings saved successfully to database!');
+            showSuccess('States and editor settings saved successfully to database!');
         } catch (error) {
             console.error('Error saving states:', error);
-            alert('Failed to save states to database.');
+            showError('Failed to save states to database.');
         }
     }
 
@@ -1241,7 +1245,7 @@ class VisualEditor {
                     const data = JSON.parse(e.target?.result as string);
                     this.importStates(data);
                 } catch (error) {
-                    alert('Error loading file: Invalid JSON format');
+                    showError('Error loading file: Invalid JSON format');
                 }
             };
             reader.readAsText(file);
@@ -1491,8 +1495,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Check authentication
     const token = localStorage.getItem('authToken');
     if (!token) {
-        alert('Please log in to access the visual editor');
-        window.location.href = '/login.html';
+        showError('Please log in to access the visual editor');
+        window.location.href = ROUTES.LOGIN;
         return;
     }
 

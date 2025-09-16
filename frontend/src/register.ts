@@ -6,6 +6,11 @@ import { setupPasswordToggle } from './utils/password-toggle';
 import { redirectIfAuthenticated } from './utils/auth';
 import { initNavigation } from './utils/navigation';
 
+// Централизованные утилиты для устранения дубликатов
+import { apiRequest, getAuthToken, saveAuthData } from './utils/api-client';
+import { ROUTES, API_ENDPOINTS, MESSAGES } from './utils/constants';
+import { showError as showToastError, showSuccess as showToastSuccess } from './utils/error-handler';
+
 // Redirect if user is already logged in - stop execution if redirecting  
 redirectIfAuthenticated();
 
@@ -17,7 +22,7 @@ interface PasswordRequirements {
 }
 
 // Check if we're redirecting - if so, don't initialize page
-const token = localStorage.getItem('authToken');
+const token = getAuthToken();
 if (token) {
     // We're being redirected, don't initialize this page
     console.log('🔄 Redirecting authenticated user, skipping page initialization');
@@ -212,11 +217,8 @@ async function handleRegistrationFormSubmit(e: Event) {
     setLoadingState(true);
     
     try {
-        const response = await fetch('/api/auth/register', {
+        const { data, response } = await apiRequest(API_ENDPOINTS.AUTH.REGISTER, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
             body: JSON.stringify({
                 firstName,
                 lastName,
@@ -224,19 +226,16 @@ async function handleRegistrationFormSubmit(e: Event) {
                 company,
                 password,
                 newsletter,
-            }),
+            })
         });
         
-        const data = await response.json();
-        
         if (response.ok) {
-            localStorage.setItem('authToken', data.token);
-            localStorage.setItem('user', JSON.stringify(data.user));
-            // Show success and redirect to login
-            showSuccess('Account created successfully! Please sign in to continue.');
+            saveAuthData(data.token, data.user);
+            // Show success and redirect to login  
+            showSuccess(MESSAGES.AUTH.REGISTRATION_SUCCESS);
             
             setTimeout(() => {
-                window.location.href = '/login.html';
+                window.location.href = ROUTES.LOGIN;
             }, 2000);
         } else {
             showError(data.message || 'Registration failed. Please try again.');

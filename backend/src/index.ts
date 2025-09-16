@@ -4,18 +4,16 @@ import path from 'path';
 // Загружаем переменные окружения САМЫМ ПЕРВЫМ ДЕЙСТВИЕМ
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
-// Определяем режим работы приложения
-const NODE_ENV = process.env.NODE_ENV || 'development';
-const isProduction = NODE_ENV === 'production';
-const isDevelopment = NODE_ENV === 'development';
+// Импортируем централизованную конфигурацию
+import { NODE_ENV, IS_PRODUCTION, IS_DEVELOPMENT, APP_CONFIG, LOG_CONFIG } from './config/app-config';
 
 console.log(`🚀 Starting application in ${NODE_ENV} mode`);
 
-if (isDevelopment) {
+if (IS_DEVELOPMENT) {
     console.log('⚠️  Development mode: Enhanced logging enabled, CORS is lenient');
 }
 
-if (isProduction) {
+if (IS_PRODUCTION) {
     console.log('🔒 Production mode: Security features active, logging minimized');
 }
 
@@ -44,15 +42,26 @@ const port = process.env.PORT || 3000;
 // Пример в .env: ALLOWED_ORIGINS="http://localhost:9001,https://yourdomain.com,*.ondigitalocean.app"
 const allowedOrigins = process.env.ALLOWED_ORIGINS 
     ? process.env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim())
-    : [];
+    : IS_DEVELOPMENT 
+        ? APP_CONFIG.DEV_ALLOWED_ORIGINS // Автоматические localhost origins для development
+        : []; // Production требует явного указания доменов
 
 const corsOptions = {
     origin: function (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
-        console.log(`🌐 CORS check: origin="${origin}", allowed origins:`, allowedOrigins);
+        // 🔇 Логирование CORS только для не-localhost запросов
+        if (origin && !origin.includes('localhost')) {
+            console.log(`🌐 CORS check: origin="${origin}", allowed origins:`, allowedOrigins);
+        }
         
         // Разрешаем запросы без origin (same-origin requests - когда frontend и backend на одном домене)
         if (!origin) {
-            console.log(`✅ CORS: Allowing same-origin request (no origin header)`);
+            // 🔇 Убрали избыточное логирование same-origin запросов
+            return callback(null, true);
+        }
+        
+        // В development режиме автоматически разрешаем localhost origins
+        if (IS_DEVELOPMENT && origin && origin.includes('localhost')) {
+            console.log(`✅ CORS: Allowing localhost origin in development: ${origin}`);
             return callback(null, true);
         }
         
@@ -94,7 +103,7 @@ app.use('/widget', express.static(path.join(__dirname, '../public/widget')));
 app.use('/public', express.static(path.join(__dirname, '../public')));
 
 // Раздаем frontend статические файлы (для App Platform)
-if (isProduction) {
+if (IS_PRODUCTION) {
     console.log('🌐 Setting up frontend static files serving...');
     const frontendPath = path.join(__dirname, '../../frontend/dist');
     app.use(express.static(frontendPath));
@@ -154,7 +163,7 @@ const handleWebSocketConnection = async (ws: WebSocket, req: http.IncomingMessag
 
   // --- Hostname Verification ---
   if (!hostname) {
-    if (isDevelopment) console.warn('[WSS] Connection attempt without hostname. Closing.');
+    if (IS_DEVELOPMENT) console.warn('[WSS] Connection attempt without hostname. Closing.');
     ws.close(1008, 'Hostname is required.');
     return;
   }
@@ -162,18 +171,18 @@ const handleWebSocketConnection = async (ws: WebSocket, req: http.IncomingMessag
   try {
     const domain = await prisma.domain.findUnique({ where: { hostname } });
     if (!domain) {
-      if (isDevelopment) console.warn(`[WSS] Connection attempt from unauthorized hostname: ${hostname}. Closing.`);
+      if (IS_DEVELOPMENT) console.warn(`[WSS] Connection attempt from unauthorized hostname: ${hostname}. Closing.`);
       ws.close(1008, 'Unauthorized hostname.');
       return;
     }
-    if (isDevelopment) console.log(`[WSS] Connection from authorized hostname: ${hostname} (User: ${domain.userId})`);
+    if (IS_DEVELOPMENT) console.log(`[WSS] Connection from authorized hostname: ${hostname} (User: ${domain.userId})`);
     // Регистрируем сессию
     if(sessionId) {
       activeSessions.set(sessionId, domain.userId);
-      if (isDevelopment) console.log(`[WSS] Session ${sessionId} registered for user ${domain.userId}. Total active sessions: ${activeSessions.size}`);
+      if (IS_DEVELOPMENT) console.log(`[WSS] Session ${sessionId} registered for user ${domain.userId}. Total active sessions: ${activeSessions.size}`);
     }
   } catch (error) {
-    console.error(`[WSS] Database error during hostname verification:`, isProduction ? 'Connection failed' : error);
+    console.error(`[WSS] Database error during hostname verification:`, IS_PRODUCTION ? 'Connection failed' : error);
     ws.close(1011, 'Server error during authentication.');
     return;
   }
@@ -189,13 +198,13 @@ const handleWebSocketConnection = async (ws: WebSocket, req: http.IncomingMessag
     return;
   }
   
-  if (isDevelopment) console.log(`WebSocket client connected for session ${sessionId}, track ${track}.`);
+  if (IS_DEVELOPMENT) console.log(`WebSocket client connected for session ${sessionId}, track ${track}.`);
 
   const filePath = path.join(recordingsDir, `recording-${sessionId}-${track}.${ext}`);
   const fileStream = require('fs').createWriteStream(filePath, { flags: 'a' });
 
   fileStream.on('error', (err: any) => {
-    console.error(`Error writing to file for session ${sessionId}, track ${track}:`, isProduction ? 'File error' : err);
+    console.error(`Error writing to file for session ${sessionId}, track ${track}:`, IS_PRODUCTION ? 'File error' : err);
     ws.close(1011, 'File system error on server.');
   });
 
@@ -204,17 +213,17 @@ const handleWebSocketConnection = async (ws: WebSocket, req: http.IncomingMessag
   });
 
   ws.on('close', () => {
-    if (isDevelopment) console.log(`WebSocket client disconnected. Finishing recording for session ${sessionId}, track ${track}.`);
+    if (IS_DEVELOPMENT) console.log(`WebSocket client disconnected. Finishing recording for session ${sessionId}, track ${track}.`);
     // Удаляем сессию из хранилища
     if(sessionId && activeSessions.has(sessionId)) {
       activeSessions.delete(sessionId);
-      if (isDevelopment) console.log(`[WSS] Session ${sessionId} deregistered. Total active sessions: ${activeSessions.size}`);
+      if (IS_DEVELOPMENT) console.log(`[WSS] Session ${sessionId} deregistered. Total active sessions: ${activeSessions.size}`);
     }
     fileStream.end();
   });
 
   ws.on('error', (error) => {
-    console.error('WebSocket error:', isProduction ? 'Connection error' : error);
+    console.error('WebSocket error:', IS_PRODUCTION ? 'Connection error' : error);
     fileStream.end();
     ws.close(1011, 'An unexpected error occurred.');
   });
@@ -226,7 +235,7 @@ wss.on('connection', handleWebSocketConnection);
 server.listen(port, () => {
   console.log(`🌐 Backend server with WebSocket listening on http://localhost:${port}`);
   
-  if (isDevelopment) {
+  if (IS_DEVELOPMENT) {
     console.log(`📝 Frontend dev server: http://localhost:9001`);
     console.log(`📦 Widget dev server: http://localhost:9000`);
     console.log(`🔧 Allowed CORS origins: ${allowedOrigins.join(', ')}`);
