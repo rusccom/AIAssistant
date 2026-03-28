@@ -27,6 +27,21 @@ const buildSpeechConfig = (voice: string) => ({
   }
 });
 
+const logGemini = (event: string, details?: Record<string, unknown>) => {
+  if (details) {
+    console.info('[GeminiRuntime]', event, details);
+    return;
+  }
+
+  console.info('[GeminiRuntime]', event);
+};
+
+const describeState = (state: SessionStateDefinition) => ({
+  stateId: state.id,
+  toolNames: state.tools.map((tool) => tool.function.name),
+  hasThinkingConfig: !!state.geminiThinkingConfig
+});
+
 const buildConnectConfig = (
   input: StartRuntimeInput,
   state: SessionStateDefinition,
@@ -64,9 +79,15 @@ const createDisconnectHandler = (
   input.onDisconnect(message);
 };
 
+const isSessionOpen = (session: any) => {
+  const readyState = session?.conn?.ws?.readyState;
+  return readyState === WebSocket.OPEN;
+};
+
 const createToolCallHandler = (
   execute: ReturnType<typeof createUniversalExecute>,
-  getSession: () => any
+  getSession: () => any,
+  canSend: () => boolean
 ) => async (message: any) => {
   const functionCalls = message.toolCall?.functionCalls || [];
   if (functionCalls.length === 0) {
@@ -81,7 +102,15 @@ const createToolCallHandler = (
     }))
   );
 
-  getSession().sendToolResponse({ functionResponses });
+  const session = getSession();
+  if (!canSend() || !isSessionOpen(session)) {
+    return;
+  }
+
+  logGemini('Widget -> Gemini toolResponse', {
+    toolNames: functionResponses.map((response) => response.name)
+  });
+  session.sendToolResponse({ functionResponses });
 };
 
 const createSessionOpener = (
@@ -94,26 +123,47 @@ const createSessionOpener = (
     apiKey: input.sessionConfig.token,
     httpOptions: { apiVersion: 'v1alpha' }
   });
+  const resumeHandle = getResumeHandle();
+
+  logGemini('Widget -> Gemini connect', {
+    ...describeState(state),
+    hasResumeHandle: !!resumeHandle,
+    model: input.sessionConfig.model
+  });
 
   return ai.live.connect({
     model: input.sessionConfig.model,
-    config: buildConnectConfig(input, state, getResumeHandle()),
+    config: buildConnectConfig(input, state, resumeHandle),
     callbacks: {
-      onopen: () => undefined,
+      onopen: () => logGemini('Gemini socket opened', { stateId: state.id }),
       onmessage: (message) => {
         void onMessage(message).catch((error) => {
           console.error('Gemini message handling failed:', error);
         });
       },
-      onerror: (error) => onDisconnect(`An error occurred: ${error.message || 'Unknown error'}`),
-      onclose: (event) => onDisconnect(event.reason || 'Session ended.')
+      onerror: (error) => {
+        logGemini('Gemini socket error', { message: error.message || 'Unknown error' });
+        onDisconnect(`An error occurred: ${error.message || 'Unknown error'}`);
+      },
+      onclose: (event) => {
+        logGemini('Gemini socket closed', {
+          code: event.code,
+          reason: event.reason || 'Session ended.'
+        });
+        onDisconnect(event.reason || 'Session ended.');
+      }
     }
   });
 };
 
 const startRecorder = async (recorder: AudioRecorder, getSession: () => any) => {
   await recorder.start((chunk) => {
-    getSession()?.sendRealtimeInput({
+    const session = getSession();
+    if (!isSessionOpen(session)) {
+      return;
+    }
+
+    session.sendRealtimeInput({
       audio: {
         data: chunk,
         mimeType: 'audio/pcm;rate=16000'
@@ -156,7 +206,8 @@ export const startGeminiRuntime = async (
     () => reconnecting,
     setClosed
   );
-  const handleToolCall = createToolCallHandler(execute, getSession);
+  const canSend = () => !closed && !reconnecting;
+  const handleToolCall = createToolCallHandler(execute, getSession, canSend);
 
   const openSession = createSessionOpener(
     input,
@@ -168,10 +219,24 @@ export const startGeminiRuntime = async (
 
       if (message.sessionResumptionUpdate?.newHandle) {
         resumeHandle = message.sessionResumptionUpdate.newHandle;
+        logGemini('Gemini session handle updated', {
+          resumable: message.sessionResumptionUpdate.resumable ?? null,
+          stateId: stateController.getCurrentState().id
+        });
       }
 
       if (message.serverContent?.interrupted) {
+        logGemini('Gemini interrupted current output', {
+          stateId: stateController.getCurrentState().id
+        });
         player.reset();
+      }
+
+      if (message.toolCall?.functionCalls?.length) {
+        logGemini('Gemini -> Widget toolCall', {
+          toolNames: message.toolCall.functionCalls.map((call: any) => call.name),
+          stateId: stateController.getCurrentState().id
+        });
       }
 
       await playAudioParts(message, player);
@@ -181,6 +246,8 @@ export const startGeminiRuntime = async (
         return;
       }
 
+      const previousStateId = stateController.getCurrentState().id;
+      logGemini('Gemini turn complete', { stateId: previousStateId });
       const nextState = stateController.applyPendingState();
       if (!nextState || closed) {
         return;
@@ -188,7 +255,13 @@ export const startGeminiRuntime = async (
 
       reconnecting = true;
       try {
-        getSession().close();
+        logGemini('Gemini reconnecting for state transition', {
+          fromStateId: previousStateId,
+          toStateId: nextState.id
+        });
+        const previousSession = getSession();
+        liveSession = undefined;
+        previousSession?.close();
         liveSession = await openSession(nextState);
       } catch (error) {
         setClosed();
