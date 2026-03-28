@@ -156,10 +156,14 @@ const createSessionOpener = (
   });
 };
 
-const startRecorder = async (recorder: AudioRecorder, getSession: () => any) => {
+const startRecorder = async (
+  recorder: AudioRecorder,
+  getSession: () => any,
+  canStreamInput: () => boolean
+) => {
   await recorder.start((chunk) => {
     const session = getSession();
-    if (!isSessionOpen(session)) {
+    if (!canStreamInput() || !isSessionOpen(session)) {
       return;
     }
 
@@ -193,6 +197,7 @@ export const startGeminiRuntime = async (
   const execute = createUniversalExecute(input.config, stateController);
   let closed = false;
   let reconnecting = false;
+  let sessionReady = false;
   let resumeHandle: string | null = null;
   let liveSession: any;
 
@@ -206,7 +211,7 @@ export const startGeminiRuntime = async (
     () => reconnecting,
     setClosed
   );
-  const canSend = () => !closed && !reconnecting;
+  const canSend = () => !closed && !reconnecting && sessionReady;
   const handleToolCall = createToolCallHandler(execute, getSession, canSend);
 
   const openSession = createSessionOpener(
@@ -214,6 +219,14 @@ export const startGeminiRuntime = async (
     () => resumeHandle,
     async (message) => {
       if (closed) {
+        return;
+      }
+
+      if (message.setupComplete) {
+        sessionReady = true;
+        logGemini('Gemini setup complete', {
+          stateId: stateController.getCurrentState().id
+        });
         return;
       }
 
@@ -259,6 +272,7 @@ export const startGeminiRuntime = async (
           fromStateId: previousStateId,
           toStateId: nextState.id
         });
+        sessionReady = false;
         const previousSession = getSession();
         liveSession = undefined;
         previousSession?.close();
@@ -273,7 +287,8 @@ export const startGeminiRuntime = async (
     onDisconnect
   );
 
+  sessionReady = false;
   liveSession = await openSession(stateController.getCurrentState());
-  await startRecorder(recorder, getSession);
+  await startRecorder(recorder, getSession, () => !closed && !reconnecting && sessionReady);
   return { close: createCloseHandler(recorder, player, getSession, setClosed) };
 };
