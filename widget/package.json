@@ -6,6 +6,7 @@
     "build": "webpack --mode production"
   },
   "dependencies": {
+    "@google/genai": "^1.46.0",
     "@openai/agents": "latest",
     "@openai/agents-realtime": "latest",
     "css-loader": "latest",
@@ -19,4 +20,4 @@
   "devDependencies": {
     "webpack-dev-server": "latest"
   }
-} 
+}

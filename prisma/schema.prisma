@@ -62,6 +62,8 @@ model BotConfiguration {
   domain           Domain   @relation(fields: [domainId], references: [id], onDelete: Cascade)
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
+  provider         String   @default("openai")
+  model            String   @default("gpt-realtime")
   identity         String
   task             String
   demeanor         String

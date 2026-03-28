@@ -1,4 +1,4 @@
-import { DEFAULT_VOICE } from './voices';
+import { OPENAI_PROVIDER_CATALOG } from '../features/realtime/openai/openai-realtime.catalog';
 
 /**
  * Default bot configuration values in English
@@ -12,7 +12,7 @@ export const BOT_DEFAULTS = {
   levelOfEmotion: "Moderately emotional but without exaggeration",
   fillerWords: "occasionally",
   pacing: "Normal speech rate",
-  voice: DEFAULT_VOICE
+  voice: OPENAI_PROVIDER_CATALOG.defaultVoice
 } as const;
 
 export type BotDefaults = typeof BOT_DEFAULTS; 

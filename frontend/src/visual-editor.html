@@ -287,6 +287,15 @@
                         <label>Examples:</label>
                         <textarea id="state-examples-input" class="form-control" rows="3" placeholder="Enter examples, one per line"></textarea>
                     </div>
+                    <div class="form-group" id="state-reasoning-group" style="display: none;">
+                        <label>Reasoning mode:</label>
+                        <select id="state-reasoning-mode" class="form-control">
+                            <option value="inherit">Inherit provider default</option>
+                            <option value="fast">Fast</option>
+                            <option value="balanced">Balanced</option>
+                            <option value="deep">Deep</option>
+                        </select>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button id="cancel-edit-btn" class="btn btn-secondary">Cancel</button>

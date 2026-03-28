@@ -47,6 +47,18 @@
             
             <div class="form-grid">
         <div class="form-group">
+            <label for="provider" class="label">Realtime Provider</label>
+            <select id="provider" class="select">
+                <option value="">Loading providers...</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="model" class="label">Reasoning Model</label>
+            <select id="model" class="select">
+                <option value="">Loading models...</option>
+            </select>
+        </div>
+        <div class="form-group">
             <label for="voice" class="label">Voice</label>
             <select id="voice" class="select">
                 <option value="">Loading voices...</option>
@@ -323,13 +335,45 @@
             <div class="form-group">
                 <label for="price-list-file" class="label">Upload Price List File</label>
                 <input type="file" id="price-list-file" class="input" accept=".csv,.json" required>
-                <p class="form-help">Upload a CSV or JSON file with your product pricing information.</p>
+                <p class="form-help">
+                    Upload a CSV or JSON file with your product pricing information.<br>
+                    <a href="/public/templates/products_import_template.csv" download="products_variants_template.csv" style="color: #007bff; text-decoration: underline;">📥 Variants Template</a> | 
+                    <a href="/public/templates/products_import_separate.csv" download="products_separate_template.csv" style="color: #28a745; text-decoration: underline;">📥 Separate Products Template</a>
+                </p>
+            </div>
+            <div class="form-group">
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                    <input type="checkbox" id="group-variants-checkbox" checked style="margin: 0;">
+                    <span class="label" style="margin: 0;">Group by variants</span>
+                </label>
+                <p class="form-help">
+                    <strong>✅ Checked:</strong> Group rows with same Product Title into variants (iPhone 15 → 2 variants)<br>
+                    <strong>❌ Unchecked:</strong> Create separate product for each row (iPhone 15 128GB + iPhone 15 256GB = 2 products)
+                </p>
             </div>
             <div class="form-group">
                 <label class="label">File Format</label>
                 <p class="form-help">
-                    <strong>CSV Format:</strong> Name, Description, Price, Currency<br>
-                    <strong>JSON Format:</strong> Array of objects with name, description, price, currency fields
+                    <strong>CSV Format:</strong> Product Title, Product Description, Variant Title, Price, SKU, Status<br>
+                    <strong>✅ Auto-detects:</strong> Comma (,) or Semicolon (;) separators<br>
+                    <strong>⚠️ Important:</strong> Save as CSV UTF-8 from Excel<br><br>
+                    
+                    <strong>🔄 Group by variants mode (recommended):</strong><br>
+                    <code style="font-size: 0.8rem; display: block; background: #f5f5f5; padding: 8px; border-radius: 4px; margin: 4px 0;">
+                    iPhone 15;Smartphone Apple;128GB Black;89999;IP15-128-BK;active<br>
+                    iPhone 15;Smartphone Apple;256GB Black;104999;IP15-256-BK;active
+                    </code>
+                    → Creates 1 product "iPhone 15" with 2 variants<br><br>
+                    
+                    <strong>📋 Each row = separate product mode:</strong><br>
+                    <code style="font-size: 0.8rem; display: block; background: #f0f8ff; padding: 8px; border-radius: 4px; margin: 4px 0;">
+                    iPhone 15 128GB;Smartphone Apple Black;Default Title;89999;IP15-128-BK;active<br>
+                    iPhone 15 256GB;Smartphone Apple Black;Default Title;104999;IP15-256-BK;active
+                    </code>
+                    → Creates 2 separate products<br><br>
+                    
+                    <strong>Price:</strong> In kopecks (89999 = 899.99₽) or rubles (899.99 auto-converted)<br>
+                    <strong>JSON Format:</strong> Array with title, description, variants fields
                 </p>
             </div>
             <div class="modal-actions">

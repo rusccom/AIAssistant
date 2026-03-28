@@ -10,6 +10,7 @@ export interface StateData {
     description: string;
     instructions: string[];
     examples: string[];
+    reasoningMode?: 'inherit' | 'fast' | 'balanced' | 'deep';
     position: Point;
     connections: string[];
 }

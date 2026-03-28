@@ -1,10 +1,5 @@
-/**
- * Сервис для генерации инструкций AI
- * Переносим всю логику с клиента на сервер
- */
-
-export const generateAgentInstructions = (config: any): string => {
-    return `
+export const generateBaseAgentInstructions = (config: any): string => {
+  return `
 # Personality and Tone
 ## Identity
 ${config.identity || ''}
@@ -38,27 +33,23 @@ ${config.otherDetails || ''}
 
 # Instructions
 ${config.instructions || ''}
+`.trim();
+};
+
+export const generateAgentInstructions = (config: any): string => {
+  return `
+${generateBaseAgentInstructions(config)}
 ${config.conversationStates ? `\n# Conversation States\n${JSON.stringify(config.conversationStates, null, 2)}` : ''}
 `.trim();
 };
 
-/**
- * Подготавливает полную конфигурацию для виджета
- * Теперь без tools - они загружаются из bot-functions
- */
 export const prepareWidgetConfig = (botConfig: any) => {
-    return {
-        // Готовые инструкции (виджет не формирует их сам)
-        instructions: generateAgentInstructions(botConfig),
-        
-        // Настройки голоса
-        voice: botConfig.voice || 'alloy',
-        
-        // Другие готовые настройки
-        model: 'gpt-realtime',
-        modalities: ['text', 'audio'],
-        
-        // Сырая конфигурация (если нужна виджету)
-        rawConfig: botConfig
-    };
-}; 
+  return {
+    provider: botConfig.provider || 'openai',
+    instructions: generateAgentInstructions(botConfig),
+    voice: botConfig.voice || 'alloy',
+    model: botConfig.model || 'gpt-realtime',
+    modalities: ['text', 'audio'],
+    rawConfig: botConfig
+  };
+};

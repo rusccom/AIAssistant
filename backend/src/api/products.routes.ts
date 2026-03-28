@@ -14,6 +14,9 @@ router.get('/:id', authMiddleware, productController.getProduct.bind(productCont
 // Создать товар
 router.post('/', authMiddleware, productController.createProduct.bind(productController));
 
+// Массовый импорт товаров
+router.post('/bulk-import', authMiddleware, productController.bulkImportProducts.bind(productController));
+
 // Обновить товар  
 router.put('/:id', authMiddleware, productController.updateProduct.bind(productController));
 

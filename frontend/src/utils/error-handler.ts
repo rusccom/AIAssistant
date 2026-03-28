@@ -36,16 +36,21 @@ export function showNotification(
  * Найти подходящий контейнер для уведомления
  */
 function findNotificationContainer(type: NotificationType): HTMLElement | null {
+    // Попробуем найти существующий контейнер
+    let container: HTMLElement | null = null;
+    
     if (type === 'error') {
-        return document.querySelector(SELECTORS.ERROR_MESSAGE);
+        container = document.querySelector(SELECTORS.ERROR_MESSAGE);
+    } else if (type === 'success') {
+        container = document.querySelector(SELECTORS.SUCCESS_MESSAGE);
     }
     
-    if (type === 'success') {
-        return document.querySelector(SELECTORS.SUCCESS_MESSAGE);
+    // Если контейнер не найден, создаем временный
+    if (!container) {
+        container = createTemporaryNotification();
     }
     
-    // Создать временный контейнер если нет подходящего
-    return createTemporaryNotification();
+    return container;
 }
 
 /**

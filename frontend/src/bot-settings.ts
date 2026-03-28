@@ -11,6 +11,11 @@ import { ROUTES, API_ENDPOINTS, MESSAGES } from './utils/constants';
 import { showError, showSuccess, showWarning, handleApiError } from './utils/error-handler';
 import { Modal, LoadingSpinner, showToast } from './components';
 import { validateForm, getFormData, setFormLoading } from './utils/form-utils';
+import {
+    bindRealtimeSettingsForm,
+    syncRealtimeSettingsForm,
+    type RealtimeProviderOption
+} from './features/realtime/realtime-settings';
 
 // Protect this page
 protectPage();
@@ -633,25 +638,15 @@ async function initializeBotSettings(token: string) {
     const aiErrorMessage = document.getElementById('ai-error-message') as HTMLDivElement;
     let activeStateBlockForAI: HTMLDivElement | null = null;
 
-    // Helper function to populate voice select options
-    const populateVoices = (voices: any[]) => {
-        const voiceSelect = document.getElementById('voice') as HTMLSelectElement;
-        
-        if (voiceSelect) {
-            // Clear loading option
-            voiceSelect.innerHTML = '';
-            
-            // Add voice options
-            voices.forEach((voice: any) => {
-                const option = document.createElement('option');
-                option.value = voice.id;
-                option.textContent = `${voice.name} - ${voice.description}`;
-                voiceSelect.appendChild(option);
-            });
-            
-            console.log('Populated voices:', voices.length);
-        }
+    const getRealtimeProviders = (): RealtimeProviderOption[] => {
+        return (window as any).realtimeProviders || [];
     };
+
+    const populateRealtimeSettings = () => {
+        syncRealtimeSettingsForm(getRealtimeProviders());
+    };
+
+    bindRealtimeSettingsForm(getRealtimeProviders);
 
     // Conversation states are now managed exclusively by the visual editor
     // No text-based editing allowed in dashboard
@@ -714,16 +709,17 @@ async function initializeBotSettings(token: string) {
             }
             
             // Получаем ВСЕ данные одним запросом
-            const { domains, domainConfigs, voices } = data;
+            const { domains, domainConfigs, voices, realtimeProviders } = data;
             
             // Сохраняем конфигурации доменов глобально
             (window as any).domainConfigs = domainConfigs;
+            (window as any).realtimeProviders = realtimeProviders || [];
             
             renderDomains(domains);
             
             // Заполняем список голосов
             if (voices && voices.length > 0) {
-                populateVoices(voices);
+                populateRealtimeSettings();
         } else {
                 // Fallback если голоса не пришли
                 const voiceSelect = document.getElementById('voice') as HTMLSelectElement;
@@ -778,25 +774,21 @@ async function initializeBotSettings(token: string) {
             testBtn.addEventListener('click', (ev) => {
                 ev.stopPropagation();
                 try {
-                    // Удаляем старые script теги виджета чтобы избежать дублирования
-                    const oldScripts = document.querySelectorAll('script[src*="widget.js"]');
-                    oldScripts.forEach(script => script.remove());
-                    
-                    // Удаляем старые виджеты
-                    const oldWidgets = document.querySelectorAll('[id^="ai-widget-"]');
-                    oldWidgets.forEach(widget => widget.remove());
-                    
                     const script = document.createElement('script');
-                    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-                    const widgetSrc = isLocalhost ? 'http://localhost:3000/widget/widget.js' : '/widget/widget.js';
-                    script.src = widgetSrc;
+                    // В development виджет раздается с backend (localhost:3000)
+                    // В production - с того же домена
+                    const isDev = window.location.hostname === 'localhost';
+                    const widgetUrl = isDev 
+                        ? 'http://localhost:3000/widget/widget.js'
+                        : '/widget/widget.js';
+                    script.src = widgetUrl;
                     script.setAttribute('sethost', domain.hostname);
                     script.id = `ai-widget-${Date.now()}`;
                     document.head.appendChild(script);
-                    showToast(`Widget injected for ${domain.hostname}`, 'success');
+                    showSuccess(`Widget injected for ${domain.hostname}`);
                 } catch (err) {
                     console.error('Widget injection error:', err);
-                    showToast('Failed to inject widget script', 'error');
+                    showError('Failed to inject widget script');
                 }
             });
             actions.appendChild(testBtn);
@@ -885,7 +877,11 @@ async function initializeBotSettings(token: string) {
             // Поля управляемые пользователем
             (document.getElementById('identity') as HTMLTextAreaElement).value = config.identity || '';
             (document.getElementById('task') as HTMLTextAreaElement).value = config.task || '';
-            (document.getElementById('voice') as HTMLSelectElement).value = config.voice || 'alloy';
+            syncRealtimeSettingsForm(getRealtimeProviders(), {
+                provider: config.provider,
+                model: config.model,
+                voice: config.voice
+            });
             (document.getElementById('otherDetails') as HTMLInputElement).value = config.otherDetails || '';
             (document.getElementById('instructions') as HTMLTextAreaElement).value = config.instructions || '';
             
@@ -910,6 +906,8 @@ async function initializeBotSettings(token: string) {
         const currentConfig = domainConfigs[selectedDomain] || {};
 
         const configData = {
+            provider: (document.getElementById('provider') as HTMLSelectElement).value,
+            model: (document.getElementById('model') as HTMLSelectElement).value,
             // Только поля управляемые пользователем - НЕ включаем conversationStates и editorSettings
             identity: (document.getElementById('identity') as HTMLTextAreaElement).value,
             task: (document.getElementById('task') as HTMLTextAreaElement).value,
@@ -1005,6 +1003,112 @@ async function initializeBotSettings(token: string) {
         }
     };
 
+    // Process import data into products with variants
+    const processImportData = (rawData: any[], groupVariants: boolean = true): any[] => {
+        console.log('Processing', rawData.length, 'rows of data, groupVariants:', groupVariants);
+        
+        if (!groupVariants) {
+            // Mode: Each row = separate product
+            return rawData.map((row, index) => {
+                try {
+                    const productTitle = row['Product Title'] || row['title'] || row['name'] || row['Name'] || row['Product_Title'];
+                    const productDescription = row['Product Description'] || row['description'] || row['Description'] || row['Product_Description'] || '';
+                    const variantTitle = row['Variant Title'] || row['variant'] || row['Variant'] || row['title'] || row['Variant_Title'] || 'Default Title';
+                    const price = parseFloat(row['Price'] || row['price'] || '0');
+                    const sku = row['SKU'] || row['sku'] || row['Sku'] || '';
+                    const status = row['Status'] || row['status'] || 'active';
+                    
+                    if (!productTitle?.trim()) {
+                        console.warn(`Row ${index + 1}: Missing product title, skipping`);
+                        return null;
+                    }
+                    
+                    if (!price || price <= 0) {
+                        console.warn(`Row ${index + 1}: Invalid price (${price}), skipping`);
+                        return null;
+                    }
+                    
+                    const priceInKopecks = price < 1000 ? Math.round(price * 100) : Math.round(price);
+                    
+                    // Create unique product title if variant title exists
+                    const finalTitle = (variantTitle && variantTitle !== 'Default Title') 
+                        ? `${productTitle} - ${variantTitle}`
+                        : productTitle;
+                    
+                    return {
+                        title: finalTitle.trim(),
+                        description: productDescription?.trim() || '',
+                        status: status === 'inactive' ? 'inactive' : 'active',
+                        variants: [{
+                            title: 'Default Title',
+                            price: priceInKopecks,
+                            sku: sku?.trim() || null
+                        }]
+                    };
+                } catch (error) {
+                    console.error(`Error processing row ${index + 1}:`, error);
+                    return null;
+                }
+            }).filter(Boolean); // Remove null values
+        }
+        
+        // Mode: Group by Product Title into variants
+        const productMap = new Map<string, any>();
+        
+        rawData.forEach((row, index) => {
+            try {
+                // Support different field naming conventions
+                const productTitle = row['Product Title'] || row['title'] || row['name'] || row['Name'] || row['Product_Title'];
+                const productDescription = row['Product Description'] || row['description'] || row['Description'] || row['Product_Description'] || '';
+                const variantTitle = row['Variant Title'] || row['variant'] || row['Variant'] || row['title'] || row['Variant_Title'] || 'Default Title';
+                const price = parseFloat(row['Price'] || row['price'] || '0');
+                const sku = row['SKU'] || row['sku'] || row['Sku'] || '';
+                const status = row['Status'] || row['status'] || 'active';
+                
+                // Debug row structure for first few rows
+                if (index < 3) {
+                    console.log(`Row ${index + 1} fields:`, Object.keys(row));
+                    console.log(`Row ${index + 1} productTitle found:`, productTitle);
+                }
+                
+                if (!productTitle?.trim()) {
+                    console.warn(`Row ${index + 1}: Missing product title, skipping. Available fields:`, Object.keys(row));
+                    return;
+                }
+                
+                if (!price || price <= 0) {
+                    console.warn(`Row ${index + 1}: Invalid price (${price}), skipping`);
+                    return;
+                }
+                
+                // Convert price to kopecks if it looks like rubles/dollars (< 1000)
+                const priceInKopecks = price < 1000 ? Math.round(price * 100) : Math.round(price);
+                
+                const key = productTitle.trim();
+                
+                if (!productMap.has(key)) {
+                    productMap.set(key, {
+                        title: productTitle.trim(),
+                        description: productDescription?.trim() || '',
+                        status: status === 'inactive' ? 'inactive' : 'active',
+                        variants: []
+                    });
+                }
+                
+                productMap.get(key).variants.push({
+                    title: variantTitle?.trim() || 'Default Title',
+                    price: priceInKopecks,
+                    sku: sku?.trim() || null
+                });
+                
+            } catch (error) {
+                console.error(`Error processing row ${index + 1}:`, error);
+            }
+        });
+        
+        return Array.from(productMap.values());
+    };
+
     const handleImport = async (event: Event) => {
         event.preventDefault();
         const fileInput = document.getElementById('price-list-file') as HTMLInputElement;
@@ -1016,39 +1120,153 @@ async function initializeBotSettings(token: string) {
         const file = fileInput.files[0];
         const reader = new FileReader();
         
-        reader.onload = (e) => {
+        // Auto-detect CSV delimiter and parse
+        const detectDelimiter = (line: string): string => {
+            const semicolonCount = (line.match(/;/g) || []).length;
+            const commaCount = (line.match(/,/g) || []).length;
+            
+            // If more semicolons than commas, likely semicolon-separated
+            return semicolonCount > commaCount ? ';' : ',';
+        };
+        
+        const parseCSVLine = (line: string, delimiter: string = ','): string[] => {
+            const result: string[] = [];
+            let current = '';
+            let inQuotes = false;
+            
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                const nextChar = line[i + 1];
+                
+                if (char === '"' && !inQuotes) {
+                    inQuotes = true;
+                } else if (char === '"' && inQuotes) {
+                    if (nextChar === '"') {
+                        // Escaped quote
+                        current += '"';
+                        i++; // Skip next quote
+                    } else {
+                        inQuotes = false;
+                    }
+                } else if (char === delimiter && !inQuotes) {
+                    result.push(current.trim());
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            result.push(current.trim());
+            return result;
+        };
+        
+        reader.onload = async (e) => {
             if (!e.target) return;
             const content = e.target.result as string;
-            let parsed: any[] = [];
+            let rawData: any[] = [];
             
             try {
                 if (file.type === 'application/json' || file.name.endsWith('.json')) {
-                    parsed = JSON.parse(content);
+                    rawData = JSON.parse(content);
                 } else if (file.type === 'text/csv' || file.name.endsWith('.csv')) {
                     const lines = content.split('\n').filter(line => line.trim());
                     if (lines.length < 2) {
                         showError('CSV file must have at least a header and one data row.');
                         return;
                     }
-                    // Skip header row and parse data
-                    parsed = lines.slice(1).map((line: string) => {
-                        const columns = line.split(',').map(col => col.trim());
-                        return {
-                            name: columns[0] || 'Unnamed Product',
-                            description: columns[1] || '',
-                            price: parseFloat(columns[2]) || 0,
-                            currency: columns[3] || 'USD'
-                        };
+                    
+                    // Auto-detect delimiter from header line
+                    const delimiter = detectDelimiter(lines[0]);
+                    console.log('Detected CSV delimiter:', delimiter);
+                    
+                    // Parse header
+                    const headers = parseCSVLine(lines[0], delimiter);
+                    console.log('CSV Headers:', headers);
+                    
+                    if (headers.length < 3) {
+                        showError(`Invalid CSV format. Expected multiple columns, found: ${headers.join(', ')}`);
+                        return;
+                    }
+                    
+                    // Parse data rows
+                    rawData = lines.slice(1).map((line: string, index) => {
+                        const columns = parseCSVLine(line, delimiter);
+                        const row: any = {};
+                        headers.forEach((header, headerIndex) => {
+                            row[header] = columns[headerIndex] || '';
+                        });
+                        
+                        // Debug first few rows
+                        if (index < 3) {
+                            console.log(`Row ${index + 1} parsed:`, row);
+                        }
+                        
+                        return row;
                     });
                 }
                 
-                // Add parsed products to the list
-                // Импорт товаров через API (пока просто показываем сообщение)
-                showWarning(`Импорт ${parsed.length} товаров. Функция будет реализована позже.`);
+                if (rawData.length === 0) {
+                    showError('No data found in file.');
+                    return;
+                }
                 
-                renderPriceList();
-                closeImportModal();
-                showSuccess(`Successfully imported ${parsed.length} products!`);
+                if (!selectedDomain) {
+                    showError('Please select a domain first');
+                    return;
+                }
+                
+                // Get grouping preference
+                const groupVariantsCheckbox = document.getElementById('group-variants-checkbox') as HTMLInputElement;
+                const groupVariants = groupVariantsCheckbox ? groupVariantsCheckbox.checked : true;
+                
+                console.log('Import mode:', groupVariants ? 'Group by variants' : 'Each row = separate product');
+                
+                // Process data into products with variants
+                const products = processImportData(rawData, groupVariants);
+                
+                if (products.length === 0) {
+                    showError('No valid products found in file.');
+                    return;
+                }
+                
+                // Show loading
+                const submitBtn = document.querySelector('#import-form button[type="submit"]') as HTMLButtonElement;
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = 'Importing...';
+                }
+                
+                try {
+                    // Send to API
+                    const { data } = await apiRequest(API_ENDPOINTS.PRODUCTS.BULK_IMPORT, {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            products: products,
+                            domain: selectedDomain
+                        })
+                    });
+                    
+                    closeImportModal();
+                    showSuccess(data.message || `Successfully imported products!`);
+                    
+                    // Refresh products list
+                    loadProducts(1);
+                    
+                } catch (apiError: any) {
+                    console.error('API Import error:', apiError);
+                    if (apiError.data && apiError.data.errors && Array.isArray(apiError.data.errors)) {
+                        const errorMsg = apiError.data.errors.slice(0, 5).join('\n');
+                        const moreErrors = apiError.data.errors.length > 5 ? `\n... and ${apiError.data.errors.length - 5} more errors` : '';
+                        showError(`Import failed:\n${errorMsg}${moreErrors}`);
+                    } else {
+                        showError(apiError.message || 'Failed to import products');
+                    }
+                } finally {
+                    // Restore button
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = 'Import';
+                    }
+                }
                 
             } catch (error) {
                 console.error('Import error:', error);

@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { ProductService } from '../services/product.service';
+import { ProductService, BulkImportData } from '../services/product.service';
 import { AuthRequest } from '../middleware/auth.middleware';
 import prisma from '../db/prisma';
 
@@ -191,6 +191,57 @@ export class ProductController {
         } catch (error) {
             console.error('Error deleting product:', error);
             res.status(500).json({ error: 'Failed to delete product' });
+        }
+    }
+
+    async bulkImportProducts(req: AuthRequest, res: Response) {
+        try {
+            const { products, domain } = req.body;
+            
+            if (!req.user) {
+                return res.status(401).json({ error: 'Unauthorized' });
+            }
+            
+            if (!domain) {
+                return res.status(400).json({ error: 'Domain parameter is required' });
+            }
+
+            if (!products || !Array.isArray(products)) {
+                return res.status(400).json({ error: 'Products array is required' });
+            }
+
+            if (products.length === 0) {
+                return res.status(400).json({ error: 'Products array cannot be empty' });
+            }
+
+            if (products.length > 1000) {
+                return res.status(400).json({ error: 'Maximum 1000 products per import' });
+            }
+            
+            // Проверяем что домен принадлежит пользователю
+            const userDomain = await prisma.domain.findFirst({
+                where: { 
+                    hostname: domain,
+                    userId: req.user.id
+                }
+            });
+            
+            if (!userDomain) {
+                return res.status(403).json({ error: 'Access denied to this domain' });
+            }
+            
+            const result = await this.productService.bulkImportProducts(products, userDomain.id);
+            
+            res.json({
+                success: true,
+                message: `Импорт завершен. Успешно: ${result.success}, ошибок: ${result.failed}`,
+                imported: result.success,
+                failed: result.failed,
+                errors: result.errors
+            });
+        } catch (error) {
+            console.error('Error bulk importing products:', error);
+            res.status(500).json({ error: 'Failed to import products' });
         }
     }
 } 

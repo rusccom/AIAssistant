@@ -106,7 +106,8 @@ export const API_ENDPOINTS = {
         DOMAINS: '/api/bot-config/domains'
     },
     PRODUCTS: {
-        BASE: '/api/products'
+        BASE: '/api/products',
+        BULK_IMPORT: '/api/products/bulk-import'
     },
     SESSIONS: {
         EXPORT: '/api/sessions'

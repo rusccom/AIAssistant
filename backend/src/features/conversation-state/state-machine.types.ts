@@ -1,0 +1,34 @@
+import {
+  BotToolDefinition,
+  GeminiThinkingConfig
+} from '../realtime/shared/realtime.types';
+
+export type ReasoningMode = 'inherit' | 'fast' | 'balanced' | 'deep';
+
+export interface ConversationTransition {
+  condition?: string;
+  next_step: string;
+}
+
+export interface ConversationStateDefinition {
+  allowedTools?: string[];
+  description: string;
+  examples: string[];
+  id: string;
+  instructions: string[];
+  reasoningMode?: ReasoningMode;
+  transitions: ConversationTransition[];
+}
+
+export interface CompiledConversationState {
+  geminiThinkingConfig?: GeminiThinkingConfig | null;
+  id: string;
+  instructions: string;
+  tools: BotToolDefinition[];
+  transitions: ConversationTransition[];
+}
+
+export interface ConversationStateMachineBootstrap {
+  initialStateId: string | null;
+  states: CompiledConversationState[];
+}

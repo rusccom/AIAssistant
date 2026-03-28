@@ -25,6 +25,17 @@ export interface UpdateProductData {
     }[];
 }
 
+export interface BulkImportData {
+    title: string;
+    description?: string;
+    status?: string;
+    variants: {
+        title: string;
+        price: number;
+        sku?: string;
+    }[];
+}
+
 export class ProductService {
     
     async getAllProducts(domainId: string, page: number = 1, limit: number = 50, search?: string) {
@@ -133,6 +144,75 @@ export class ProductService {
         }
 
         return product;
+    }
+
+    async bulkImportProducts(productsData: BulkImportData[], domainId: string) {
+        const results = {
+            success: 0,
+            failed: 0,
+            errors: [] as string[]
+        };
+
+        for (let i = 0; i < productsData.length; i++) {
+            const productData = productsData[i];
+            
+            try {
+                // Валидация данных товара
+                if (!productData.title?.trim()) {
+                    results.failed++;
+                    results.errors.push(`Row ${i + 1}: Product Title обязателен`);
+                    continue;
+                }
+
+                if (!productData.variants || productData.variants.length === 0) {
+                    results.failed++;
+                    results.errors.push(`Row ${i + 1}: Товар должен иметь хотя бы один вариант`);
+                    continue;
+                }
+
+                // Валидация вариантов
+                let hasValidVariant = false;
+                for (let j = 0; j < productData.variants.length; j++) {
+                    const variant = productData.variants[j];
+                    
+                    if (!variant.title?.trim()) {
+                        variant.title = 'Default Title';
+                    }
+                    
+                    if (!variant.price || variant.price <= 0) {
+                        results.errors.push(`Row ${i + 1}, Variant ${j + 1}: Цена должна быть положительной`);
+                        continue;
+                    }
+                    
+                    hasValidVariant = true;
+                }
+
+                if (!hasValidVariant) {
+                    results.failed++;
+                    results.errors.push(`Row ${i + 1}: Нет валидных вариантов`);
+                    continue;
+                }
+
+                // Создание товара
+                const createData: CreateProductData = {
+                    title: productData.title.trim(),
+                    description: productData.description?.trim(),
+                    status: productData.status || 'active',
+                    domainId: domainId,
+                    variants: productData.variants.filter(v => v.title && v.price > 0)
+                };
+
+                await this.createProduct(createData);
+                results.success++;
+                
+            } catch (error: any) {
+                results.failed++;
+                results.errors.push(`Row ${i + 1}: ${error.message || 'Неизвестная ошибка'}`);
+                console.error(`Bulk import error for row ${i + 1}:`, error);
+            }
+        }
+
+        return results;
     }
 
     async updateProduct(id: number, data: UpdateProductData, domainId?: string) {

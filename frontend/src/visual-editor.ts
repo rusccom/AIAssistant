@@ -36,6 +36,7 @@ class VisualEditor {
     private stateCounter: number = 1;
     private isDragMode: boolean = false;
     private selectedDomain: string | null = null;
+    private selectedProvider: string = 'openai';
     private newBlockOffsetIndex: number = 0;
     private readonly newBlockOffsetStep: number = 32;
     private readonly newBlockOffsetCycle: number = 8;
@@ -168,6 +169,7 @@ class VisualEditor {
             description: data?.description || 'New State',
             instructions: data?.instructions || [],
             examples: data?.examples || [],
+            reasoningMode: data?.reasoningMode || 'inherit',
             position: data?.position || this.getNextNewBlockPosition(),
             connections: []
         };
@@ -531,11 +533,14 @@ class VisualEditor {
         const stateDescriptionInput = document.getElementById('state-description-input') as HTMLTextAreaElement;
         const stateInstructionsInput = document.getElementById('state-instructions-input') as HTMLTextAreaElement;
         const stateExamplesInput = document.getElementById('state-examples-input') as HTMLTextAreaElement;
+        const stateReasoningModeInput = document.getElementById('state-reasoning-mode') as HTMLSelectElement;
         
         if (stateIdInput) stateIdInput.value = state.data.id;
         if (stateDescriptionInput) stateDescriptionInput.value = state.data.description || '';
         if (stateInstructionsInput) stateInstructionsInput.value = state.data.instructions?.join('\n') || '';
         if (stateExamplesInput) stateExamplesInput.value = state.data.examples?.join('\n') || '';
+        if (stateReasoningModeInput) stateReasoningModeInput.value = state.data.reasoningMode || 'inherit';
+        this.updateReasoningModeVisibility();
         
         // Показываем модальное окно
         this.editModal.style.display = 'block';
@@ -545,6 +550,15 @@ class VisualEditor {
         this.editModal.style.display = 'none';
     }
 
+    private updateReasoningModeVisibility(): void {
+        const reasoningGroup = document.getElementById('state-reasoning-group') as HTMLElement | null;
+        if (!reasoningGroup) {
+            return;
+        }
+
+        reasoningGroup.style.display = this.selectedProvider === 'gemini' ? 'block' : 'none';
+    }
+
     private saveEditModalChanges(): void {
         if (!this.selectedState) return;
         
@@ -552,12 +566,14 @@ class VisualEditor {
         const stateDescriptionInput = document.getElementById('state-description-input') as HTMLTextAreaElement;
         const stateInstructionsInput = document.getElementById('state-instructions-input') as HTMLTextAreaElement;
         const stateExamplesInput = document.getElementById('state-examples-input') as HTMLTextAreaElement;
+        const stateReasoningModeInput = document.getElementById('state-reasoning-mode') as HTMLSelectElement;
         
         const newData: Partial<StateData> = {
             id: stateIdInput?.value || this.selectedState.data.id,
             description: stateDescriptionInput?.value || '',
             instructions: stateInstructionsInput?.value ? stateInstructionsInput.value.split('\n').filter(line => line.trim()) : [],
-            examples: stateExamplesInput?.value ? stateExamplesInput.value.split('\n').filter(line => line.trim()) : []
+            examples: stateExamplesInput?.value ? stateExamplesInput.value.split('\n').filter(line => line.trim()) : [],
+            reasoningMode: (stateReasoningModeInput?.value as StateData['reasoningMode']) || 'inherit'
         };
         
         // Сохраняем старый ID ПЕРЕД обновлением
@@ -931,6 +947,8 @@ class VisualEditor {
             }
             
             const config = await response.json();
+            this.selectedProvider = config.provider || 'openai';
+            this.updateReasoningModeVisibility();
             
             // Загружаем настройки редактора первыми чтобы получить позиции
             const editorSettings = config.editorSettings && typeof config.editorSettings === 'object' 
@@ -1196,6 +1214,7 @@ class VisualEditor {
                 stateObject.description = state.data.description;
                 stateObject.instructions = state.data.instructions;
                 stateObject.examples = state.data.examples;
+                stateObject.reasoningMode = state.data.reasoningMode || 'inherit';
                 stateObject.transitions = connections.map(conn => ({
                     next_step: conn.to,
                     condition: (conn as any).condition || 'When condition is met'
@@ -1346,6 +1365,7 @@ class VisualEditor {
                 description: stateData.description || 'Imported state',
                 instructions: stateData.instructions || [],
                 examples: stateData.examples || [],
+                reasoningMode: stateData.reasoningMode || 'inherit',
                 position: position,
                 connections: []
             });
