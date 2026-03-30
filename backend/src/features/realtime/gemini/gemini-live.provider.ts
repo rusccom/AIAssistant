@@ -21,13 +21,10 @@ const createClient = () => {
   });
 };
 
-const createTokenConfig = (config: PreparedRealtimeConfig) => ({
+const createTokenConfig = () => ({
   uses: 0,
   expireTime: addMinutes(SESSION_MINUTES),
-  newSessionExpireTime: addMinutes(SESSION_MINUTES),
-  liveConnectConstraints: {
-    model: config.model
-  }
+  newSessionExpireTime: addMinutes(SESSION_MINUTES)
 });
 
 const createSession = async (
@@ -35,7 +32,7 @@ const createSession = async (
 ): Promise<CreatedRealtimeSession> => {
   const client = createClient();
   const token = await client.authTokens.create({
-    config: createTokenConfig(config) as any
+    config: createTokenConfig() as any
   });
 
   if (!token.name) {
