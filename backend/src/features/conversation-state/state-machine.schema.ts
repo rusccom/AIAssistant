@@ -93,10 +93,6 @@ export const resolveStartStateId = (
       ? (editorSettings as any).startConnection.trim()
       : '';
 
-    if (startConnection === 'end') {
-      return 'end';
-    }
-
     if (states.some((state) => state.id === startConnection)) {
       return startConnection;
     }

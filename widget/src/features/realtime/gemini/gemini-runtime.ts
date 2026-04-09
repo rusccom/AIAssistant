@@ -68,10 +68,10 @@ const playAudioParts = async (message: any, player: AudioPlayer) => {
 const createDisconnectHandler = (
   input: StartRuntimeInput,
   isClosed: () => boolean,
-  isReconnecting: () => boolean,
+  getGeneration: () => number,
   setClosed: () => void
-) => (message: string) => {
-  if (isClosed() || isReconnecting()) {
+) => (generation: number) => (message: string) => {
+  if (isClosed() || generation !== getGeneration()) {
     return;
   }
 
@@ -117,13 +117,14 @@ const createSessionOpener = (
   input: StartRuntimeInput,
   getResumeHandle: () => string | null,
   onMessage: (message: any) => Promise<void>,
-  onDisconnect: (message: string) => void
-) => async (state: SessionStateDefinition) => {
+  onDisconnect: (generation: number) => (message: string) => void
+) => async (state: SessionStateDefinition, generation: number) => {
   const ai = new GoogleGenAI({
     apiKey: input.sessionConfig.token,
     httpOptions: { apiVersion: 'v1alpha' }
   });
   const resumeHandle = getResumeHandle();
+  const disconnect = onDisconnect(generation);
 
   logGemini('Widget -> Gemini connect', {
     ...describeState(state),
@@ -143,14 +144,14 @@ const createSessionOpener = (
       },
       onerror: (error) => {
         logGemini('Gemini socket error', { message: error.message || 'Unknown error' });
-        onDisconnect(`An error occurred: ${error.message || 'Unknown error'}`);
+        disconnect(`An error occurred: ${error.message || 'Unknown error'}`);
       },
       onclose: (event) => {
         logGemini('Gemini socket closed', {
           code: event.code,
           reason: event.reason || 'Session ended.'
         });
-        onDisconnect(event.reason || 'Session ended.');
+        disconnect(event.reason || 'Session ended.');
       }
     }
   });
@@ -196,7 +197,7 @@ export const startGeminiRuntime = async (
   const stateController = createLocalStateController(input.sessionConfig.stateMachine);
   const execute = createUniversalExecute(input.config, stateController);
   let closed = false;
-  let reconnecting = false;
+  let generation = 0;
   let sessionReady = false;
   let resumeHandle: string | null = null;
   let liveSession: any;
@@ -208,10 +209,10 @@ export const startGeminiRuntime = async (
   const onDisconnect = createDisconnectHandler(
     input,
     () => closed,
-    () => reconnecting,
+    () => generation,
     setClosed
   );
-  const canSend = () => !closed && !reconnecting && sessionReady;
+  const canSend = () => !closed && sessionReady;
   const handleToolCall = createToolCallHandler(execute, getSession, canSend);
 
   const openSession = createSessionOpener(
@@ -266,7 +267,7 @@ export const startGeminiRuntime = async (
         return;
       }
 
-      reconnecting = true;
+      generation += 1;
       try {
         logGemini('Gemini reconnecting for state transition', {
           fromStateId: previousStateId,
@@ -276,19 +277,17 @@ export const startGeminiRuntime = async (
         const previousSession = getSession();
         liveSession = undefined;
         previousSession?.close();
-        liveSession = await openSession(nextState);
+        liveSession = await openSession(nextState, generation);
       } catch (error) {
         setClosed();
         input.onDisconnect('Session reconnect failed.');
-      } finally {
-        reconnecting = false;
       }
     },
     onDisconnect
   );
 
   sessionReady = false;
-  liveSession = await openSession(stateController.getCurrentState());
-  await startRecorder(recorder, getSession, () => !closed && !reconnecting && sessionReady);
+  liveSession = await openSession(stateController.getCurrentState(), generation);
+  await startRecorder(recorder, getSession, () => !closed && sessionReady);
   return { close: createCloseHandler(recorder, player, getSession, setClosed) };
 };

@@ -37,6 +37,10 @@ export const createLocalStateController = (
         return 'nextStateId is required for transition_state.';
       }
 
+      if (pendingStateId) {
+        return `A transition to "${pendingStateId}" is already scheduled. Finish the current turn first.`;
+      }
+
       if (!canTransition(currentState, nextStateId)) {
         return `Transition to "${nextStateId}" is not allowed from "${currentState.id}".`;
       }
