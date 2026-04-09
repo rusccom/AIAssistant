@@ -376,9 +376,22 @@
                     <strong>JSON Format:</strong> Array with title, description, variants fields
                 </p>
             </div>
+            <div id="import-status" class="import-status" hidden aria-live="polite">
+                <div class="import-status__header">
+                    <span class="import-status__spinner" aria-hidden="true"></span>
+                    <div class="import-status__content">
+                        <p id="import-status-title" class="import-status__title">Preparing import</p>
+                        <p id="import-status-text" class="import-status__text">Select a file to start importing.</p>
+                    </div>
+                </div>
+                <p id="import-status-meta" class="import-status__meta"></p>
+                <div class="import-status__track" aria-hidden="true">
+                    <div id="import-status-fill" class="import-status__fill"></div>
+                </div>
+            </div>
             <div class="modal-actions">
                 <button type="button" id="cancel-import-btn" class="btn btn-secondary">Cancel</button>
-                <button type="submit" class="btn btn-primary">Import</button>
+                <button type="submit" id="submit-import-btn" class="btn btn-primary">Import</button>
             </div>
         </form>
     </div>
