@@ -5,6 +5,7 @@ import { initNavigation } from './utils/navigation';
 import { setupPage } from './layout/page-container';
 import pageContent from './bot-settings.content.html';
 import { setupImportModal } from './features/products/import/import-modal';
+import { setupRebuildEmbeddingsButton } from './features/products/embeddings/rebuild-embeddings';
 
 // Централизованные утилиты для устранения 19 дубликатов
 import { apiRequest, getAuthToken } from './utils/api-client';
@@ -983,6 +984,10 @@ async function initializeBotSettings(token: string) {
     setupImportModal({
         getSelectedDomain: () => selectedDomain,
         refreshProducts: () => loadProducts(1)
+    });
+
+    setupRebuildEmbeddingsButton({
+        getSelectedDomain: () => selectedDomain
     });
 
     // Data form functionality is now handled by import modal

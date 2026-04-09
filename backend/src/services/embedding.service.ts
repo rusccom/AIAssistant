@@ -41,20 +41,34 @@ export class EmbeddingService {
     console.log(`✅ Updated embeddings for product ${productId} and ${product.variants.length} variants`);
   }
 
-  async generateEmbeddingsForDomain(domainId: string): Promise<void> {
+  async generateEmbeddingsForDomain(domainId: string): Promise<{
+    totalProducts: number;
+    rebuiltProducts: number;
+    failedProducts: number;
+  }> {
     const products = await prisma.product.findMany({
       where: { domainId },
-      select: { id: true, title: true },
+      select: { id: true },
     });
+    let rebuiltProducts = 0;
+    let failedProducts = 0;
 
     for (const product of products) {
       try {
         await this.updateProductEmbedding(product.id);
+        rebuiltProducts += 1;
         await wait(100);
       } catch (error) {
+        failedProducts += 1;
         console.error(`Error processing product ${product.id}:`, error);
       }
     }
+
+    return {
+      totalProducts: products.length,
+      rebuiltProducts,
+      failedProducts,
+    };
   }
 
   private async updateProductVector(productId: number, product: ProductSource) {

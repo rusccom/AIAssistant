@@ -5,22 +5,12 @@ import { authMiddleware } from '../middleware/auth.middleware';
 const router = express.Router();
 const productController = new ProductController();
 
-// Получить все товары
 router.get('/', authMiddleware, productController.getProducts.bind(productController));
-
-// Получить товар по ID
 router.get('/:id', authMiddleware, productController.getProduct.bind(productController));
-
-// Создать товар
 router.post('/', authMiddleware, productController.createProduct.bind(productController));
-
-// Массовый импорт товаров
 router.post('/bulk-import', authMiddleware, productController.bulkImportProducts.bind(productController));
-
-// Обновить товар  
+router.post('/rebuild-embeddings', authMiddleware, productController.rebuildEmbeddings.bind(productController));
 router.put('/:id', authMiddleware, productController.updateProduct.bind(productController));
-
-// Удалить товар
 router.delete('/:id', authMiddleware, productController.deleteProduct.bind(productController));
 
-export { router as productsRoutes }; 
+export { router as productsRoutes };

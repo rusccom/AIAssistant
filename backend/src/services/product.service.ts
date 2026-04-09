@@ -102,6 +102,10 @@ export class ProductService {
     return prisma.product.delete({ where: { id } });
   }
 
+  async rebuildEmbeddingsForDomain(domainId: string) {
+    return embeddingService.generateEmbeddingsForDomain(domainId);
+  }
+
   private async ensureProductAccess(id: number, domainId?: string) {
     const product = await prisma.product.findFirst({
       where: buildProductWhereById(id, domainId),

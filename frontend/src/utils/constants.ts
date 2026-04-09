@@ -107,7 +107,8 @@ export const API_ENDPOINTS = {
     },
     PRODUCTS: {
         BASE: '/api/products',
-        BULK_IMPORT: '/api/products/bulk-import'
+        BULK_IMPORT: '/api/products/bulk-import',
+        REBUILD_EMBEDDINGS: '/api/products/rebuild-embeddings'
     },
     SESSIONS: {
         EXPORT: '/api/sessions'

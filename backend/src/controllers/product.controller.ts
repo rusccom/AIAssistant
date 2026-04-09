@@ -244,4 +244,40 @@ export class ProductController {
             res.status(500).json({ error: 'Failed to import products' });
         }
     }
+
+    async rebuildEmbeddings(req: AuthRequest, res: Response) {
+        try {
+            const { domain } = req.body;
+
+            if (!req.user) {
+                return res.status(401).json({ error: 'Unauthorized' });
+            }
+
+            if (!domain) {
+                return res.status(400).json({ error: 'Domain parameter is required' });
+            }
+
+            const userDomain = await prisma.domain.findFirst({
+                where: {
+                    hostname: domain,
+                    userId: req.user.id
+                }
+            });
+
+            if (!userDomain) {
+                return res.status(403).json({ error: 'Access denied to this domain' });
+            }
+
+            const result = await this.productService.rebuildEmbeddingsForDomain(userDomain.id);
+
+            res.json({
+                success: true,
+                message: `Embeddings rebuilt. Processed: ${result.rebuiltProducts}/${result.totalProducts}, failed: ${result.failedProducts}.`,
+                ...result
+            });
+        } catch (error) {
+            console.error('Error rebuilding embeddings:', error);
+            res.status(500).json({ error: 'Failed to rebuild embeddings' });
+        }
+    }
 } 
