@@ -21,7 +21,8 @@ class OpenAIService {
     try {
       const response = await openai.embeddings.create({
         model: EMBEDDING_MODEL,
-        input: text,
+        input: text.trim(),
+        dimensions: EMBEDDING_DIMENSIONS,
         encoding_format: 'float'
       });
 

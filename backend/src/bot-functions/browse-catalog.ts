@@ -81,7 +81,12 @@ export async function browseCatalog(args: {
     const totalProducts = await prisma.product.count({
       where: {
         domainId: domain.id,
-        status: 'active'
+        status: 'active',
+        variants: {
+          some: {
+            isAvailable: true
+          }
+        }
       }
     });
 
@@ -101,10 +106,18 @@ export async function browseCatalog(args: {
     const products = await prisma.product.findMany({
       where: {
         domainId: domain.id,
-        status: 'active'
+        status: 'active',
+        variants: {
+          some: {
+            isAvailable: true
+          }
+        }
       },
       include: {
         variants: {
+          where: {
+            isAvailable: true
+          },
           orderBy: { price: 'asc' },
           take: 3 // Берем до 3 вариантов для показа
         }

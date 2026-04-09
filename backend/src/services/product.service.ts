@@ -1,291 +1,234 @@
+import { Prisma } from '@prisma/client';
 import prisma from '../db/prisma';
+import { normalizeKeywords } from '../features/product-search/search-text.builder';
+import {
+  BulkImportData,
+  CreateProductData,
+  ProductVariantInput,
+  UpdateProductData,
+} from '../features/products/product.types';
 import { embeddingService } from './embedding.service';
 
-export interface CreateProductData {
-    title: string;
-    description?: string;
-    status?: string;
-    domainId: string; // добавляем обязательный domainId
-    variants: {
-        title: string;
-        price: number;
-        sku?: string;
-    }[];
-}
-
-export interface UpdateProductData {
-    title?: string;
-    description?: string;
-    status?: string;
-    variants?: {
-        id?: number;
-        title: string;
-        price: number;
-        sku?: string;
-    }[];
-}
-
-export interface BulkImportData {
-    title: string;
-    description?: string;
-    status?: string;
-    variants: {
-        title: string;
-        price: number;
-        sku?: string;
-    }[];
-}
+const DEFAULT_VARIANT_TITLE = 'Default Title';
 
 export class ProductService {
-    
-    async getAllProducts(domainId: string, page: number = 1, limit: number = 50, search?: string) {
-        const offset = (page - 1) * limit;
-        
-        // Build search conditions with domain filter
-        const whereConditions: any = {
-            domainId: domainId // фильтруем только товары этого домена
-        };
-        
-        if (search) {
-            whereConditions.OR = [
-                {
-                    title: {
-                        contains: search,
-                        mode: 'insensitive' as const
-                    }
-                },
-                {
-                    description: {
-                        contains: search,
-                        mode: 'insensitive' as const
-                    }
-                },
-                {
-                    variants: {
-                        some: {
-                            sku: {
-                                contains: search,
-                                mode: 'insensitive' as const
-                            }
-                        }
-                    }
-                }
-            ];
-        }
-        
-        const [products, totalCount] = await Promise.all([
-            prisma.product.findMany({
-                where: whereConditions,
-                include: {
-                    variants: true
-                },
-                orderBy: {
-                    createdAt: 'desc'
-                },
-                skip: offset,
-                take: limit
-            }),
-            prisma.product.count({
-                where: whereConditions
-            })
-        ]);
+  async getAllProducts(
+    domainId: string,
+    page: number = 1,
+    limit: number = 50,
+    search?: string,
+  ) {
+    const where = buildProductWhere(domainId, search);
+    const skip = (page - 1) * limit;
+    const [products, totalCount] = await Promise.all([
+      prisma.product.findMany({
+        where,
+        include: { variants: true },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      prisma.product.count({ where }),
+    ]);
 
-        return {
-            products,
-            pagination: {
-                page,
-                limit,
-                totalCount,
-                totalPages: Math.ceil(totalCount / limit),
-                hasNext: page < Math.ceil(totalCount / limit),
-                hasPrev: page > 1
-            },
-            search: search || null
-        };
+    return {
+      products,
+      pagination: buildPagination(page, limit, totalCount),
+      search: search || null,
+    };
+  }
+
+  async getProductById(id: number, domainId?: string) {
+    return prisma.product.findFirst({
+      where: buildProductWhereById(id, domainId),
+      include: { variants: true },
+    });
+  }
+
+  async createProduct(data: CreateProductData) {
+    const product = await prisma.product.create({
+      data: mapProductCreateData(data),
+      include: { variants: true },
+    });
+
+    await this.refreshEmbeddings(product.id, `Generated embeddings for new product: ${product.title}`);
+    return product;
+  }
+
+  async bulkImportProducts(productsData: BulkImportData[], domainId: string) {
+    const results = { success: 0, failed: 0, errors: [] as string[] };
+
+    for (let index = 0; index < productsData.length; index += 1) {
+      const productData = productsData[index];
+      const error = validateImportProduct(productData);
+
+      if (error) {
+        results.failed += 1;
+        results.errors.push(`Row ${index + 1}: ${error}`);
+        continue;
+      }
+
+      try {
+        await this.createProduct({ ...productData, domainId });
+        results.success += 1;
+      } catch (error: any) {
+        results.failed += 1;
+        results.errors.push(`Row ${index + 1}: ${error.message || 'Unknown error'}`);
+      }
     }
 
-    async getProductById(id: number, domainId?: string) {
-        const whereClause: any = { id };
-        if (domainId) {
-            whereClause.domainId = domainId;
-        }
-        
-        return await prisma.product.findUnique({
-            where: whereClause,
-            include: {
-                variants: true
-            }
-        });
+    return results;
+  }
+
+  async updateProduct(id: number, data: UpdateProductData, domainId?: string) {
+    await this.ensureProductAccess(id, domainId);
+
+    if (data.variants) {
+      await prisma.productVariant.deleteMany({ where: { productId: id } });
     }
 
-    async createProduct(data: CreateProductData) {
-        const product = await prisma.product.create({
-            data: {
-                title: data.title,
-                description: data.description,
-                status: data.status || 'active',
-                domainId: data.domainId, // добавляем domainId
-                variants: {
-                    create: data.variants
-                }
-            },
-            include: {
-                variants: true
-            }
-        });
+    const product = await prisma.product.update({
+      where: { id },
+      data: mapProductUpdateData(data),
+      include: { variants: true },
+    });
 
-        // Автоматически генерируем эмбеддинги для нового товара
-        try {
-            await embeddingService.updateProductEmbedding(product.id);
-            console.log(`✅ Generated embeddings for new product: ${product.title}`);
-        } catch (error) {
-            console.warn(`⚠️ Failed to generate embeddings for product ${product.id}:`, error);
-            // Не прерываем создание товара, если не удалось создать эмбеддинги
-        }
+    await this.refreshEmbeddings(id, `Updated embeddings for product: ${product.title}`);
+    return product;
+  }
 
-        return product;
+  async deleteProduct(id: number, domainId?: string) {
+    await this.ensureProductAccess(id, domainId);
+    return prisma.product.delete({ where: { id } });
+  }
+
+  private async ensureProductAccess(id: number, domainId?: string) {
+    const product = await prisma.product.findFirst({
+      where: buildProductWhereById(id, domainId),
+      include: { variants: true },
+    });
+
+    if (!product) {
+      throw new Error('Product not found or access denied');
     }
+  }
 
-    async bulkImportProducts(productsData: BulkImportData[], domainId: string) {
-        const results = {
-            success: 0,
-            failed: 0,
-            errors: [] as string[]
-        };
-
-        for (let i = 0; i < productsData.length; i++) {
-            const productData = productsData[i];
-            
-            try {
-                // Валидация данных товара
-                if (!productData.title?.trim()) {
-                    results.failed++;
-                    results.errors.push(`Row ${i + 1}: Product Title обязателен`);
-                    continue;
-                }
-
-                if (!productData.variants || productData.variants.length === 0) {
-                    results.failed++;
-                    results.errors.push(`Row ${i + 1}: Товар должен иметь хотя бы один вариант`);
-                    continue;
-                }
-
-                // Валидация вариантов
-                let hasValidVariant = false;
-                for (let j = 0; j < productData.variants.length; j++) {
-                    const variant = productData.variants[j];
-                    
-                    if (!variant.title?.trim()) {
-                        variant.title = 'Default Title';
-                    }
-                    
-                    if (!variant.price || variant.price <= 0) {
-                        results.errors.push(`Row ${i + 1}, Variant ${j + 1}: Цена должна быть положительной`);
-                        continue;
-                    }
-                    
-                    hasValidVariant = true;
-                }
-
-                if (!hasValidVariant) {
-                    results.failed++;
-                    results.errors.push(`Row ${i + 1}: Нет валидных вариантов`);
-                    continue;
-                }
-
-                // Создание товара
-                const createData: CreateProductData = {
-                    title: productData.title.trim(),
-                    description: productData.description?.trim(),
-                    status: productData.status || 'active',
-                    domainId: domainId,
-                    variants: productData.variants.filter(v => v.title && v.price > 0)
-                };
-
-                await this.createProduct(createData);
-                results.success++;
-                
-            } catch (error: any) {
-                results.failed++;
-                results.errors.push(`Row ${i + 1}: ${error.message || 'Неизвестная ошибка'}`);
-                console.error(`Bulk import error for row ${i + 1}:`, error);
-            }
-        }
-
-        return results;
+  private async refreshEmbeddings(productId: number, successMessage: string) {
+    try {
+      await embeddingService.updateProductEmbedding(productId);
+      console.log(`✅ ${successMessage}`);
+    } catch (error) {
+      console.warn(`⚠️ Failed to refresh embeddings for product ${productId}:`, error);
     }
+  }
+}
 
-    async updateProduct(id: number, data: UpdateProductData, domainId?: string) {
-        // Check if product exists and belongs to the domain
-        const whereClause: any = { id };
-        if (domainId) {
-            whereClause.domainId = domainId;
-        }
-        
-        const existingProduct = await prisma.product.findUnique({
-            where: whereClause,
-            include: { variants: true }
-        });
+function buildProductWhere(domainId: string, search?: string): Prisma.ProductWhereInput {
+  const where: Prisma.ProductWhereInput = { domainId };
+  const query = search?.trim();
 
-        if (!existingProduct) {
-            throw new Error('Product not found or access denied');
-        }
+  if (!query) {
+    return where;
+  }
 
-        // If variants are provided, replace all variants
-        if (data.variants) {
-            await prisma.productVariant.deleteMany({
-                where: { productId: id }
-            });
-        }
+  const words = query.toLowerCase().split(/\s+/).filter(word => word.length > 2);
+  where.OR = [
+    containsInsensitive('title', query),
+    containsInsensitive('description', query),
+    containsInsensitive('brand', query),
+    containsInsensitive('category', query),
+    words.length > 0 ? { keywords: { hasSome: words } } : undefined,
+    {
+      variants: {
+        some: {
+          OR: [
+            { title: { contains: query, mode: 'insensitive' } },
+            { sku: { contains: query, mode: 'insensitive' } },
+          ],
+        },
+      },
+    },
+  ].filter(Boolean) as Prisma.ProductWhereInput[];
 
-        const updatedProduct = await prisma.product.update({
-            where: { id },
-            data: {
-                title: data.title,
-                description: data.description,
-                status: data.status,
-                ...(data.variants && {
-                    variants: {
-                        create: data.variants.map(variant => ({
-                            title: variant.title,
-                            price: variant.price,
-                            sku: variant.sku || ''
-                        }))
-                    }
-                })
-            },
-            include: {
-                variants: true
-            }
-        });
+  return where;
+}
 
-        // Автоматически обновляем эмбеддинги для обновленного товара
-        try {
-            await embeddingService.updateProductEmbedding(id);
-            console.log(`✅ Updated embeddings for product: ${updatedProduct.title}`);
-        } catch (error) {
-            console.warn(`⚠️ Failed to update embeddings for product ${id}:`, error);
-            // Не прерываем обновление товара, если не удалось обновить эмбеддинги
-        }
+function buildProductWhereById(id: number, domainId?: string): Prisma.ProductWhereInput {
+  return domainId ? { id, domainId } : { id };
+}
 
-        return updatedProduct;
-    }
+function mapProductCreateData(data: CreateProductData): Prisma.ProductCreateInput {
+  return {
+    title: data.title.trim(),
+    description: normalizeOptional(data.description),
+    brand: normalizeOptional(data.brand),
+    category: normalizeOptional(data.category),
+    keywords: normalizeKeywords(data.keywords),
+    status: data.status || 'active',
+    domain: { connect: { id: data.domainId } },
+    variants: { create: data.variants.map(mapVariantInput) },
+  };
+}
 
-    async deleteProduct(id: number, domainId?: string) {
-        // Check if product exists and belongs to the domain
-        if (domainId) {
-            const existingProduct = await prisma.product.findUnique({
-                where: { id, domainId }
-            });
-            
-            if (!existingProduct) {
-                throw new Error('Product not found or access denied');
-            }
-        }
-        
-        // Благодаря CASCADE в схеме, варианты удалятся автоматически
-        return await prisma.product.delete({
-            where: { id }
-        });
-    }
-} 
+function mapProductUpdateData(data: UpdateProductData): Prisma.ProductUpdateInput {
+  return {
+    title: normalizeOptional(data.title),
+    description: normalizeOptional(data.description),
+    brand: normalizeOptional(data.brand),
+    category: normalizeOptional(data.category),
+    keywords: data.keywords ? { set: normalizeKeywords(data.keywords) } : undefined,
+    status: data.status,
+    variants: data.variants ? { create: data.variants.map(mapVariantInput) } : undefined,
+  };
+}
+
+function mapVariantInput(variant: ProductVariantInput): Prisma.ProductVariantCreateWithoutProductInput {
+  const title = normalizeVariantTitle(variant.title);
+  return {
+    title,
+    price: variant.price,
+    sku: normalizeOptional(variant.sku),
+    attributes: (variant.attributes ?? undefined) as Prisma.InputJsonValue | undefined,
+    isDefault: title === DEFAULT_VARIANT_TITLE,
+    isAvailable: variant.isAvailable ?? true,
+  };
+}
+
+function normalizeVariantTitle(title: string): string {
+  const normalized = normalizeOptional(title);
+  return normalized || DEFAULT_VARIANT_TITLE;
+}
+
+function normalizeOptional(value?: string | null): string | undefined {
+  const normalized = value?.trim();
+  return normalized ? normalized : undefined;
+}
+
+function containsInsensitive(field: 'title' | 'description' | 'brand' | 'category', query: string) {
+  return { [field]: { contains: query, mode: 'insensitive' as const } };
+}
+
+function buildPagination(page: number, limit: number, totalCount: number) {
+  const totalPages = Math.ceil(totalCount / limit);
+  return {
+    page,
+    limit,
+    totalCount,
+    totalPages,
+    hasNext: page < totalPages,
+    hasPrev: page > 1,
+  };
+}
+
+function validateImportProduct(productData: BulkImportData): string | null {
+  if (!productData.title?.trim()) {
+    return 'Product title is required';
+  }
+
+  if (!productData.variants?.length) {
+    return 'Product must have at least one variant';
+  }
+
+  const hasValidVariant = productData.variants.some(variant => variant.price > 0);
+  return hasValidVariant ? null : 'No valid variants found';
+}

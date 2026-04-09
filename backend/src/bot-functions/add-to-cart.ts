@@ -98,8 +98,10 @@ export async function addToCart(args: {
     const variant = await prisma.productVariant.findFirst({
       where: {
         id: Number(variantId),
+        isAvailable: true,
         product: {
-          domainId: domain.id
+          domainId: domain.id,
+          status: 'active'
         }
       },
       include: {

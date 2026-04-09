@@ -102,10 +102,15 @@ export async function getProductInfo(args: { productId: number; variantId?: numb
     const product = await prisma.product.findFirst({
       where: {
         id: productId,
-        domainId: domain.id
+        domainId: domain.id,
+        status: 'active'
       },
       include: {
-        variants: true
+        variants: {
+          where: {
+            isAvailable: true
+          }
+        }
       }
     });
 

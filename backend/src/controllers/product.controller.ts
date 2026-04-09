@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { ProductService, BulkImportData } from '../services/product.service';
+import { ProductService } from '../services/product.service';
 import { AuthRequest } from '../middleware/auth.middleware';
 import prisma from '../db/prisma';
 
