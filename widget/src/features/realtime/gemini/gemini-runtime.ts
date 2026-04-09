@@ -265,10 +265,6 @@ export const startGeminiRuntime = async (
         logGemini('Gemini setup complete', {
           stateId: stateController.getCurrentState().id
         });
-        const session = getSession();
-        if (session && isSessionOpen(session)) {
-          session.sendClientContent({ turnComplete: true });
-        }
         return;
       }
 
