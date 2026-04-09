@@ -113,10 +113,21 @@ const createToolCallHandler = (
   session.sendToolResponse({ functionResponses });
 };
 
+const createMessageQueue = () => {
+  let chain = Promise.resolve();
+
+  return (handler: (message: any) => Promise<void>) =>
+    (message: any) => {
+      chain = chain
+        .then(() => handler(message))
+        .catch((error) => console.error('Gemini message handling failed:', error));
+    };
+};
+
 const createSessionOpener = (
   input: StartRuntimeInput,
   getResumeHandle: () => string | null,
-  onMessage: (message: any) => Promise<void>,
+  enqueueMessage: (message: any) => void,
   onDisconnect: (generation: number) => (message: string) => void
 ) => async (state: SessionStateDefinition, generation: number) => {
   const ai = new GoogleGenAI({
@@ -137,11 +148,7 @@ const createSessionOpener = (
     config: buildConnectConfig(input, state, resumeHandle),
     callbacks: {
       onopen: () => logGemini('Gemini socket opened', { stateId: state.id }),
-      onmessage: (message) => {
-        void onMessage(message).catch((error) => {
-          console.error('Gemini message handling failed:', error);
-        });
-      },
+      onmessage: enqueueMessage,
       onerror: (error) => {
         logGemini('Gemini socket error', { message: error.message || 'Unknown error' });
         disconnect(`An error occurred: ${error.message || 'Unknown error'}`);
@@ -214,11 +221,12 @@ export const startGeminiRuntime = async (
   );
   const canSend = () => !closed && sessionReady;
   const handleToolCall = createToolCallHandler(execute, getSession, canSend);
+  const enqueueMessage = createMessageQueue();
 
   const openSession = createSessionOpener(
     input,
     () => resumeHandle,
-    async (message) => {
+    enqueueMessage(async (message) => {
       if (closed) {
         return;
       }
@@ -228,6 +236,10 @@ export const startGeminiRuntime = async (
         logGemini('Gemini setup complete', {
           stateId: stateController.getCurrentState().id
         });
+        const session = getSession();
+        if (session && isSessionOpen(session)) {
+          session.sendClientContent({ turnComplete: true });
+        }
         return;
       }
 
@@ -282,7 +294,7 @@ export const startGeminiRuntime = async (
         setClosed();
         input.onDisconnect('Session reconnect failed.');
       }
-    },
+    }),
     onDisconnect
   );
 
