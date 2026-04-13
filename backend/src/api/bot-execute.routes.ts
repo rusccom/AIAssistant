@@ -1,5 +1,10 @@
 import { Request, Response, Router } from 'express';
 import { executeBotFunction, getAllFunctionDefinitions } from '../bot-functions';
+import {
+  logRealtimeError,
+  logRealtimeInfo,
+  sanitizeRealtimeLogValue
+} from '../features/realtime/shared/realtime-logging';
 
 const router = Router();
 
@@ -20,36 +25,52 @@ const buildFunctionsResponse = () => {
 const buildNotFoundResponse = (functionName: string) => ({
   success: false,
   error: `Function ${functionName} not found`,
-  response: `Функция ${functionName} не найдена.`
+  response: `Function ${functionName} was not found.`
 });
 
 const buildServerErrorResponse = () => ({
   success: false,
   error: 'Internal server error',
-  response: 'Произошла ошибка при выполнении функции.'
+  response: 'An error occurred while executing the function.'
 });
 
 router.post('/:functionName', async (req: Request, res: Response) => {
   const { functionName } = req.params;
-  const args = req.body;
+  const args = req.body || {};
+  const traceId = args.traceId || null;
 
-  console.log(`\n🤖 FUNCTION CALL RECEIVED:`);
-  console.log(`📝 Function: ${functionName}`);
-  console.log(`🌐 Hostname: ${args.hostname || 'not provided'}`);
-  console.log(`📋 Parameters:`, JSON.stringify(args, null, 2));
+  logRealtimeInfo('tool.request_received', {
+    traceId,
+    turnId: args.turnId || null,
+    stateId: args.stateId || null,
+    instructionVersion: args.instructionVersion || null,
+    functionName,
+    hostname: args.hostname || null,
+    params: sanitizeRealtimeLogValue(args)
+  });
 
   try {
     const result = await executeBotFunction(functionName, args);
 
-    console.log(`✅ Function ${functionName} completed successfully`);
-    console.log(`📤 Response type: ${result.success ? 'Success' : 'Error'}`);
-    console.log(`📄 Response preview: ${result.response?.substring(0, 100)}...`);
+    logRealtimeInfo('tool.request_finished', {
+      traceId,
+      turnId: args.turnId || null,
+      stateId: args.stateId || null,
+      functionName,
+      success: Boolean(result.success),
+      response: sanitizeRealtimeLogValue(result.response)
+    });
 
     res.json(result);
   } catch (error: any) {
-    console.error(`❌ FUNCTION EXECUTION ERROR:`);
-    console.error(`📝 Function: ${functionName}`);
-    console.error(`💥 Error:`, error.message);
+    logRealtimeError('tool.request_failed', {
+      traceId,
+      turnId: args.turnId || null,
+      stateId: args.stateId || null,
+      functionName,
+      hostname: args.hostname || null,
+      message: error.message
+    });
 
     if (error.message.includes('not found')) {
       return res.status(404).json(buildNotFoundResponse(functionName));
@@ -63,7 +84,9 @@ router.get('/', async (_req: Request, res: Response) => {
   try {
     res.json(buildFunctionsResponse());
   } catch (error) {
-    console.error('Error getting function definitions:', error);
+    logRealtimeError('tool.catalog_failed', {
+      message: error instanceof Error ? error.message : String(error)
+    });
     res.status(500).json({
       success: false,
       error: 'Failed to get function definitions'

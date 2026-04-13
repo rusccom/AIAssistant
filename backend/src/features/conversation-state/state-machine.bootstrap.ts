@@ -12,6 +12,7 @@ import {
 import { buildStateScopedInstructions } from './state-machine.instructions';
 import { resolveStartStateId, parseConversationStates } from './state-machine.schema';
 import { transitionStateToolDefinition } from './state-machine.tools';
+import { createStateInstructionVersion } from './state-machine.version';
 import {
   CompiledConversationState,
   ConversationStateDefinition,
@@ -55,24 +56,50 @@ const buildCompiledState = (
   botConfig: any,
   provider: RealtimeProviderId,
   state: ConversationStateDefinition
-): CompiledConversationState => ({
-  id: state.id,
-  instructions: buildStateScopedInstructions(botConfig, state),
-  tools: buildAllowedTools(state),
-  transitions: state.transitions,
-  geminiThinkingConfig: resolveGeminiThinkingConfig(provider, state.reasoningMode)
-});
+): CompiledConversationState => {
+  const instructions = buildStateScopedInstructions(botConfig, state);
+  const tools = buildAllowedTools(state);
+  const transitions = state.transitions;
+
+  return {
+    id: state.id,
+    instructions,
+    instructionsLength: instructions.length,
+    instructionVersion: createStateInstructionVersion({
+      id: state.id,
+      instructions,
+      tools,
+      transitions
+    }),
+    tools,
+    transitions,
+    geminiThinkingConfig: resolveGeminiThinkingConfig(provider, state.reasoningMode)
+  };
+};
 
 const buildFallbackState = (
   botConfig: any,
   provider: RealtimeProviderId
-): CompiledConversationState => ({
-  id: 'default',
-  instructions: buildStateScopedInstructions(botConfig, null),
-  tools: getAllFunctionDefinitions() as BotToolDefinition[],
-  transitions: [],
-  geminiThinkingConfig: resolveGeminiThinkingConfig(provider, 'inherit')
-});
+): CompiledConversationState => {
+  const instructions = buildStateScopedInstructions(botConfig, null);
+  const tools = getAllFunctionDefinitions() as BotToolDefinition[];
+  const transitions: ConversationStateDefinition['transitions'] = [];
+
+  return {
+    id: 'default',
+    instructions,
+    instructionsLength: instructions.length,
+    instructionVersion: createStateInstructionVersion({
+      id: 'default',
+      instructions,
+      tools,
+      transitions
+    }),
+    tools,
+    transitions,
+    geminiThinkingConfig: resolveGeminiThinkingConfig(provider, 'inherit')
+  };
+};
 
 export const buildStateMachineBootstrap = (
   botConfig: any

@@ -32,6 +32,7 @@ import botConfigRoutes from './api/bot-config.routes';
 import aiAssistRoutes from './api/ai-assist.routes';
 import tokenRoutes from './api/token.routes'; // Импортируем новый роут
 import { productsRoutes } from './api/products.routes';
+import { realtimeRequestLogger } from './middleware/realtime-request.middleware';
 import { botExecuteRoutes } from './api/bot-execute.routes'; // Новые bot functions
 
 const app = express();
@@ -96,6 +97,7 @@ const corsOptions = {
 // --- Middlewares ---
 app.use(cors(corsOptions));
 app.use(express.json());
+app.use(realtimeRequestLogger);
 
 // --- Static Files ---
 // Раздаем виджет как статические файлы

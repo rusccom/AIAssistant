@@ -1,5 +1,11 @@
 import './style.css';
+import { ENABLE_REALTIME_TRACE } from '../../shared/realtime-trace.config';
 import { fetchSessionConfig } from './features/realtime/shared/session-config';
+import {
+  createTraceId,
+  logWidgetError,
+  logWidgetEvent
+} from './features/realtime/shared/realtime-logger';
 import { startRealtimeRuntime } from './features/realtime/shared/runtime-factory';
 import {
   ActiveRealtimeSession,
@@ -66,9 +72,17 @@ const stopSession = (instance: WidgetInstance, message = 'Conversation ended.') 
     return;
   }
 
+  logWidgetEvent(
+    'session',
+    'stop_requested',
+    { appState: instance.appState, message },
+    { traceId: instance.config.traceId }
+  );
+
   instance.runtime?.close();
   instance.runtime = null;
   setIdleState(instance, message);
+  instance.config.traceId = undefined;
 };
 
 const startSession = async (instance: WidgetInstance) => {
@@ -76,10 +90,17 @@ const startSession = async (instance: WidgetInstance) => {
     return;
   }
 
+  instance.config.traceId = ENABLE_REALTIME_TRACE ? createTraceId() : undefined;
   instance.appState = 'connecting';
   instance.statusElement.textContent = 'Connecting...';
   instance.talkButton.textContent = 'Connecting...';
   instance.talkButton.disabled = true;
+  logWidgetEvent(
+    'session',
+    'start_requested',
+    { hostname: instance.config.hostname || window.location.hostname },
+    { traceId: instance.config.traceId }
+  );
 
   try {
     const sessionConfig = await fetchSessionConfig(instance.config);
@@ -95,7 +116,27 @@ const startSession = async (instance: WidgetInstance) => {
     instance.talkButton.classList.add('active');
     instance.talkButton.disabled = false;
     instance.talkButton.style.background = '#dc2626';
+    logWidgetEvent(
+      'session',
+      'connected',
+      {
+        currentStateId: sessionConfig.currentStateId || null,
+        transport: sessionConfig.transport,
+        voice: sessionConfig.voice
+      },
+      {
+        traceId: instance.config.traceId,
+        provider: sessionConfig.provider,
+        model: sessionConfig.model
+      }
+    );
   } catch (error) {
+    logWidgetError(
+      'session',
+      'start_failed',
+      { message: error instanceof Error ? error.message : String(error) },
+      { traceId: instance.config.traceId }
+    );
     console.error('Error starting session:', error);
     stopSession(instance, 'Connection failed. Please try again.');
   }
@@ -178,6 +219,7 @@ const initWidget = (config: WidgetConfig) => {
   const hostInfo = config.apiHost ? `Custom: ${config.apiHost}` : 'Auto-detected';
   const domainInfo = config.hostname || window.location.hostname;
   statusElement.textContent = `Ready for ${domainInfo} (${hostInfo}). Click to start!`;
+  logWidgetEvent('widget', 'initialized', { domainInfo, hostInfo });
 
   return instance;
 };

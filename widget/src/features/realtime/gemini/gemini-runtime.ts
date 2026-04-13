@@ -1,89 +1,20 @@
-import { GoogleGenAI, Modality, ThinkingLevel } from '@google/genai';
+import { GoogleGenAI } from '@google/genai';
 import { AudioPlayer } from '../shared/audio-player';
 import { AudioRecorder } from '../shared/audio-recorder';
+import {
+  RealtimeLogger,
+  summarizeState
+} from '../shared/realtime-logger';
 import { createLocalStateController } from '../shared/state-machine';
+import { createTurnTracker } from '../shared/turn-tracker';
 import { createUniversalExecute } from '../shared/universal-execute';
+import { summarizeGeminiMessage } from './gemini-message-summary';
+import { buildConnectConfig } from './gemini-session-config';
 import {
   ActiveRealtimeSession,
   SessionStateDefinition,
   StartRuntimeInput
 } from '../shared/realtime-session.types';
-
-const THINKING_LEVEL_MAP = {
-  minimal: ThinkingLevel.MINIMAL,
-  low: ThinkingLevel.LOW,
-  medium: ThinkingLevel.MEDIUM,
-  high: ThinkingLevel.HIGH
-} as const;
-
-const normalizeParameters = (parameters?: Record<string, unknown>) => {
-  if (!parameters) return undefined;
-  const properties = parameters.properties;
-  const hasProperties =
-    properties != null &&
-    typeof properties === 'object' &&
-    Object.keys(properties as Record<string, unknown>).length > 0;
-  return hasProperties ? parameters : undefined;
-};
-
-const buildTools = (state: SessionStateDefinition) => [
-  {
-    functionDeclarations: state.tools.map((tool) => ({
-      name: tool.function.name, description: tool.function.description, parameters: normalizeParameters(tool.function.parameters)
-    }))
-  }
-];
-
-const buildSpeechConfig = (voice: string) => ({
-  voiceConfig: { prebuiltVoiceConfig: { voiceName: voice } }
-});
-
-const logGemini = (event: string, details?: Record<string, unknown>) => {
-  if (details) {
-    console.info('[GeminiRuntime]', event, details);
-    return;
-  }
-  console.info('[GeminiRuntime]', event);
-};
-
-const describeState = (state: SessionStateDefinition) => ({
-  stateId: state.id,
-  toolNames: state.tools.map((tool) => tool.function.name),
-  hasThinkingConfig: !!state.geminiThinkingConfig
-});
-
-const normalizeThinkingConfig = (
-  state: SessionStateDefinition
-): { thinkingBudget?: number; thinkingLevel?: ThinkingLevel } | undefined => {
-  const thinkingConfig = state.geminiThinkingConfig;
-  if (!thinkingConfig) {
-    return undefined;
-  }
-  const normalized: { thinkingBudget?: number; thinkingLevel?: ThinkingLevel } = {};
-  if (typeof thinkingConfig.thinkingBudget === 'number') {
-    normalized.thinkingBudget = thinkingConfig.thinkingBudget;
-  }
-  if (thinkingConfig.thinkingLevel) {
-    normalized.thinkingLevel = THINKING_LEVEL_MAP[thinkingConfig.thinkingLevel];
-  }
-  return normalized;
-};
-
-const buildConnectConfig = (
-  input: StartRuntimeInput,
-  state: SessionStateDefinition,
-  resumeHandle?: string | null
-) => {
-  const thinkingConfig = normalizeThinkingConfig(state);
-  return {
-    responseModalities: [Modality.AUDIO],
-    systemInstruction: state.instructions,
-    tools: buildTools(state),
-    speechConfig: buildSpeechConfig(input.sessionConfig.voice),
-    sessionResumption: resumeHandle ? { handle: resumeHandle } : {},
-    ...(thinkingConfig ? { thinkingConfig } : {})
-  };
-};
 
 const playAudioParts = async (message: any, player: AudioPlayer) => {
   const parts = message.serverContent?.modelTurn?.parts || [];
@@ -96,6 +27,7 @@ const playAudioParts = async (message: any, player: AudioPlayer) => {
 
 const createDisconnectHandler = (
   input: StartRuntimeInput,
+  logger: RealtimeLogger,
   isClosed: () => boolean,
   getGeneration: () => number,
   setClosed: () => void
@@ -105,6 +37,7 @@ const createDisconnectHandler = (
   }
 
   setClosed();
+  logger.warn('session', 'disconnected', { generation, message });
   input.onDisconnect(message);
 };
 
@@ -116,7 +49,9 @@ const isSessionOpen = (session: any) => {
 const createToolCallHandler = (
   execute: ReturnType<typeof createUniversalExecute>,
   getSession: () => any,
-  canSend: () => boolean
+  canSend: () => boolean,
+  logger: RealtimeLogger,
+  getStateId: () => string
 ) => async (message: any) => {
   const functionCalls = message.toolCall?.functionCalls || [];
   if (functionCalls.length === 0) {
@@ -136,25 +71,31 @@ const createToolCallHandler = (
     return;
   }
 
-  logGemini('Widget -> Gemini toolResponse', {
+  logger.info('tool', 'response_sent', {
+    stateId: getStateId(),
     toolNames: functionResponses.map((response) => response.name)
   });
   session.sendToolResponse({ functionResponses });
 };
 
-const createMessageQueue = () => {
+const createMessageQueue = (logger: RealtimeLogger) => {
   let chain = Promise.resolve();
 
   return (handler: (message: any) => Promise<void>) =>
     (message: any) => {
       chain = chain
         .then(() => handler(message))
-        .catch((error) => console.error('Gemini message handling failed:', error));
+        .catch((error) => {
+          logger.error('transport', 'message_processing_failed', {
+            message: error instanceof Error ? error.message : String(error)
+          });
+        });
     };
 };
 
 const createSessionOpener = (
   input: StartRuntimeInput,
+  logger: RealtimeLogger,
   getResumeHandle: () => string | null,
   enqueueMessage: (message: any) => void,
   onDisconnect: (generation: number) => (message: string) => void
@@ -166,24 +107,26 @@ const createSessionOpener = (
   const resumeHandle = getResumeHandle();
   const disconnect = onDisconnect(generation);
 
-  logGemini('Widget -> Gemini connect', {
-    ...describeState(state),
+  logger.info('transport', 'connect_requested', {
+    state: summarizeState(state),
     hasResumeHandle: !!resumeHandle,
-    model: input.sessionConfig.model
+    generation
   });
 
   return ai.live.connect({
     model: input.sessionConfig.model,
     config: buildConnectConfig(input, state, resumeHandle),
     callbacks: {
-      onopen: () => logGemini('Gemini socket opened', { stateId: state.id }),
+      onopen: () => logger.info('transport', 'socket_opened', { stateId: state.id }),
       onmessage: enqueueMessage,
       onerror: (error) => {
-        logGemini('Gemini socket error', { message: error.message || 'Unknown error' });
+        logger.error('transport', 'socket_error', {
+          message: error.message || 'Unknown error'
+        });
         disconnect(`An error occurred: ${error.message || 'Unknown error'}`);
       },
       onclose: (event) => {
-        logGemini('Gemini socket closed', {
+        logger.info('transport', 'socket_closed', {
           code: event.code,
           reason: event.reason || 'Session ended.'
         });
@@ -196,8 +139,10 @@ const createSessionOpener = (
 const startRecorder = async (
   recorder: AudioRecorder,
   getSession: () => any,
-  canStreamInput: () => boolean
+  canStreamInput: () => boolean,
+  logger: RealtimeLogger
 ) => {
+  logger.info('audio', 'recorder_started');
   await recorder.start((chunk) => {
     const session = getSession();
     if (!canStreamInput() || !isSessionOpen(session)) {
@@ -217,8 +162,10 @@ const createCloseHandler = (
   recorder: AudioRecorder,
   player: AudioPlayer,
   getSession: () => any,
-  setClosed: () => void
+  setClosed: () => void,
+  logger: RealtimeLogger
 ) => () => {
+  logger.info('session', 'closed_by_widget');
   setClosed();
   recorder.stop();
   player.close();
@@ -226,12 +173,26 @@ const createCloseHandler = (
 };
 
 export const startGeminiRuntime = async (
-  input: StartRuntimeInput
+  input: StartRuntimeInput,
+  logger: RealtimeLogger
 ): Promise<ActiveRealtimeSession> => {
   const player = new AudioPlayer();
   const recorder = new AudioRecorder();
-  const stateController = createLocalStateController(input.sessionConfig.stateMachine);
-  const execute = createUniversalExecute(input.config, stateController);
+  const stateController = createLocalStateController(input.sessionConfig.stateMachine, logger);
+  const turnTracker = createTurnTracker({
+    getPendingTransitionId: () => stateController.getPendingStateId(),
+    getState: () => stateController.getCurrentState(),
+    logger
+  });
+  const execute = createUniversalExecute(
+    input.config,
+    stateController,
+    logger,
+    () => ({
+      instructionVersion: stateController.getCurrentState().instructionVersion || null,
+      turnId: turnTracker.getCurrentTurnId()
+    })
+  );
   let closed = false;
   let generation = 0;
   let sessionReady = false;
@@ -244,16 +205,24 @@ export const startGeminiRuntime = async (
   const getSession = () => liveSession;
   const onDisconnect = createDisconnectHandler(
     input,
+    logger,
     () => closed,
     () => generation,
     setClosed
   );
   const canSend = () => !closed && sessionReady;
-  const handleToolCall = createToolCallHandler(execute, getSession, canSend);
-  const enqueueMessage = createMessageQueue();
+  const handleToolCall = createToolCallHandler(
+    execute,
+    getSession,
+    canSend,
+    logger,
+    () => stateController.getCurrentState().id
+  );
+  const enqueueMessage = createMessageQueue(logger);
 
   const openSession = createSessionOpener(
     input,
+    logger,
     () => resumeHandle,
     enqueueMessage(async (message) => {
       if (closed) {
@@ -262,7 +231,7 @@ export const startGeminiRuntime = async (
 
       if (message.setupComplete) {
         sessionReady = true;
-        logGemini('Gemini setup complete', {
+        logger.info('transport', 'setup_complete', {
           stateId: stateController.getCurrentState().id
         });
         return;
@@ -270,23 +239,33 @@ export const startGeminiRuntime = async (
 
       if (message.sessionResumptionUpdate?.newHandle) {
         resumeHandle = message.sessionResumptionUpdate.newHandle;
-        logGemini('Gemini session handle updated', {
+        logger.info('transport', 'session_handle_updated', {
           resumable: message.sessionResumptionUpdate.resumable ?? null,
           stateId: stateController.getCurrentState().id
         });
       }
 
       if (message.serverContent?.interrupted) {
-        logGemini('Gemini interrupted current output', {
+        turnTracker.recordOutput({ interrupted: true });
+        logger.warn('audio', 'output_interrupted', {
           stateId: stateController.getCurrentState().id
         });
         player.reset();
       }
 
+      if (message.serverContent?.modelTurn?.parts?.length || message.toolCall?.functionCalls?.length) {
+        turnTracker.ensureTurnStarted('gemini.message');
+        turnTracker.recordOutput(summarizeGeminiMessage(message));
+      }
+
       if (message.toolCall?.functionCalls?.length) {
-        logGemini('Gemini -> Widget toolCall', {
-          toolNames: message.toolCall.functionCalls.map((call: any) => call.name),
-          stateId: stateController.getCurrentState().id
+        logger.info('transport', 'tool_call_received', {
+          stateId: stateController.getCurrentState().id,
+          toolCalls: message.toolCall.functionCalls.map((call: any) => ({
+            id: call.id,
+            name: call.name,
+            args: call.args || {}
+          }))
         });
       }
 
@@ -298,7 +277,8 @@ export const startGeminiRuntime = async (
       }
 
       const previousStateId = stateController.getCurrentState().id;
-      logGemini('Gemini turn complete', { stateId: previousStateId });
+      logger.info('transport', 'turn_done', { stateId: previousStateId });
+      turnTracker.completeTurn('gemini.turn_complete');
       const nextState = stateController.applyPendingState();
       if (!nextState || closed) {
         return;
@@ -306,7 +286,7 @@ export const startGeminiRuntime = async (
 
       generation += 1;
       try {
-        logGemini('Gemini reconnecting for state transition', {
+        logger.info('runtime', 'reconnect_for_state_transition', {
           fromStateId: previousStateId,
           toStateId: nextState.id
         });
@@ -316,6 +296,9 @@ export const startGeminiRuntime = async (
         previousSession?.close();
         liveSession = await openSession(nextState, generation);
       } catch (error) {
+        logger.error('runtime', 'reconnect_failed', {
+          message: error instanceof Error ? error.message : String(error)
+        });
         setClosed();
         input.onDisconnect('Session reconnect failed.');
       }
@@ -325,6 +308,8 @@ export const startGeminiRuntime = async (
 
   sessionReady = false;
   liveSession = await openSession(stateController.getCurrentState(), generation);
-  await startRecorder(recorder, getSession, () => !closed && sessionReady);
-  return { close: createCloseHandler(recorder, player, getSession, setClosed) };
+  await startRecorder(recorder, getSession, () => !closed && sessionReady, logger);
+  return {
+    close: createCloseHandler(recorder, player, getSession, setClosed, logger)
+  };
 };

@@ -1,4 +1,9 @@
 import { resolveApiHost } from './universal-execute';
+import {
+  logWidgetError,
+  logWidgetEvent,
+  summarizeStateMachine
+} from './realtime-logger';
 import { ServerSessionConfig, WidgetConfig } from './realtime-session.types';
 
 const assertSessionConfig = (data: any): ServerSessionConfig => {
@@ -27,18 +32,60 @@ const assertSessionConfig = (data: any): ServerSessionConfig => {
 export const fetchSessionConfig = async (
   config: WidgetConfig
 ): Promise<ServerSessionConfig> => {
-  const response = await fetch(`${resolveApiHost(config)}/api/token`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      hostname: config.hostname || window.location.hostname
-    })
-  });
+  const hostname = config.hostname || window.location.hostname;
+  const apiHost = resolveApiHost(config);
+  const startedAt = Date.now();
 
-  if (!response.ok) {
-    throw new Error(`Failed to fetch token and config: ${response.statusText}`);
+  logWidgetEvent(
+    'session',
+    'config_requested',
+    { apiHost, hostname },
+    { traceId: config.traceId }
+  );
+
+  try {
+    const response = await fetch(`${apiHost}/api/token`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ hostname, traceId: config.traceId || null })
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch token and config: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    const sessionConfig = assertSessionConfig(data);
+
+    logWidgetEvent(
+      'session',
+      'config_received',
+      {
+        currentStateId: sessionConfig.currentStateId || null,
+        durationMs: Date.now() - startedAt,
+        transport: sessionConfig.transport,
+        voice: sessionConfig.voice,
+        stateMachine: summarizeStateMachine(sessionConfig.stateMachine)
+      },
+      {
+        traceId: config.traceId,
+        provider: sessionConfig.provider,
+        model: sessionConfig.model
+      }
+    );
+
+    return sessionConfig;
+  } catch (error) {
+    logWidgetError(
+      'session',
+      'config_failed',
+      {
+        hostname,
+        durationMs: Date.now() - startedAt,
+        message: error instanceof Error ? error.message : String(error)
+      },
+      { traceId: config.traceId }
+    );
+    throw error;
   }
-
-  const data = await response.json();
-  return assertSessionConfig(data);
 };

@@ -1,4 +1,8 @@
 import { LocalStateController } from './state-machine';
+import {
+  RealtimeLogger,
+  summarizeResult
+} from './realtime-logger';
 import { WidgetConfig } from './realtime-session.types';
 
 const resolveDefaultApiHost = () => {
@@ -14,18 +18,44 @@ export const resolveApiHost = (config: WidgetConfig) => {
 
 export const createUniversalExecute = (
   config: WidgetConfig,
-  stateController: LocalStateController
+  stateController: LocalStateController,
+  logger?: RealtimeLogger,
+  getTraceContext?: () => Record<string, unknown>
 ) => {
   return async (params: Record<string, unknown>, toolName: string) => {
+    const startedAt = Date.now();
+    const currentStateId = stateController.getCurrentState().id;
+    const traceContext = getTraceContext?.() || {};
+
+    logger?.info('tool', 'execute_started', {
+      currentStateId,
+      toolName,
+      params,
+      ...traceContext
+    });
+
     try {
       if (toolName === 'transition_state') {
-        return stateController.scheduleTransition(params.nextStateId as string | undefined);
+        const result = stateController.scheduleTransition(
+          params.nextStateId as string | undefined,
+          params.reason as string | undefined
+        );
+        logger?.info('tool', 'execute_finished', {
+          currentStateId,
+          toolName,
+          durationMs: Date.now() - startedAt,
+          result: summarizeResult(result)
+        });
+        return result;
       }
 
       const apiHost = resolveApiHost(config);
       const enhancedParams = {
         ...params,
-        hostname: config.hostname || window.location.hostname
+        hostname: config.hostname || window.location.hostname,
+        traceId: config.traceId || null,
+        stateId: currentStateId,
+        ...traceContext
       };
 
       const response = await fetch(`${apiHost}/api/bot-execute/${toolName}`, {
@@ -39,8 +69,28 @@ export const createUniversalExecute = (
       }
 
       const result = await response.json();
-      return result.success ? result.response : result.response || `Error executing ${toolName}.`;
+      const output = result.success
+        ? result.response
+        : result.response || `Error executing ${toolName}.`;
+
+      logger?.info('tool', 'execute_finished', {
+        currentStateId,
+        toolName,
+        durationMs: Date.now() - startedAt,
+        success: Boolean(result.success),
+        statusCode: response.status,
+        result: summarizeResult(output)
+      });
+
+      return output;
     } catch (error) {
+      logger?.error('tool', 'execute_failed', {
+        currentStateId,
+        toolName,
+        durationMs: Date.now() - startedAt,
+        ...traceContext,
+        message: error instanceof Error ? error.message : String(error)
+      });
       console.error(`Widget tool execution failed for ${toolName}:`, error);
       return `Sorry, there was an error executing ${toolName}.`;
     }

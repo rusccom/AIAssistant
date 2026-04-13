@@ -2,6 +2,7 @@ export interface WidgetConfig {
   apiHost?: string;
   container: string;
   hostname?: string;
+  traceId?: string;
 }
 
 export interface GeminiThinkingConfig {
@@ -26,7 +27,9 @@ export interface BotToolDefinition {
 export interface SessionStateDefinition {
   geminiThinkingConfig?: GeminiThinkingConfig | null;
   id: string;
+  instructionVersion?: string | null;
   instructions: string;
+  instructionsLength?: number | null;
   tools: BotToolDefinition[];
   transitions: StateTransition[];
 }

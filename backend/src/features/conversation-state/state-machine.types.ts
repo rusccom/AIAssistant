@@ -23,7 +23,9 @@ export interface ConversationStateDefinition {
 export interface CompiledConversationState {
   geminiThinkingConfig?: GeminiThinkingConfig | null;
   id: string;
+  instructionVersion: string;
   instructions: string;
+  instructionsLength: number;
   tools: BotToolDefinition[];
   transitions: ConversationTransition[];
 }
