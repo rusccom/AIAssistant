@@ -5,6 +5,6 @@
   },
   "deploy": {
     "preDeployCommand": "./node_modules/.bin/prisma migrate deploy --schema=prisma/schema.prisma",
-    "startCommand": "npm start"
+    "startCommand": "npm run build:all && node backend/dist/index.js"
   }
 }
