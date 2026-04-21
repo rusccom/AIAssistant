@@ -207,28 +207,6 @@
             </div>
         </div>
         
-        <div class="form-subsection">
-            <div class="subsection-header">
-                <h3 class="subsection-title">Function Configuration</h3>
-                <div class="header-buttons">
-                    <button type="button" id="generate-functions-btn" class="btn btn-primary">Generate Functions</button>
-                    <button type="button" id="add-function-btn" class="btn btn-secondary">Add Function</button>
-                </div>
-            </div>
-            <p class="subsection-description">Configure dynamic functions that will be available to your AI assistant based on your product data.</p>
-            
-            <div id="functions-list">
-                <!-- Functions will be dynamically inserted here -->
-            </div>
-            
-            <div id="empty-functions" hidden>
-                <div class="empty-state">
-                    <div class="empty-state-icon"></div>
-                    <h3>No functions configured yet</h3>
-                    <p>Generate functions from your price list or add custom functions manually.</p>
-                </div>
-            </div>
-        </div>
     </div>
 </div>
 
@@ -413,48 +391,3 @@
         </form>
     </div>
 </div>
-
-<!-- Add/Edit Function Modal -->
-<div id="function-modal" class="modal-overlay" hidden>
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3 class="modal-title" id="function-modal-title">Add Function</h3>
-            <button id="close-function-modal-btn" class="close-btn" aria-label="Close">x</button>
-        </div>
-        <form id="function-form" class="modal-body">
-            <div class="form-group">
-                <label for="function-name" class="label">Function Name</label>
-                <input type="text" id="function-name" class="input" placeholder="e.g., getPrice, placeOrder" required>
-                <p class="form-help">The name of the function that will be called by the AI assistant.</p>
-            </div>
-            <div class="form-group">
-                <label for="function-description" class="label">Description</label>
-                <textarea id="function-description" class="textarea" rows="3" placeholder="Describe what this function does..." required></textarea>
-                <p class="form-help">Clear description of the function's purpose and functionality.</p>
-            </div>
-            <div class="form-group">
-                <label for="function-parameters" class="label">Parameters</label>
-                <div id="parameters-container">
-                    <!-- Dynamic parameter fields will be added here -->
-                </div>
-                <button type="button" id="add-parameter-btn" class="btn btn-secondary btn-sm">Add Parameter</button>
-                <p class="form-help">Define the parameters this function accepts.</p>
-            </div>
-            <div class="form-group">
-                <label for="function-implementation" class="label">Implementation Type</label>
-                <select id="function-implementation" class="select" required>
-                    <option value="">Select implementation type</option>
-                    <option value="auto">Auto-generated from price list</option>
-                    <option value="custom">Custom implementation</option>
-                </select>
-                <p class="form-help">Choose how this function will be implemented.</p>
-            </div>
-            <div class="modal-actions">
-                <button type="button" id="cancel-function-btn" class="btn btn-secondary">Cancel</button>
-                <button type="submit" class="btn btn-primary">Save Function</button>
-            </div>
-        </form>
-    </div>
-</div>
-
- 

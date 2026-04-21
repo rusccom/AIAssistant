@@ -197,17 +197,6 @@
     margin-top: 0.45rem;
 }
 
-#functions-list,
-#parameters-container {
-    display: grid;
-    gap: 0.9rem;
-}
-
-.function-item,
-.parameter-row {
-    padding: 1rem;
-}
-
 .template-link {
     color: var(--ct-accent);
     font-weight: 600;
