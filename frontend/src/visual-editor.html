@@ -8,7 +8,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <%= htmlWebpackPlugin.options.criticalCss %>
-    <!-- Emergency fallback CSS if webpack criticalCss fails -->
     <style>
         * { box-sizing: border-box; }
         body { 
@@ -162,8 +161,6 @@
             border-radius: 2px;
         }
         h3 { margin: 0; }
-        
-        /* Konva container */
         #konva-container {
             position: absolute;
             top: 0;
@@ -173,32 +170,12 @@
             pointer-events: none;
             z-index: 50;
         }
-        
-        /* State blocks */
-        .state-block {
-            position: absolute;
-            width: 174px;
-            min-height: 80px;
-            background: white;
-            border: 2px solid #bdc3c7;
-            border-radius: 8px;
-            padding: 8px;
-            cursor: move;
-            user-select: none;
-            transition: all 0.2s ease;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .state-block.special {
-            border: 2px dashed #95a5a6;
-            background: #ecf0f1;
-            cursor: default;
-        }
     </style>
 </head>
 <body>
     <div class="app-container">
         <div class="editor-header">
-            <h1>Visual State Editor</h1>
+            <h1 id="header-title">Visual State Editor</h1>
             <div class="header-controls">
                 <div class="hc-left">
                     <span class="hc-label">Domain</span>
@@ -209,6 +186,7 @@
                 <div class="hc-center">
                     <button id="add-state-btn" class="btn btn-primary">Add State</button>
                     <button id="save-states-btn" class="btn btn-success">Save</button>
+                    <button id="load-states-btn" class="btn btn-secondary">Load States</button>
                     <button id="clear-canvas-btn" class="btn btn-danger">Clear All</button>
                 </div>
                 <div class="hc-right">
@@ -225,10 +203,7 @@
                         <p>Select a state to edit its properties</p>
                     </div>
                 </div>
-
-
             </div>
-
             <div class="editor-canvas-container">
                 <div class="canvas-toolbar">
                     <div style="display: flex; align-items: center; gap: 0.5rem;">
@@ -237,36 +212,28 @@
                         <button id="zoom-reset-btn" class="btn btn-sm">Reset</button>
                         <span id="zoom-level">100%</span>
                     </div>
-                    
                     <div id="connection-status" style="display: none; padding: 0.25rem 0.75rem; background: #3498db; color: white; border-radius: 3px; font-size: 12px; position: absolute; left: 50%; transform: translateX(-50%);">
                         Click target to connect
                     </div>
-                    
                     <div style="flex: 1;"></div>
                 </div>
-                
                 <div class="canvas-wrapper">
                     <div id="konva-container"></div>
-                    <div id="canvas-content" class="canvas-content">
-                    </div>
+                    <div id="canvas-content" class="canvas-content"></div>
                 </div>
             </div>
         </div>
-
-        <!-- Context Menu -->
         <div id="context-menu" class="context-menu" style="display: none;">
             <div class="context-menu-item" data-action="create-connection">Create Connection</div>
             <div class="context-menu-item" data-action="edit-state">Edit State</div>
             <div class="context-menu-item" data-action="delete-state">Delete State</div>
         </div>
-
-        <!-- Edit State Modal -->
         <div id="edit-state-modal" class="modal" style="display: none;">
             <div class="modal-content">
                 <div class="modal-header">
                     <div class="modal-header-left">
                         <h3>Edit State</h3>
-                        <button id="ai-assist-btn" class="btn btn-success">🤖 AI Assistant</button>
+                        <button id="ai-assist-btn" class="btn btn-success">AI Assistant</button>
                     </div>
                     <button class="close-btn" id="close-edit-modal">&times;</button>
                 </div>
@@ -303,8 +270,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- AI Assist Modal -->
         <div id="ai-assist-modal" class="modal" style="display: none;">
             <div class="modal-content">
                 <div class="modal-header">
@@ -325,8 +290,6 @@
             </div>
         </div>
     </div>
-
-    <!-- 100% privacy-first analytics -->
     <script data-collect-dnt="true" async src="https://scripts.simpleanalyticscdn.com/latest.js"></script>
     <noscript><img src="https://queue.simpleanalyticscdn.com/noscript.gif?collect-dnt=true" alt="" referrerpolicy="no-referrer-when-downgrade"/></noscript>
 </body>

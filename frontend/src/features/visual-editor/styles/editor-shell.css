@@ -1,0 +1,198 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: linear-gradient(140deg, #f8fafc 0%, #e2e8f0 100%);
+    color: #0f172a;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.app-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+.editor-header {
+    position: relative;
+    z-index: 20;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.9rem 1.25rem;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(248, 250, 252, 0.96));
+    border-bottom: 1px solid rgba(148, 163, 184, 0.24);
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+}
+
+.editor-header h1 {
+    margin: 0;
+    font-size: 1.55rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+}
+
+.header-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.4rem 0.5rem;
+    background: rgba(255, 255, 255, 0.88);
+    border: 1px solid rgba(148, 163, 184, 0.24);
+    border-radius: 14px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 6px 16px rgba(15, 23, 42, 0.05);
+}
+
+.hc-left,
+.hc-center,
+.hc-right {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.hc-left {
+    padding-right: 0.75rem;
+    border-right: 1px solid rgba(148, 163, 184, 0.24);
+}
+
+.hc-right {
+    padding-left: 0.75rem;
+    border-left: 1px solid rgba(148, 163, 184, 0.24);
+}
+
+.hc-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #475569;
+}
+
+.editor-container {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+}
+
+.editor-sidebar {
+    width: 320px;
+    flex-shrink: 0;
+    overflow-y: auto;
+    background: rgba(255, 255, 255, 0.86);
+    border-right: 1px solid rgba(148, 163, 184, 0.2);
+    backdrop-filter: blur(12px);
+}
+
+.sidebar-section {
+    padding: 1rem;
+}
+
+.sidebar-section h3 {
+    margin: 0 0 0.75rem;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.btn,
+.form-control {
+    border-radius: 10px;
+    font: inherit;
+}
+
+.btn {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.55rem 0.9rem;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    background: linear-gradient(180deg, #ffffff, #f8fafc);
+    color: #0f172a;
+    font-size: 0.86rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.14s ease, border-color 0.14s ease, box-shadow 0.14s ease;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    border-color: rgba(71, 85, 105, 0.45);
+    box-shadow: 0 10px 18px rgba(15, 23, 42, 0.08);
+}
+
+.btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
+    transform: none;
+    box-shadow: none;
+}
+
+.btn-primary {
+    color: #eff6ff;
+    background: linear-gradient(180deg, #2563eb, #1d4ed8);
+    border-color: #1d4ed8;
+}
+
+.btn-success {
+    color: #f0fdf4;
+    background: linear-gradient(180deg, #059669, #047857);
+    border-color: #047857;
+}
+
+.btn-danger {
+    color: #fff1f2;
+    background: linear-gradient(180deg, #dc2626, #b91c1c);
+    border-color: #b91c1c;
+}
+
+.btn-secondary {
+    color: #334155;
+    background: linear-gradient(180deg, #f8fafc, #e2e8f0);
+    border-color: rgba(148, 163, 184, 0.45);
+}
+
+.btn-sm {
+    min-width: 2.25rem;
+    padding: 0.4rem 0.7rem;
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.65rem 0.75rem;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    background: #fff;
+    color: #0f172a;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: rgba(37, 99, 235, 0.55);
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+}
+
+@media (max-width: 960px) {
+    .editor-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .header-controls {
+        width: 100%;
+        flex-wrap: wrap;
+    }
+
+    .editor-container {
+        flex-direction: column;
+    }
+
+    .editor-sidebar {
+        width: 100%;
+        max-height: 34vh;
+    }
+}
