@@ -3,8 +3,7 @@ import { showError } from '../../../utils/error-handler';
 import { StateBlock } from '../blocks/state-block';
 import { EditorCanvas } from '../canvas/editor-canvas';
 import {
-    importVisualEditorSnapshot,
-    initializeVisualEditorDomains,
+    initializeVisualEditorDomain,
     loadVisualEditorDomainSnapshot,
     saveVisualEditorSnapshot
 } from '../services/visual-editor-page-coordinator';
@@ -75,10 +74,7 @@ export class VisualEditorController {
         this.bindPageEvents();
         this.canvas.renderSpecialBlocks();
         this.refreshHeader();
-        const domainFromUrl = await initializeVisualEditorDomains(this.elements.header.domainSelect);
-        if (domainFromUrl) {
-            await this.handleDomainChange();
-        }
+        await this.loadInitialDomain();
     }
 
     public refreshTheme(): void {
@@ -109,9 +105,7 @@ export class VisualEditorController {
             onAddState: () => this.addState(),
             onBack: () => this.navigateToSettings(),
             onClear: () => this.clearCanvas(),
-            onDomainChange: () => this.handleDomainChange(),
             onKeyDown: (event) => this.handleKeyDown(event),
-            onLoad: () => this.importStatesFromFile(),
             onSave: () => this.saveStates(),
             onZoomIn: () => this.canvas.zoomIn(),
             onZoomOut: () => this.canvas.zoomOut(),
@@ -131,10 +125,14 @@ export class VisualEditorController {
         const content = await requestGeneratedState(prompt, collectRegularStateData(this.states));
         this.editModal.applyGeneratedContent(normalizeGeneratedState(this.stateCounter, content));
     }
-    private async handleDomainChange(): Promise<void> {
-        this.selectedDomain = this.elements.header.domainSelect.value || null;
+    private async loadInitialDomain(): Promise<void> {
+        this.selectedDomain = await initializeVisualEditorDomain();
         this.refreshHeader();
-        if (!this.selectedDomain) return void this.clearCanvas();
+        if (!this.selectedDomain) {
+            this.clearCanvas();
+            return;
+        }
+
         await loadVisualEditorDomainSnapshot(this.selectedDomain, this.getSceneActions());
     }
     private handleContextAction(action: string, stateId: string): void {
@@ -146,9 +144,6 @@ export class VisualEditorController {
         if (event.key === 'Escape') this.clearSelection();
         const selectedStateId = this.selection.getSelectedStateId();
         if (event.key === 'Delete' && selectedStateId) this.removeState(selectedStateId);
-    }
-    private async importStatesFromFile(): Promise<void> {
-        await importVisualEditorSnapshot(this.getSceneActions());
     }
     private navigateToSettings(): void {
         const target = this.selectedDomain
@@ -164,7 +159,14 @@ export class VisualEditorController {
             states: this.states
         });
     }
-    private refreshHeader(): void { updateHeaderState(this.elements.header.title, this.elements.header.saveButton, this.selectedDomain); }
+    private refreshHeader(): void {
+        updateHeaderState(
+            this.elements.header.title,
+            this.elements.header.domainBadge,
+            this.elements.header.saveButton,
+            this.selectedDomain
+        );
+    }
     private removeState(stateId: string): void {
         const block = this.states.get(stateId);
         if (!block) return;

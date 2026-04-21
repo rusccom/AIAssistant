@@ -26,11 +26,10 @@ function requireBySelector<T extends Element>(selector: string): T {
 
 function getHeaderElements(): HeaderElements {
     return {
+        domainBadge: requireById<HTMLElement>('header-domain-badge'),
         title: requireById<HTMLElement>('header-title'),
-        domainSelect: requireById<HTMLSelectElement>('domain-select'),
         addStateButton: requireById<HTMLButtonElement>('add-state-btn'),
         saveButton: requireById<HTMLButtonElement>('save-states-btn'),
-        loadButton: requireById<HTMLButtonElement>('load-states-btn'),
         clearButton: requireById<HTMLButtonElement>('clear-canvas-btn'),
         backButton: requireById<HTMLButtonElement>('back-to-settings-btn')
     };

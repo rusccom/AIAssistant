@@ -1,7 +1,6 @@
 import type {
     BotConfigRecord,
     Connection,
-    DomainOption,
     GeneratedStateRecord,
     ProviderKind,
     StateData,
@@ -46,12 +45,6 @@ export function createDomainSnapshot(config: BotConfigRecord): DomainSnapshot {
     };
 }
 
-export function fillDomainOptions(select: HTMLSelectElement, domains: DomainOption[]): void {
-    const options = ['<option value="">Select Domain</option>'];
-    domains.forEach((domain) => options.push(`<option value="${domain.hostname}">${domain.hostname}</option>`));
-    select.innerHTML = options.join('');
-}
-
 export function getNextStateCounter(currentCounter: number, stateId: string): number {
     const match = /^state-(\d+)$/.exec(stateId);
     if (!match) {
@@ -73,10 +66,13 @@ export function normalizeGeneratedState(
 
 export function updateHeaderState(
     title: HTMLElement,
+    domainBadge: HTMLElement,
     saveButton: HTMLButtonElement,
     selectedDomain: string | null
 ): void {
-    title.textContent = selectedDomain ? `Visual State Editor - ${selectedDomain}` : 'Visual State Editor';
+    title.textContent = 'Visual State Editor';
+    domainBadge.textContent = selectedDomain || '';
+    domainBadge.hidden = !selectedDomain;
     saveButton.title = selectedDomain
         ? 'Save states to database for selected domain'
         : 'Download states as JSON file';

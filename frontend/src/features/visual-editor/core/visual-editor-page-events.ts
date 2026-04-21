@@ -4,9 +4,7 @@ export interface VisualEditorPageEventHandlers {
     onAddState: () => void;
     onBack: () => void;
     onClear: () => void;
-    onDomainChange: () => void | Promise<void>;
     onKeyDown: (event: KeyboardEvent) => void;
-    onLoad: () => void | Promise<void>;
     onSave: () => void | Promise<void>;
     onZoomIn: () => void;
     onZoomOut: () => void;
@@ -37,8 +35,6 @@ function bindHeaderEvents(
 ): void {
     elements.header.addStateButton.addEventListener('click', handlers.onAddState);
     elements.header.saveButton.addEventListener('click', () => void handlers.onSave());
-    elements.header.loadButton.addEventListener('click', () => void handlers.onLoad());
     elements.header.clearButton.addEventListener('click', handlers.onClear);
     elements.header.backButton.addEventListener('click', handlers.onBack);
-    elements.header.domainSelect.addEventListener('change', () => void handlers.onDomainChange());
 }

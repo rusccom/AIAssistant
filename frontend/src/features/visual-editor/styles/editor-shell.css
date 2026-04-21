@@ -25,11 +25,25 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 1rem;
+    gap: 1rem 1.5rem;
     padding: 1rem 1.25rem;
     border-bottom: 1px solid var(--ct-border-soft);
-    background: var(--ct-bg-surface);
+    background:
+        linear-gradient(180deg, var(--ct-bg-surface) 0%, var(--ct-surface-subtle) 100%);
     box-shadow: var(--ct-shadow-sm);
+}
+
+.editor-header__identity {
+    display: grid;
+    gap: 0.35rem;
+    min-width: 0;
+}
+
+.editor-header__title-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.7rem;
 }
 
 .editor-header h1 {
@@ -40,34 +54,56 @@ body {
     letter-spacing: -0.02em;
 }
 
-.header-controls {
+.editor-header__caption {
+    margin: 0;
+    color: var(--ct-text-muted);
+    font-size: 0.85rem;
+}
+
+.editor-domain-badge {
+    display: inline-flex;
+    align-items: center;
+    min-height: 32px;
+    padding: 0.35rem 0.8rem;
+    border: 1px solid var(--ct-border-soft);
+    border-radius: var(--ct-radius-pill);
+    background: rgba(255, 255, 255, 0.72);
+    color: var(--ct-text-base);
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+}
+
+.editor-header__actions {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    padding: 0.55rem 0.75rem;
-    border: 1px solid var(--ct-border-soft);
-    border-radius: var(--ct-radius-lg);
-    background: var(--ct-surface-subtle);
+    justify-content: flex-end;
+    gap: 0.65rem;
     flex-wrap: wrap;
 }
 
-.header-controls > div {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.55rem;
+.editor-header .editor-action {
+    min-height: 38px;
+    padding: 0.55rem 0.95rem;
+    border-radius: var(--ct-radius-md);
+    box-shadow: none;
 }
 
-.header-controls > div + div {
-    padding-left: 0.75rem;
-    border-left: 1px solid var(--ct-border-soft);
-}
-
-.hc-label {
+.editor-header .editor-action--ghost {
+    border-color: transparent;
+    background: transparent;
     color: var(--ct-text-muted);
-    font-size: 0.78rem;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
+}
+
+.editor-header .editor-action--ghost:hover {
+    border-color: var(--ct-border-soft);
+    background: rgba(255, 255, 255, 0.8);
+    color: var(--ct-text-strong);
+}
+
+.editor-header .editor-action--accent {
+    min-width: 92px;
 }
 
 .editor-container {
@@ -110,13 +146,8 @@ body {
         flex-direction: column;
     }
 
-    .header-controls {
-        width: 100%;
-    }
-
-    .header-controls > div + div {
-        padding-left: 0;
-        border-left: 0;
+    .editor-header__actions {
+        justify-content: flex-start;
     }
 
     .editor-container {

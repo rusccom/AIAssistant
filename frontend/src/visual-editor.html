@@ -26,31 +26,21 @@
 </head>
 <body class="app-page">
     <div class="app-container">
-            <div class="editor-header">
-            <h1 id="header-title">Visual State Editor</h1>
-            <div class="header-controls">
-                <div class="hc-left">
-                    <span class="hc-label">Style</span>
-                    <select class="form-control theme-switcher__control" data-client-theme-select></select>
+        <div class="editor-header">
+            <div class="editor-header__identity">
+                <div class="editor-header__title-row">
+                    <h1 id="header-title">Visual State Editor</h1>
+                    <span id="header-domain-badge" class="editor-domain-badge" hidden></span>
                 </div>
-                <div class="hc-left">
-                    <span class="hc-label">Domain</span>
-                    <select id="domain-select" class="form-control">
-                        <option value="">Select Domain</option>
-                    </select>
-                </div>
-                <div class="hc-center">
-                    <button id="add-state-btn" class="btn btn-primary">Add State</button>
-                    <button id="save-states-btn" class="btn btn-success">Save</button>
-                    <button id="load-states-btn" class="btn btn-secondary">Load States</button>
-                    <button id="clear-canvas-btn" class="btn btn-danger">Clear All</button>
-                </div>
-                <div class="hc-right">
-                    <button id="back-to-settings-btn" class="btn btn-secondary">Back to Settings</button>
-                </div>
+                <p class="editor-header__caption">Conversation flow editor</p>
+            </div>
+            <div class="editor-header__actions">
+                <button id="back-to-settings-btn" class="btn btn-secondary editor-action editor-action--ghost">Back</button>
+                <button id="add-state-btn" class="btn btn-secondary editor-action">Add State</button>
+                <button id="save-states-btn" class="btn btn-success editor-action editor-action--accent">Save</button>
+                <button id="clear-canvas-btn" class="btn btn-danger editor-action editor-action--danger">Clear</button>
             </div>
         </div>
-
         <div class="editor-container">
             <div class="editor-sidebar">
                 <div class="sidebar-section">

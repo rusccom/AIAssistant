@@ -89,11 +89,10 @@ export interface FileExportRecord {
 }
 
 export interface HeaderElements {
+    domainBadge: HTMLElement;
     title: HTMLElement;
-    domainSelect: HTMLSelectElement;
     addStateButton: HTMLButtonElement;
     saveButton: HTMLButtonElement;
-    loadButton: HTMLButtonElement;
     clearButton: HTMLButtonElement;
     backButton: HTMLButtonElement;
 }

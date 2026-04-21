@@ -2,7 +2,7 @@ import { showError, showSuccess } from '../../../utils/error-handler';
 import type { Connection, FileExportRecord, ProviderKind, StateData } from '../types/editor-types';
 import {
     importEditorFilePayload,
-    initializeDomainSelect,
+    initializeEditorDomain,
     isEditorFilePayload,
     loadDomainSnapshot,
     persistEditorState
@@ -41,11 +41,9 @@ export async function importVisualEditorSnapshot(
     applyVisualEditorSnapshot(normalizeImportedSnapshot(payload), actions);
 }
 
-export async function initializeVisualEditorDomains(
-    select: HTMLSelectElement
-): Promise<string | null> {
+export async function initializeVisualEditorDomain(): Promise<string | null> {
     try {
-        return await initializeDomainSelect(select);
+        return await initializeEditorDomain();
     } catch (error) {
         console.error('Failed to load domains', error);
         return null;
