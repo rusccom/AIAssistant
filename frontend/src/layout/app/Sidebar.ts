@@ -34,6 +34,14 @@ const sidebarTemplate = `
                     <div class="user-email">admin@ai.com</div>
                 </div>
             </div>
+            <div class="theme-switcher sidebar-theme-switcher">
+                <label class="theme-switcher__label" for="sidebar-theme-select">Workspace Style</label>
+                <select
+                    id="sidebar-theme-select"
+                    class="select theme-switcher__control"
+                    data-client-theme-select
+                ></select>
+            </div>
             <a href="#" class="nav-item logout-item" id="logout-button">
                 <svg class="nav-icon" viewBox="0 0 24 24"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"></path></svg>
                 <span class="nav-text">Sign Out</span>

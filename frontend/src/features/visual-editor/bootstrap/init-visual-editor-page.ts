@@ -2,6 +2,11 @@ import { showError } from '../../../utils/error-handler';
 import { ROUTES } from '../../../utils/constants';
 import { initNavigation } from '../../../utils/navigation';
 import { initSimpleFouc } from '../../../utils/simple-fouc';
+import {
+    CLIENT_THEME_CHANGE_EVENT,
+    initializeClientTheme,
+    mountClientThemeControls
+} from '../../client-theme/theme-controller';
 import { getEditorElements } from '../dom/editor-elements';
 import { VisualEditorController } from '../core/visual-editor-controller';
 
@@ -22,6 +27,7 @@ function exposeController(controller: VisualEditorController): void {
 }
 
 export async function initVisualEditorPage(): Promise<void> {
+    initializeClientTheme();
     initSimpleFouc();
     initNavigation();
 
@@ -33,6 +39,8 @@ export async function initVisualEditorPage(): Promise<void> {
         const controller = new VisualEditorController(getEditorElements());
         exposeController(controller);
         await controller.initialize();
+        mountClientThemeControls();
+        document.addEventListener(CLIENT_THEME_CHANGE_EVENT, () => controller.refreshTheme());
     } catch (error) {
         console.error('Failed to initialize visual editor', error);
     }

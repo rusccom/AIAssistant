@@ -3,6 +3,7 @@ import './import-status.css';
 import { apiRequest } from '../../../utils/api-client';
 import { API_ENDPOINTS } from '../../../utils/constants';
 import { showError, showSuccess, showWarning } from '../../../utils/error-handler';
+import { closeLayer, openLayer } from '../../../shared/ui/dom';
 import { ImportProduct, parseImportFile, processImportData } from './import-parser';
 import { ImportStatusController } from './import-status';
 
@@ -82,8 +83,7 @@ function openModal(elements: ImportElements, status: ImportStatusController): vo
     status.reset();
     elements.form.reset();
     setBusyState(elements, false);
-    elements.modal.style.display = 'flex';
-    document.body.style.overflow = 'hidden';
+    openLayer(elements.modal);
 }
 
 function tryCloseModal(elements: ImportElements, status: ImportStatusController): void {
@@ -91,8 +91,7 @@ function tryCloseModal(elements: ImportElements, status: ImportStatusController)
         return;
     }
 
-    elements.modal.style.display = 'none';
-    document.body.style.overflow = 'auto';
+    closeLayer(elements.modal);
     elements.form.reset();
     setBusyState(elements, false);
     status.reset();

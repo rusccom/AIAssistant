@@ -1,9 +1,5 @@
-/**
- * Переиспользуемый Modal компонент
- * Устраняет дубликаты modal логики в bot-settings.ts и других файлах
- */
-
-import { CSS_CLASSES } from '../utils/constants';
+import { closeLayer, openLayer, setBodyScrollLocked } from '../shared/ui/dom';
+import { escapeHtml } from '../shared/ui/primitives';
 
 export interface ModalConfig {
     id: string;
@@ -22,73 +18,196 @@ export interface ModalButtons {
 }
 
 export class Modal {
-    private element: HTMLElement;
-    private config: ModalConfig;
+    private readonly config: ModalConfig;
+    private readonly element: HTMLElement;
+    private readonly handleBackdropClick: (event: Event) => void;
+    private readonly handleDocumentKeydown: (event: KeyboardEvent) => void;
     private onClose?: () => void;
 
     constructor(config: ModalConfig) {
         this.config = config;
         this.element = this.createElement();
+        this.handleBackdropClick = (event) => {
+            if (this.config.closeOnBackdrop !== false && event.target === this.element) {
+                this.close();
+            }
+        };
+        this.handleDocumentKeydown = (event) => {
+            if (event.key === 'Escape' && this.isVisible()) {
+                this.close();
+            }
+        };
         this.setupEventListeners();
     }
 
-    /**
-     * Создать DOM элемент модального окна
-     */
+    public show(onClose?: () => void): void {
+        this.onClose = onClose;
+        openLayer(this.element);
+        this.element.focus();
+    }
+
+    public close(): void {
+        closeLayer(this.element);
+
+        if (this.onClose) {
+            this.onClose();
+        }
+    }
+
+    public isVisible(): boolean {
+        return !this.element.hidden;
+    }
+
+    public setContent(content: string): void {
+        const body = this.element.querySelector<HTMLElement>('.modal-body');
+
+        if (body) {
+            body.innerHTML = content;
+        }
+    }
+
+    public setTitle(title: string): void {
+        const titleElement = this.element.querySelector<HTMLElement>('.modal-title');
+
+        if (titleElement) {
+            titleElement.textContent = title;
+        }
+    }
+
+    public addButtons(buttons: ModalButtons[]): void {
+        let footer = this.element.querySelector<HTMLElement>('.modal-footer');
+
+        if (!footer) {
+            footer = document.createElement('div');
+            footer.className = 'modal-footer modal-actions';
+            this.element.querySelector<HTMLElement>('.modal-content')?.appendChild(footer);
+        }
+
+        footer.innerHTML = '';
+
+        buttons.forEach((buttonConfig) => {
+            const button = document.createElement('button');
+            const buttonClassName = buttonConfig.className?.includes('btn')
+                ? buttonConfig.className
+                : `btn ${buttonConfig.className || 'btn-primary'}`;
+
+            button.type = 'button';
+            button.className = buttonClassName;
+            button.textContent = buttonConfig.text;
+            button.addEventListener('click', async () => {
+                try {
+                    await buttonConfig.onClick();
+                } catch (error) {
+                    console.error('Modal button error:', error);
+                }
+            });
+
+            footer.appendChild(button);
+        });
+    }
+
+    public destroy(): void {
+        this.element.removeEventListener('click', this.handleBackdropClick);
+        document.removeEventListener('keydown', this.handleDocumentKeydown);
+        this.element.remove();
+        setBodyScrollLocked(false);
+    }
+
+    public static confirm(
+        message: string,
+        title = 'Confirm',
+        onConfirm: () => void | Promise<void>
+    ): Modal {
+        const modal = new Modal({
+            id: 'confirm-modal',
+            title,
+            content: wrapMessage(message),
+            className: 'confirm-modal'
+        });
+
+        modal.addButtons([
+            {
+                text: 'Cancel',
+                className: 'btn btn-secondary',
+                onClick: () => modal.close()
+            },
+            {
+                text: 'Confirm',
+                className: 'btn btn-danger',
+                onClick: async () => {
+                    await onConfirm();
+                    modal.close();
+                }
+            }
+        ]);
+
+        modal.show(() => modal.destroy());
+        return modal;
+    }
+
+    public static alert(message: string, title = 'Information'): Modal {
+        const modal = new Modal({
+            id: 'alert-modal',
+            title,
+            content: wrapMessage(message),
+            className: 'alert-modal'
+        });
+
+        modal.addButtons([
+            {
+                text: 'OK',
+                className: 'btn btn-primary',
+                onClick: () => modal.close()
+            }
+        ]);
+
+        modal.show(() => modal.destroy());
+        return modal;
+    }
+
     private createElement(): HTMLElement {
         const modal = document.createElement('div');
+        const classNames = ['modal-overlay'];
+
+        if (this.config.className) {
+            classNames.push(this.config.className);
+        }
+
         modal.id = this.config.id;
-        modal.className = `modal ${this.config.className || ''}`;
-        modal.style.cssText = `
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.5);
-            align-items: center;
-            justify-content: center;
-        `;
+        modal.className = classNames.join(' ');
+        modal.hidden = true;
+        modal.style.display = 'none';
+        modal.tabIndex = -1;
 
         const content = document.createElement('div');
         content.className = 'modal-content';
-        content.style.cssText = `
-            background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            max-width: ${this.config.maxWidth || '500px'};
-            width: 90%;
-            max-height: 80vh;
-            overflow-y: auto;
-            position: relative;
-        `;
 
-        if (this.config.title) {
-            const title = document.createElement('h2');
-            title.className = 'modal-title';
-            title.textContent = this.config.title;
-            title.style.marginTop = '0';
-            content.appendChild(title);
+        if (this.config.maxWidth) {
+            content.style.maxWidth = this.config.maxWidth;
         }
 
-        if (this.config.showCloseButton !== false) {
-            const closeBtn = document.createElement('button');
-            closeBtn.innerHTML = '&times;';
-            closeBtn.className = 'modal-close';
-            closeBtn.style.cssText = `
-                position: absolute;
-                top: 15px;
-                right: 20px;
-                background: none;
-                border: none;
-                font-size: 24px;
-                cursor: pointer;
-                color: #999;
-            `;
-            closeBtn.onclick = () => this.close();
-            content.appendChild(closeBtn);
+        if (this.config.title || this.config.showCloseButton !== false) {
+            const header = document.createElement('div');
+            header.className = 'modal-header';
+
+            if (this.config.title) {
+                const title = document.createElement('h2');
+                title.className = 'modal-title';
+                title.textContent = this.config.title;
+                header.appendChild(title);
+            }
+
+            if (this.config.showCloseButton !== false) {
+                const closeButton = document.createElement('button');
+                closeButton.type = 'button';
+                closeButton.className = 'close-btn';
+                closeButton.setAttribute('aria-label', 'Close');
+                closeButton.textContent = 'x';
+                closeButton.addEventListener('click', () => this.close());
+                header.appendChild(closeButton);
+            }
+
+            content.appendChild(header);
         }
 
         if (this.config.content) {
@@ -100,187 +219,15 @@ export class Modal {
 
         modal.appendChild(content);
         document.body.appendChild(modal);
-        
         return modal;
     }
 
-    /**
-     * Настроить обработчики событий
-     */
     private setupEventListeners(): void {
-        if (this.config.closeOnBackdrop !== false) {
-            this.element.addEventListener('click', (e) => {
-                if (e.target === this.element) {
-                    this.close();
-                }
-            });
-        }
-
-        // ESC для закрытия
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && this.isVisible()) {
-                this.close();
-            }
-        });
+        this.element.addEventListener('click', this.handleBackdropClick);
+        document.addEventListener('keydown', this.handleDocumentKeydown);
     }
+}
 
-    /**
-     * Показать модальное окно
-     */
-    public show(onClose?: () => void): void {
-        this.onClose = onClose;
-        this.element.style.display = 'flex';
-        document.body.style.overflow = 'hidden';
-        
-        // Фокус на модальное окно
-        this.element.focus();
-    }
-
-    /**
-     * Скрыть модальное окно
-     */
-    public close(): void {
-        this.element.style.display = 'none';
-        document.body.style.overflow = 'auto';
-        
-        if (this.onClose) {
-            this.onClose();
-        }
-    }
-
-    /**
-     * Проверить видимость модального окна
-     */
-    public isVisible(): boolean {
-        return this.element.style.display === 'flex';
-    }
-
-    /**
-     * Обновить содержимое модального окна
-     */
-    public setContent(content: string): void {
-        const body = this.element.querySelector('.modal-body');
-        if (body) {
-            body.innerHTML = content;
-        }
-    }
-
-    /**
-     * Обновить заголовок
-     */
-    public setTitle(title: string): void {
-        const titleElement = this.element.querySelector('.modal-title');
-        if (titleElement) {
-            titleElement.textContent = title;
-        }
-    }
-
-    /**
-     * Добавить кнопки в футер модального окна
-     */
-    public addButtons(buttons: ModalButtons[]): void {
-        let footer = this.element.querySelector('.modal-footer');
-        
-        if (!footer) {
-            footer = document.createElement('div');
-            footer.className = 'modal-footer';
-            (footer as HTMLElement).style.cssText = `
-                margin-top: 20px;
-                text-align: right;
-                border-top: 1px solid #eee;
-                padding-top: 15px;
-            `;
-            
-            const content = this.element.querySelector('.modal-content');
-            content?.appendChild(footer);
-        }
-
-        // Очистить существующие кнопки
-        footer.innerHTML = '';
-
-        buttons.forEach(button => {
-            const btn = document.createElement('button');
-            btn.textContent = button.text;
-            btn.className = `btn ${button.className || 'btn-primary'}`;
-            btn.style.marginLeft = '10px';
-            
-            btn.onclick = async () => {
-                try {
-                    await button.onClick();
-                } catch (error) {
-                    console.error('Modal button error:', error);
-                }
-            };
-            
-            footer.appendChild(btn);
-        });
-    }
-
-    /**
-     * Удалить модальное окно
-     */
-    public destroy(): void {
-        if (this.element.parentNode) {
-            this.element.parentNode.removeChild(this.element);
-        }
-        document.body.style.overflow = 'auto';
-    }
-
-    /**
-     * Статический метод для создания простого confirm диалога
-     */
-    static confirm(
-        message: string, 
-        title: string = 'Confirm',
-        onConfirm: () => void
-    ): Modal {
-        const modal = new Modal({
-            id: 'confirm-modal',
-            title,
-            content: `<p>${message}</p>`,
-            className: 'confirm-modal'
-        });
-
-        modal.addButtons([
-            {
-                text: 'Cancel',
-                className: 'btn-secondary',
-                onClick: () => modal.close()
-            },
-            {
-                text: 'Confirm',
-                className: 'btn-danger',
-                onClick: () => {
-                    onConfirm();
-                    modal.close();
-                }
-            }
-        ]);
-
-        modal.show(() => modal.destroy());
-        return modal;
-    }
-
-    /**
-     * Статический метод для создания alert диалога
-     */
-    static alert(message: string, title: string = 'Information'): Modal {
-        const modal = new Modal({
-            id: 'alert-modal',
-            title,
-            content: `<p>${message}</p>`,
-            className: 'alert-modal'
-        });
-
-        modal.addButtons([
-            {
-                text: 'OK',
-                className: 'btn-primary',
-                onClick: () => modal.close()
-            }
-        ]);
-
-        modal.show(() => modal.destroy());
-        return modal;
-    }
+function wrapMessage(message: string): string {
+    return `<p>${escapeHtml(message).replace(/\n/g, '<br>')}</p>`;
 }

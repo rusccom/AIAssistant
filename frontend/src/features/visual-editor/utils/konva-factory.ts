@@ -1,4 +1,5 @@
 import Konva from 'konva';
+import { getVisualEditorThemeTokens } from '../../client-theme/theme-tokens';
 import type { ArrowShapeSet, Point } from '../types/editor-types';
 
 const ARROW_PADDING = 8;
@@ -34,6 +35,7 @@ export function refreshNodeCache(node: Konva.Group): void {
 }
 
 export function createArrow(from: Point, to: Point): ArrowShapeSet {
+    const theme = getVisualEditorThemeTokens();
     const distance = Math.hypot(to.x - from.x, to.y - from.y);
     if (!distance) {
         throw new Error('Cannot create arrow between identical points');
@@ -56,10 +58,10 @@ export function createArrow(from: Point, to: Point): ArrowShapeSet {
     return {
         path: new Konva.Path({
             data: `M ${start.x} ${start.y} Q ${control.x} ${control.y} ${end.x} ${end.y}`,
-            stroke: '#2563eb',
+            stroke: theme.connectionStroke,
             strokeWidth: 2
         }),
-        arrowHead: createArrowHead(end, control)
+        arrowHead: createArrowHead(end, control, theme.connectionStroke)
     };
 }
 
@@ -74,7 +76,7 @@ function getCurveControlPoint(start: Point, end: Point): Point {
     };
 }
 
-function createArrowHead(end: Point, control: Point): Konva.Line {
+function createArrowHead(end: Point, control: Point, stroke: string): Konva.Line {
     const angle = Math.atan2(end.y - control.y, end.x - control.x);
     const left = {
         x: end.x - ARROW_SIZE * Math.cos(angle - Math.PI / 6),
@@ -87,7 +89,7 @@ function createArrowHead(end: Point, control: Point): Konva.Line {
 
     return new Konva.Line({
         points: [left.x, left.y, end.x, end.y, right.x, right.y],
-        stroke: '#2563eb',
+        stroke,
         strokeWidth: 2,
         lineCap: 'round',
         lineJoin: 'round'

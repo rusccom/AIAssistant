@@ -11,7 +11,7 @@
     <div id="domains-list">
         <!-- Domains will be dynamically inserted here -->
     </div>
-    <div id="empty-domains" style="display: none;">
+    <div id="empty-domains" hidden>
         <div class="empty-state">
             <div class="empty-state-icon">
                 
@@ -22,9 +22,9 @@
     </div>
 </div>
 
-<div class="content-section" id="bot-config-section" style="display: none;">
+<div class="content-section" id="bot-config-section" hidden>
     <h2 class="section-title">
-        Configuration for: <span id="selected-domain-label" style="color: #3b82f6;"></span>
+        Configuration for: <span id="selected-domain-label" class="selected-domain-label"></span>
     </h2>
     <div class="tabs">
         <button class="tab-link active" data-tab="bot-config">Bot Configuration</button>
@@ -103,7 +103,7 @@
                 <h3 class="subsection-title">Conversation States</h3>
                 <div class="subsection-actions">
                     <a href="/visual-editor.html" target="_blank" class="btn btn-primary" id="open-visual-editor-btn">
-                        🎨 Open Visual Editor
+                        Open Visual Editor
                     </a>
                 </div>
             </div>
@@ -112,7 +112,7 @@
             </p>
             <div class="conversation-states-info">
                 <div class="info-card">
-                    <h4>📝 What you can do in the visual editor:</h4>
+                    <h4>What you can do in the visual editor:</h4>
                     <ul>
                         <li>Create new conversation states</li>
                         <li>Edit instructions and examples</li>
@@ -139,7 +139,7 @@
             </div>
             
             <!-- Domain indicator -->
-            <div id="domain-indicator" class="domain-indicator" style="display: none;">
+            <div id="domain-indicator" class="domain-indicator" hidden>
                 <div class="indicator-content">
                     <svg class="indicator-icon" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd" d="M10 2C5.58172 2 2 5.58172 2 10C2 14.4183 5.58172 18 10 18C14.4183 18 18 14.4183 18 10C18 5.58172 14.4183 2 10 2ZM10 6C10.5523 6 11 6.44772 11 7V10C11 10.5523 10.5523 11 10 11C9.44772 11 9 10.5523 9 10V7C9 6.44772 9.44772 6 10 6ZM10 13C9.44772 13 9 13.4477 9 14C9 14.5523 9.44772 15 10 15C10.5523 15 11 14.5523 11 14C11 13.4477 10.5523 13 10 13Z" clip-rule="evenodd" />
@@ -161,13 +161,13 @@
                         placeholder="Search products by name, description, or SKU..."
                         autocomplete="off"
                     >
-                    <button type="button" id="clear-search-btn" class="clear-search-btn" style="display: none;">
+                    <button type="button" id="clear-search-btn" class="clear-search-btn" hidden>
                         <svg viewBox="0 0 20 20" fill="currentColor">
                             <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
                         </svg>
                     </button>
                 </div>
-                <div id="search-results-info" class="search-results-info" style="display: none;">
+                <div id="search-results-info" class="search-results-info" hidden>
                     <span id="search-results-text">Found 0 results</span>
                 </div>
             </div>
@@ -189,19 +189,19 @@
             </table>
             
             <!-- Pagination controls -->
-            <div id="pagination-container" class="pagination-container" style="display: none;">
+            <div id="pagination-container" class="pagination-container" hidden>
                 <div class="pagination-info">
                     <span id="pagination-info-text">Showing 1-50 of 100 products</span>
                 </div>
                 <div class="pagination-controls">
                     <button id="prev-page-btn" class="btn btn-secondary pagination-btn" disabled>
-                        ← Previous
+                        Previous
                     </button>
                     <div class="pagination-pages" id="pagination-pages">
                         <!-- Page numbers will be inserted here -->
                     </div>
                     <button id="next-page-btn" class="btn btn-secondary pagination-btn">
-                        Next →
+                        Next
                     </button>
                 </div>
             </div>
@@ -221,9 +221,9 @@
                 <!-- Functions will be dynamically inserted here -->
             </div>
             
-            <div id="empty-functions" style="display: none;">
+            <div id="empty-functions" hidden>
                 <div class="empty-state">
-                    <div class="empty-state-icon">⚙️</div>
+                    <div class="empty-state-icon"></div>
                     <h3>No functions configured yet</h3>
                     <p>Generate functions from your price list or add custom functions manually.</p>
                 </div>
@@ -235,11 +235,11 @@
 
 
 <!-- Universal Product Modal -->
-<div id="product-modal" class="modal-overlay" style="display: none;">
+<div id="product-modal" class="modal-overlay" hidden>
     <div class="modal-content">
         <div class="modal-header">
             <h3 class="modal-title" id="product-modal-title">Add Product</h3>
-            <button id="close-product-modal-btn" class="close-btn" aria-label="Close"></button>
+            <button id="close-product-modal-btn" class="close-btn" aria-label="Close">x</button>
         </div>
         <form id="product-form" class="modal-body">
             <input type="hidden" id="product-id">
@@ -280,7 +280,7 @@
             </div>
 
             <!-- For product with variants -->
-            <div id="variants-section" style="display: none;">
+            <div id="variants-section" hidden>
             <div id="variants-container">
                     <h4>Product Variants</h4>
                     <p class="help-text">Add different variants of the product (sizes, colors, configurations)</p>
@@ -300,18 +300,18 @@
 <!-- Conversation states management moved to visual editor only -->
 
 <!-- AI Assist Modal -->
-<div id="ai-assist-modal" class="modal-overlay" style="display: none;">
+<div id="ai-assist-modal" class="modal-overlay" hidden>
     <div class="modal-content">
         <div class="modal-header">
             <h3 class="modal-title">AI Assistant</h3>
-            <button id="close-ai-modal-btn" class="close-btn" aria-label="Close"></button>
+            <button id="close-ai-modal-btn" class="close-btn" aria-label="Close">x</button>
         </div>
         <div class="modal-body">
             <div class="form-group">
                 <label for="ai-prompt-input" class="label">What should this state do?</label>
                 <textarea id="ai-prompt-input" class="textarea" rows="4" placeholder="e.g., Greet the user and ask for their name."></textarea>
             </div>
-            <div id="ai-error-message" class="error-message" style="display: none;"></div>
+            <div id="ai-error-message" class="error-message" hidden></div>
         </div>
         <div class="modal-actions">
             <button type="button" id="cancel-ai-modal-btn" class="btn btn-secondary">Cancel</button>
@@ -321,13 +321,11 @@
 </div>
 
 <!-- Add Domain Modal -->
-<div id="add-domain-modal" class="modal-overlay" style="display: none;">
+<div id="add-domain-modal" class="modal-overlay" hidden>
     <div class="modal-content">
         <div class="modal-header">
             <h3 class="modal-title">Add a New Domain</h3>
-            <button id="close-modal-btn" class="close-btn" aria-label="Close">
-                
-            </button>
+            <button id="close-modal-btn" class="close-btn" aria-label="Close">x</button>
         </div>
         <form id="add-domain-form" class="modal-body">
             <div class="form-group">
@@ -344,11 +342,11 @@
 </div>
 
 <!-- Import Price List Modal -->
-<div id="import-modal" class="modal-overlay" style="display: none;">
+<div id="import-modal" class="modal-overlay" hidden>
     <div class="modal-content">
         <div class="modal-header">
             <h3 class="modal-title">Import Price List</h3>
-            <button id="close-import-modal-btn" class="close-btn" aria-label="Close">&times;</button>
+            <button id="close-import-modal-btn" class="close-btn" aria-label="Close">x</button>
         </div>
         <form id="import-form" class="modal-body">
             <div class="form-group">
@@ -356,42 +354,42 @@
                 <input type="file" id="price-list-file" class="input" accept=".csv,.json" required>
                 <p class="form-help">
                     Upload a CSV or JSON file with your product pricing information.<br>
-                    <a href="/public/templates/products_import_template.csv" download="products_variants_template.csv" style="color: #007bff; text-decoration: underline;">📥 Variants Template</a> | 
-                    <a href="/public/templates/products_import_separate.csv" download="products_separate_template.csv" style="color: #28a745; text-decoration: underline;">📥 Separate Products Template</a>
+                    <a href="/public/templates/products_import_template.csv" download="products_variants_template.csv" class="template-link template-link--primary">Variants Template</a> |
+                    <a href="/public/templates/products_import_separate.csv" download="products_separate_template.csv" class="template-link template-link--success">Separate Products Template</a>
                 </p>
             </div>
             <div class="form-group">
-                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                    <input type="checkbox" id="group-variants-checkbox" checked style="margin: 0;">
-                    <span class="label" style="margin: 0;">Group by variants</span>
+                <label class="checkbox-row">
+                    <input type="checkbox" id="group-variants-checkbox" checked>
+                    <span class="label checkbox-row__label">Group by variants</span>
                 </label>
                 <p class="form-help">
-                    <strong>✅ Checked:</strong> Group rows with same Product Title into variants (iPhone 15 → 2 variants)<br>
-                    <strong>❌ Unchecked:</strong> Create separate product for each row (iPhone 15 128GB + iPhone 15 256GB = 2 products)
+                    <strong>Checked:</strong> Group rows with same Product Title into variants (iPhone 15 -> 2 variants)<br>
+                    <strong>Unchecked:</strong> Create separate product for each row (iPhone 15 128GB + iPhone 15 256GB = 2 products)
                 </p>
             </div>
             <div class="form-group">
                 <label class="label">File Format</label>
                 <p class="form-help">
                     <strong>CSV Format:</strong> Product Title, Product Description, Variant Title, Price, SKU, Status<br>
-                    <strong>✅ Auto-detects:</strong> Comma (,) or Semicolon (;) separators<br>
-                    <strong>⚠️ Important:</strong> Save as CSV UTF-8 from Excel<br><br>
+                    <strong>Auto-detects:</strong> Comma (,) or Semicolon (;) separators<br>
+                    <strong>Important:</strong> Save as CSV UTF-8 from Excel<br><br>
                     
-                    <strong>🔄 Group by variants mode (recommended):</strong><br>
-                    <code style="font-size: 0.8rem; display: block; background: #f5f5f5; padding: 8px; border-radius: 4px; margin: 4px 0;">
+                    <strong>Group by variants mode (recommended):</strong><br>
+                    <code class="import-format-code import-format-code--soft">
                     iPhone 15;Smartphone Apple;128GB Black;89999;IP15-128-BK;active<br>
                     iPhone 15;Smartphone Apple;256GB Black;104999;IP15-256-BK;active
                     </code>
-                    → Creates 1 product "iPhone 15" with 2 variants<br><br>
+                    -> Creates 1 product "iPhone 15" with 2 variants<br><br>
                     
-                    <strong>📋 Each row = separate product mode:</strong><br>
-                    <code style="font-size: 0.8rem; display: block; background: #f0f8ff; padding: 8px; border-radius: 4px; margin: 4px 0;">
+                    <strong>Each row = separate product mode:</strong><br>
+                    <code class="import-format-code import-format-code--accent">
                     iPhone 15 128GB;Smartphone Apple Black;Default Title;89999;IP15-128-BK;active<br>
                     iPhone 15 256GB;Smartphone Apple Black;Default Title;104999;IP15-256-BK;active
                     </code>
-                    → Creates 2 separate products<br><br>
+                    -> Creates 2 separate products<br><br>
                     
-                    <strong>Price:</strong> In kopecks (89999 = 899.99₽) or rubles (899.99 auto-converted)<br>
+                    <strong>Price:</strong> In kopecks (89999 = 899.99) or rubles (899.99 auto-converted)<br>
                     <strong>JSON Format:</strong> Array with title, description, variants fields
                 </p>
             </div>
@@ -417,11 +415,11 @@
 </div>
 
 <!-- Add/Edit Function Modal -->
-<div id="function-modal" class="modal-overlay" style="display: none;">
+<div id="function-modal" class="modal-overlay" hidden>
     <div class="modal-content">
         <div class="modal-header">
             <h3 class="modal-title" id="function-modal-title">Add Function</h3>
-            <button id="close-function-modal-btn" class="close-btn" aria-label="Close">&times;</button>
+            <button id="close-function-modal-btn" class="close-btn" aria-label="Close">x</button>
         </div>
         <form id="function-form" class="modal-body">
             <div class="form-group">

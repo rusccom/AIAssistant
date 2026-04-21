@@ -1,9 +1,9 @@
 .import-status {
     margin-top: 1rem;
     padding: 1rem;
-    border: 1px solid #bfdbfe;
-    border-radius: 14px;
-    background: linear-gradient(180deg, #eff6ff 0%, #f8fafc 100%);
+    border: 1px solid var(--ct-accent);
+    border-radius: var(--ct-radius-lg);
+    background: linear-gradient(180deg, var(--ct-accent-soft) 0%, var(--ct-bg-surface) 100%);
 }
 
 .import-status[hidden] {
@@ -20,8 +20,8 @@
     width: 1rem;
     height: 1rem;
     margin-top: 0.2rem;
-    border: 2px solid rgba(37, 99, 235, 0.2);
-    border-top-color: #2563eb;
+    border: 2px solid rgba(196, 154, 108, 0.18);
+    border-top-color: var(--ct-accent);
     border-radius: 999px;
     flex-shrink: 0;
     animation: import-status-spin 0.8s linear infinite;
@@ -31,19 +31,19 @@
     margin: 0;
     font-size: 0.9rem;
     font-weight: 700;
-    color: #0f172a;
+    color: var(--ct-text-strong);
 }
 
 .import-status__text {
     margin: 0.25rem 0 0;
     font-size: 0.875rem;
-    color: #334155;
+    color: var(--ct-text-base);
 }
 
 .import-status__meta {
     margin: 0.75rem 0 0;
     font-size: 0.75rem;
-    color: #64748b;
+    color: var(--ct-text-muted);
 }
 
 .import-status__track {
@@ -52,45 +52,45 @@
     margin-top: 0.75rem;
     border-radius: 999px;
     overflow: hidden;
-    background: rgba(148, 163, 184, 0.2);
+    background: var(--ct-surface-muted);
 }
 
 .import-status__fill {
     width: 0;
     height: 100%;
     border-radius: inherit;
-    background: linear-gradient(90deg, #2563eb 0%, #38bdf8 100%);
+    background: linear-gradient(90deg, var(--ct-accent) 0%, #e2c89f 100%);
     transition: width 0.25s ease, background 0.25s ease;
 }
 
 .import-status[data-state="success"] {
-    border-color: #bbf7d0;
-    background: linear-gradient(180deg, #f0fdf4 0%, #f8fafc 100%);
+    border-color: var(--ct-success-border);
+    background: linear-gradient(180deg, var(--ct-success-fill) 0%, var(--ct-bg-surface) 100%);
 }
 
 .import-status[data-state="success"] .import-status__spinner {
     animation: none;
-    border-color: #22c55e;
-    border-top-color: #22c55e;
+    border-color: var(--ct-success-border);
+    border-top-color: var(--ct-success-text);
 }
 
 .import-status[data-state="success"] .import-status__fill {
-    background: linear-gradient(90deg, #16a34a 0%, #4ade80 100%);
+    background: linear-gradient(90deg, var(--ct-success-text) 0%, var(--ct-success-border) 100%);
 }
 
 .import-status[data-state="error"] {
-    border-color: #fecaca;
-    background: linear-gradient(180deg, #fef2f2 0%, #fff7ed 100%);
+    border-color: var(--ct-danger-border);
+    background: linear-gradient(180deg, var(--ct-danger-fill) 0%, var(--ct-bg-surface) 100%);
 }
 
 .import-status[data-state="error"] .import-status__spinner {
     animation: none;
-    border-color: #ef4444;
-    border-top-color: #ef4444;
+    border-color: var(--ct-danger-border);
+    border-top-color: var(--ct-danger-text);
 }
 
 .import-status[data-state="error"] .import-status__fill {
-    background: linear-gradient(90deg, #ef4444 0%, #fb7185 100%);
+    background: linear-gradient(90deg, var(--ct-danger-text) 0%, var(--ct-danger-border) 100%);
 }
 
 @keyframes import-status-spin {

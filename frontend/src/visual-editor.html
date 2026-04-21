@@ -12,157 +12,8 @@
     <%= htmlWebpackPlugin.options.criticalCss %>
     <style>
         * { box-sizing: border-box; }
-        body { 
-            margin: 0; 
-            padding: 0; 
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-            color: #1e293b;
-            line-height: 1.6;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-        }
-        .app-container { 
-            height: 100vh; 
-            display: flex; 
-            flex-direction: column;
-        }
-        .editor-header { 
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            color: #2c3e50;
-            padding: 1.25rem 2.5rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #dee2e6;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.12);
-            position: relative;
-            z-index: 100;
-        }
-        .editor-container { 
-            flex: 1; 
-            display: flex; 
-            overflow: hidden;
-        }
-        .editor-sidebar { 
-            width: 300px; 
-            background: white; 
-            border-right: 1px solid #ddd; 
-            padding: 0.25rem;
-        }
-        .editor-canvas-container { 
-            flex: 1; 
-            display: flex; 
-            flex-direction: column; 
-            background: #ecf0f1;
-        }
-        .canvas-toolbar { 
-            background: white; 
-            padding: 0.5rem 1rem; 
-            border-bottom: 1px solid #ddd; 
-            display: flex; 
-            gap: 0.5rem;
-            position: relative;
-        }
-        .canvas-wrapper { 
-            flex: 1; 
-            position: relative; 
-            overflow: auto;
-            contain: layout paint size;
-        }
-        .canvas-content {
-            position: relative; 
-            transform-origin: top left; 
-            min-width: 1200px; 
-            min-height: 800px; 
-            display: block;
-        }
-        .header-controls {
-            display: flex;
-            gap: 0.75rem;
-            align-items: center;
-            padding: 0.5rem;
-            background: rgba(255,255,255,0.7);
-            border-radius: 8px;
-            border: 1px solid rgba(255,255,255,0.8);
-            backdrop-filter: blur(10px);
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-        .btn { 
-            padding: 0.5rem 1rem; 
-            border: 1px solid #d1d5db; 
-            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-            color: #374151;
-            cursor: pointer; 
-            border-radius: 6px;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            font-size: 0.875rem;
-            font-weight: 500;
-            transition: all 0.15s ease-in-out;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-        }
-        .btn:hover {
-            background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
-            border-color: #9ca3af;
-            transform: translateY(-1px);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .btn-primary { 
-            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-            border-color: #2563eb;
-            color: white;
-        }
-        .btn-primary:hover {
-            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-            border-color: #1d4ed8;
-        }
-        .btn-success { 
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            border-color: #059669;
-            color: white;
-        }
-        .btn-success:hover {
-            background: linear-gradient(135deg, #059669 0%, #047857 100%);
-            border-color: #047857;
-        }
-        .btn-danger { 
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-            border-color: #dc2626;
-            color: white;
-        }
-        .btn-danger:hover {
-            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-            border-color: #b91c1c;
-        }
-        .btn-secondary { 
-            background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
-            border-color: #4b5563;
-            color: white;
-        }
-        .btn-secondary:hover {
-            background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
-            border-color: #374151;
-        }
-        .editor-header h1 {
-            margin: 0;
-            font-size: 1.75rem;
-            font-weight: 600;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            color: #1a202c;
-            letter-spacing: -0.025em;
-            position: relative;
-        }
-        .editor-header h1::after {
-            content: '';
-            position: absolute;
-            bottom: -4px;
-            left: 0;
-            width: 40px;
-            height: 3px;
-            background: linear-gradient(90deg, #3b82f6, #1d4ed8);
-            border-radius: 2px;
-        }
-        h3 { margin: 0; }
+        body { margin: 0; }
+        .app-container { min-height: 100vh; }
         #konva-container {
             position: absolute;
             top: 0;
@@ -176,9 +27,13 @@
 </head>
 <body class="app-page">
     <div class="app-container">
-        <div class="editor-header">
+            <div class="editor-header">
             <h1 id="header-title">Visual State Editor</h1>
             <div class="header-controls">
+                <div class="hc-left">
+                    <span class="hc-label">Style</span>
+                    <select class="form-control theme-switcher__control" data-client-theme-select></select>
+                </div>
                 <div class="hc-left">
                     <span class="hc-label">Domain</span>
                     <select id="domain-select" class="form-control">
@@ -214,7 +69,7 @@
                         <button id="zoom-reset-btn" class="btn btn-sm">Reset</button>
                         <span id="zoom-level">100%</span>
                     </div>
-                    <div id="connection-status" style="display: none; padding: 0.25rem 0.75rem; background: #3498db; color: white; border-radius: 3px; font-size: 12px; position: absolute; left: 50%; transform: translateX(-50%);">
+                    <div id="connection-status" style="display: none;">
                         Click target to connect
                     </div>
                     <div style="flex: 1;"></div>

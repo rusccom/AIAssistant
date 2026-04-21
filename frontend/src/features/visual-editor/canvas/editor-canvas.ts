@@ -43,6 +43,11 @@ export class EditorCanvas {
         return this.zoom;
     }
 
+    public refreshTheme(): void {
+        this.specialBlocks.forEach((block) => block.refreshTheme());
+        this.stage.draw();
+    }
+
     public hideConnectionStatus(): void {
         this.elements.connectionStatus.style.display = 'none';
     }
@@ -132,6 +137,7 @@ export class EditorCanvas {
     private upsertSpecialBlock(id: SpecialStateId, position: Point): void {
         const existing = this.specialBlocks.get(id);
         if (existing) {
+            existing.refreshTheme();
             existing.updatePosition(position);
             return;
         }

@@ -1,0 +1,41 @@
+.tabs {
+    display: flex;
+    gap: 1.25rem;
+    margin-bottom: 1.25rem;
+    border-bottom: 1px solid var(--ct-border-soft);
+}
+
+.tab-link {
+    padding: 0.9rem 0;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    background: transparent;
+    color: var(--ct-text-muted);
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.tab-link:hover {
+    color: var(--ct-text-strong);
+}
+
+.tab-link.active {
+    color: var(--ct-text-strong);
+    border-bottom-color: var(--ct-accent);
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+@media (max-width: 768px) {
+    .tabs {
+        gap: 0.9rem;
+        overflow-x: auto;
+    }
+}

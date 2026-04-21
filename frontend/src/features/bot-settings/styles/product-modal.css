@@ -1,0 +1,108 @@
+#product-modal .modal-content,
+#function-modal .modal-content {
+    width: min(760px, 100%);
+}
+
+.product-type-selector {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.radio-option {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.9rem 1rem;
+    border: 1px solid var(--ct-border-soft);
+    border-radius: var(--ct-radius-md);
+    background: var(--ct-surface-subtle);
+    color: var(--ct-text-base);
+    cursor: pointer;
+}
+
+.radio-option input {
+    margin: 0;
+}
+
+#variants-container {
+    display: grid;
+    gap: 0.9rem;
+    padding: 1rem;
+    border: 1px solid var(--ct-border-soft);
+    border-radius: var(--ct-radius-lg);
+    background: var(--ct-surface-subtle);
+}
+
+#variants-container h4,
+#variants-container p {
+    margin: 0;
+}
+
+.dynamic-variant-row,
+.parameter-row,
+.dynamic-list-row,
+.transition-block {
+    display: grid;
+    gap: 0.75rem;
+    padding: 1rem;
+    border: 1px solid var(--ct-border-soft);
+    border-radius: var(--ct-radius-md);
+    background: #ffffff;
+}
+
+.dynamic-list-row {
+    grid-template-columns: 1fr auto;
+    align-items: center;
+}
+
+.dynamic-variant-row input,
+.parameter-row input,
+.parameter-row select {
+    width: 100%;
+    min-height: 44px;
+    padding: 0.72rem 0.9rem;
+    border: 1px solid var(--ct-border-soft);
+    border-radius: var(--ct-radius-md);
+    background: var(--ct-surface-muted);
+    color: var(--ct-text-strong);
+}
+
+.dynamic-variant-row input:focus,
+.parameter-row input:focus,
+.parameter-row select:focus {
+    outline: none;
+    border-color: var(--ct-accent);
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(196, 154, 108, 0.16);
+}
+
+.variant-fields-container {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.parameter-row {
+    grid-template-columns: 1fr 140px auto;
+    align-items: center;
+}
+
+.transition-block {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: end;
+}
+
+.help-text {
+    margin: 0;
+    color: var(--ct-text-muted);
+    font-size: 0.82rem;
+}
+
+@media (max-width: 768px) {
+    .variant-fields-container,
+    .parameter-row,
+    .transition-block {
+        grid-template-columns: 1fr;
+    }
+}

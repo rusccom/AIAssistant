@@ -1,10 +1,20 @@
 import { insertSidebar } from './Sidebar';
-import './layout.css';
+import '../../features/client-theme/styles/themes.css';
+import '../../shared/ui/styles/index.css';
+import './styles/layout-base.css';
+import './styles/sidebar.css';
+import './styles/mobile-nav.css';
 import { getUser } from '../../utils/auth';
 
 // Импортируем централизованные утилиты для устранения дубликатов
 import { apiRequest, getAuthToken, clearAuthData } from '../../utils/api-client';
 import { API_ENDPOINTS, ROUTES } from '../../utils/constants';
+import {
+    initializeClientTheme,
+    mountClientThemeControls
+} from '../../features/client-theme/theme-controller';
+
+initializeClientTheme();
 
 function setupMobileNavigation() {
     const toggleButton = document.getElementById('mobile-nav-toggle');
@@ -94,4 +104,5 @@ export function setupPage(pageContent: string) {
 
     // Setup mobile navigation
     setupMobileNavigation();
+    mountClientThemeControls();
 } 

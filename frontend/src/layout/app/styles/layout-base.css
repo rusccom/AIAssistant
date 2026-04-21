@@ -1,0 +1,32 @@
+.dashboard-content {
+    padding: 2rem;
+}
+
+@media (min-width: 769px) {
+    .dashboard-sidebar {
+        display: flex !important;
+    }
+
+    .dashboard-mobile-header {
+        display: none !important;
+    }
+
+    .dashboard-content {
+        margin-left: var(--ct-sidebar-width);
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard-sidebar {
+        display: none !important;
+    }
+
+    .dashboard-mobile-header {
+        display: block !important;
+    }
+
+    .dashboard-content {
+        margin-left: 0;
+        padding: 5.5rem 1rem 1.25rem;
+    }
+}

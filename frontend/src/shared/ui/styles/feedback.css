@@ -1,0 +1,222 @@
+.error-message,
+.form-error,
+.notification.error {
+    padding: 0.9rem 1rem;
+    border: 1px solid var(--ct-danger-border);
+    border-radius: var(--ct-radius-md);
+    background: var(--ct-danger-fill);
+    color: var(--ct-danger-text);
+}
+
+.notification.success {
+    padding: 0.9rem 1rem;
+    border: 1px solid var(--ct-success-border);
+    border-radius: var(--ct-radius-md);
+    background: var(--ct-success-fill);
+    color: var(--ct-success-text);
+}
+
+.loading-skeleton {
+    border-radius: var(--ct-radius-sm);
+    background: linear-gradient(
+        90deg,
+        rgba(229, 231, 235, 0.75) 0%,
+        rgba(243, 244, 246, 0.92) 50%,
+        rgba(229, 231, 235, 0.75) 100%
+    );
+    background-size: 200% 100%;
+    animation: ui-loading 1.4s ease infinite;
+}
+
+@keyframes ui-loading {
+    from {
+        background-position: 200% 0;
+    }
+
+    to {
+        background-position: -200% 0;
+    }
+}
+
+.toast-stack {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    max-width: 420px;
+}
+
+.toast {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.85rem 1rem;
+    border: 1px solid var(--ct-border-soft);
+    border-radius: var(--ct-radius-lg);
+    background: var(--ct-bg-surface);
+    box-shadow: var(--ct-shadow-md);
+    animation: toast-slide-in 0.22s ease-out;
+}
+
+.toast.is-leaving {
+    animation: toast-slide-out 0.2s ease forwards;
+}
+
+.toast--success {
+    border-color: var(--ct-success-border);
+    background: var(--ct-success-fill);
+    color: var(--ct-success-text);
+}
+
+.toast--error {
+    border-color: var(--ct-danger-border);
+    background: var(--ct-danger-fill);
+    color: var(--ct-danger-text);
+}
+
+.toast--warning {
+    border-color: var(--ct-warning-border);
+    background: var(--ct-warning-fill);
+    color: var(--ct-warning-text);
+}
+
+.toast--info {
+    border-color: var(--ct-accent);
+    background: var(--ct-accent-soft);
+    color: var(--ct-text-strong);
+}
+
+.toast__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.5);
+    font-size: 0.82rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.toast__message {
+    flex: 1;
+    min-width: 0;
+    font-size: 0.88rem;
+    line-height: 1.45;
+    white-space: pre-line;
+}
+
+.toast__close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    opacity: 0.75;
+}
+
+.toast__close:hover {
+    background: rgba(255, 255, 255, 0.4);
+    opacity: 1;
+}
+
+.ui-spinner {
+    --ui-spinner-accent: var(--ct-accent);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.ui-spinner--visible {
+    display: inline-flex;
+}
+
+.ui-spinner--overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(255, 255, 255, 0.78);
+}
+
+.ui-spinner--overlay.ui-spinner--visible {
+    display: flex;
+}
+
+.ui-spinner__ring {
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(229, 231, 235, 0.85);
+    border-top-color: var(--ui-spinner-accent);
+    border-radius: 50%;
+    animation: ui-spinner-rotate 0.85s linear infinite;
+}
+
+.ui-spinner--small .ui-spinner__ring {
+    width: 18px;
+    height: 18px;
+    border-width: 2px;
+}
+
+.ui-spinner--large .ui-spinner__ring {
+    width: 56px;
+    height: 56px;
+    border-width: 5px;
+}
+
+.ui-spinner__text {
+    color: var(--ct-text-muted);
+    font-size: 0.85rem;
+    text-align: center;
+}
+
+.btn-spinner {
+    display: inline-flex;
+    margin-right: 0.5rem;
+    vertical-align: middle;
+}
+
+@keyframes toast-slide-in {
+    from {
+        transform: translateY(-8px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes toast-slide-out {
+    from {
+        transform: translateY(0);
+        opacity: 1;
+    }
+
+    to {
+        transform: translateY(-6px);
+        opacity: 0;
+    }
+}
+
+@keyframes ui-spinner-rotate {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
