@@ -81,6 +81,10 @@ dist
 # Gatsby files
 .cache/
 public
+!frontend/src/layout/public/
+!frontend/src/layout/public/Header.ts
+!frontend/src/layout/public/Footer.ts
+!frontend/src/layout/public/public-critical-css.html
 
 # Storybook build outputs
 .out
