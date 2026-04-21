@@ -636,7 +636,6 @@ h1, h2, h3, h4, h5 {
     margin: 0;
 }
 
-/* Section Styles from Example */
 .section {
     min-height: 100vh;
     position: relative;
@@ -908,7 +907,6 @@ h1, h2, h3, h4, h5 {
     background: #f8fafc;
 }
 
-/* CTA Section from Example */
 .cta-section {
     min-height: 100vh;
     display: flex;
