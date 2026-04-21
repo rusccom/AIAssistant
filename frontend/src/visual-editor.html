@@ -36,9 +36,11 @@
             </div>
             <div class="editor-header__actions">
                 <button id="back-to-settings-btn" class="btn btn-secondary editor-action editor-action--ghost">Back</button>
-                <button id="add-state-btn" class="btn btn-secondary editor-action">Add State</button>
-                <button id="save-states-btn" class="btn btn-success editor-action editor-action--accent">Save</button>
-                <button id="clear-canvas-btn" class="btn btn-danger editor-action editor-action--danger">Clear</button>
+                <div class="editor-header__action-group">
+                    <button id="add-state-btn" class="btn btn-secondary editor-action">Add State</button>
+                    <button id="save-states-btn" class="btn btn-success editor-action editor-action--accent">Save</button>
+                    <button id="clear-canvas-btn" class="btn btn-danger editor-action editor-action--danger">Clear</button>
+                </div>
             </div>
         </div>
         <div class="editor-container">
@@ -52,7 +54,7 @@
             </div>
             <div class="editor-canvas-container">
                 <div class="canvas-toolbar">
-                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <div class="canvas-toolbar__zoom">
                         <button id="zoom-in-btn" class="btn btn-sm">+</button>
                         <button id="zoom-out-btn" class="btn btn-sm">-</button>
                         <button id="zoom-reset-btn" class="btn btn-sm">Reset</button>
@@ -61,7 +63,6 @@
                     <div id="connection-status" style="display: none;">
                         Click target to connect
                     </div>
-                    <div style="flex: 1;"></div>
                 </div>
                 <div class="canvas-wrapper">
                     <div id="konva-container"></div>

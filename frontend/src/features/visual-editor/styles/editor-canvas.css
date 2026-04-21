@@ -7,13 +7,20 @@
 }
 
 .canvas-toolbar {
-    position: relative;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0.65rem 0.85rem;
+    border-bottom: 1px solid var(--ct-border-soft);
+    background: var(--ct-bg-surface);
+}
+
+.canvas-toolbar__zoom {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.75rem 0.9rem;
-    border-bottom: 1px solid var(--ct-border-soft);
-    background: var(--ct-bg-surface);
+    flex-wrap: wrap;
 }
 
 .canvas-wrapper {
@@ -47,9 +54,7 @@
 }
 
 #connection-status {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
+    margin-left: auto;
     padding: 0.38rem 0.85rem;
     border: 1px solid var(--ct-accent);
     border-radius: var(--ct-radius-pill);
@@ -58,6 +63,12 @@
     font-size: 0.78rem;
     font-weight: 700;
     box-shadow: var(--ct-shadow-sm);
+}
+
+@media (max-width: 720px) {
+    #connection-status {
+        margin-left: 0;
+    }
 }
 
 .property-section {
