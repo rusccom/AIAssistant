@@ -311,10 +311,10 @@
                         <p>Обычная страница с контентом клиента...</p>
                         
                         <div class="integration-code">
-                            &lt;script src="https://yourdomain.com/widget/widget.js"&gt;&lt;/script&gt;
+                            &lt;script src="https://yourdomain.com/widget/widget.js?hostname=example.com&amp;embed=SIGNED_TOKEN"&gt;&lt;/script&gt;
                         </div>
                         
-                        <p>↗️ <strong>Виджет появляется автоматически в правом нижнем углу</strong></p>
+                            <p>↗️ <strong>Виджет открывается поверх страницы в центре экрана и не ломает разметку сайта</strong></p>
                     </div>
                 </div>
             </div>
@@ -499,7 +499,7 @@
         
         // Инициализация
         console.log('🎨 Виджет демо загружен');
-        console.log('👆 Кликните на кнопку виджета в правом нижнем углу для демонстрации состояний');
+        console.log('👆 Виджет теперь открывается как центральное модальное окно поверх страницы');
     </script>
 </body>
 </html>

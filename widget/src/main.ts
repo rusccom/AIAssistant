@@ -1,5 +1,7 @@
-import './style.css';
 import { ENABLE_REALTIME_TRACE } from '../../shared/realtime-trace.config';
+import { resolveEmbedBootstrap } from './features/embed/embed-config';
+import { createWidgetShell, WidgetShell } from './features/embed/widget-shell';
+import { ensureRealtimeDebugPanel } from './features/realtime/debug/realtime-debug-panel';
 import { fetchSessionConfig } from './features/realtime/shared/session-config';
 import {
   createTraceId,
@@ -18,119 +20,108 @@ interface WidgetInstance {
   appState: AppState;
   config: WidgetConfig;
   runtime: ActiveRealtimeSession | null;
-  statusElement: HTMLParagraphElement | null;
-  talkButton: HTMLButtonElement | null;
+  shell: WidgetShell;
 }
 
-const createWidgetHTML = (containerId: string) => {
-  const container = document.getElementById(containerId);
-  if (!container) {
-    throw new Error(`Container element with ID '${containerId}' not found`);
-  }
+interface AIWidgetApi {
+  destroy(message?: string): void;
+}
 
-  container.innerHTML = `
-    <div class="voice-widget" style="
-      text-align: center;
-      padding: 2rem;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    ">
-      <h1 style="margin: 0 0 1rem 0; color: #1f2937;">Voice Assistant</h1>
-      <p id="status" style="margin: 1.5rem 0; color: #6b7280;">Click the button to start the conversation.</p>
-      <button id="talk-button" style="
-        background: #3b82f6;
-        color: white;
-        border: none;
-        padding: 1rem 2rem;
-        font-size: 1rem;
-        font-weight: 600;
-        border-radius: 0.75rem;
-        cursor: pointer;
-        transition: all 0.2s ease;
-      ">Start Talking</button>
-    </div>
-  `;
+const updateButton = (button: HTMLButtonElement, label: string, color: string) => {
+  button.textContent = label;
+  button.style.background = color;
 };
 
 const setIdleState = (instance: WidgetInstance, message: string) => {
-  if (!instance.statusElement || !instance.talkButton) {
+  instance.appState = 'idle';
+  instance.runtime = null;
+
+  if (instance.shell.isDestroyed) {
     return;
   }
 
-  instance.appState = 'idle';
-  instance.statusElement.textContent = message;
-  instance.talkButton.textContent = 'Start Talking';
-  instance.talkButton.classList.remove('active');
-  instance.talkButton.disabled = false;
-  instance.talkButton.style.background = '#3b82f6';
+  instance.shell.statusElement.textContent = message;
+  instance.shell.talkButton.disabled = false;
+  updateButton(instance.shell.talkButton, 'Start Talking', '#2563eb');
 };
 
 const stopSession = (instance: WidgetInstance, message = 'Conversation ended.') => {
-  if (instance.appState === 'idle') {
+  if (instance.appState !== 'idle') {
+    logWidgetEvent(
+      'session',
+      'stop_requested',
+      { appState: instance.appState, message },
+      { traceId: instance.config.traceId }
+    );
+  }
+
+  instance.runtime?.close();
+  instance.config.traceId = undefined;
+  setIdleState(instance, message);
+};
+
+const connectSession = async (instance: WidgetInstance) => {
+  const sessionConfig = await fetchSessionConfig(instance.config);
+  if (instance.appState !== 'connecting' || instance.shell.isDestroyed) {
     return;
   }
 
+  const runtime = await startRealtimeRuntime({
+    config: instance.config,
+    sessionConfig,
+    onDisconnect: (message) => stopSession(instance, message)
+  });
+
+  if (instance.appState !== 'connecting' || instance.shell.isDestroyed) {
+    runtime.close();
+    return;
+  }
+
+  instance.runtime = runtime;
+  instance.appState = 'connected';
+  instance.shell.statusElement.textContent = 'Connected. You can speak now.';
+  instance.shell.talkButton.disabled = false;
+  updateButton(instance.shell.talkButton, 'Stop Talking', '#dc2626');
   logWidgetEvent(
     'session',
-    'stop_requested',
-    { appState: instance.appState, message },
-    { traceId: instance.config.traceId }
+    'connected',
+    {
+      currentStateId: sessionConfig.currentStateId || null,
+      transport: sessionConfig.transport,
+      voice: sessionConfig.voice
+    },
+    {
+      traceId: instance.config.traceId,
+      provider: sessionConfig.provider,
+      model: sessionConfig.model
+    }
   );
-
-  instance.runtime?.close();
-  instance.runtime = null;
-  setIdleState(instance, message);
-  instance.config.traceId = undefined;
 };
 
 const startSession = async (instance: WidgetInstance) => {
-  if (instance.appState !== 'idle' || !instance.statusElement || !instance.talkButton) {
+  if (instance.appState !== 'idle' || instance.shell.isDestroyed) {
     return;
   }
 
   instance.config.traceId = ENABLE_REALTIME_TRACE ? createTraceId() : undefined;
   instance.appState = 'connecting';
-  instance.statusElement.textContent = 'Connecting...';
-  instance.talkButton.textContent = 'Connecting...';
-  instance.talkButton.disabled = true;
+  instance.shell.statusElement.textContent = 'Connecting...';
+  instance.shell.talkButton.disabled = true;
+  updateButton(instance.shell.talkButton, 'Connecting...', '#1d4ed8');
   logWidgetEvent(
     'session',
     'start_requested',
-    { hostname: instance.config.hostname || window.location.hostname },
+    { hostname: instance.config.hostname },
     { traceId: instance.config.traceId }
   );
 
   try {
-    const sessionConfig = await fetchSessionConfig(instance.config);
-    instance.runtime = await startRealtimeRuntime({
-      config: instance.config,
-      sessionConfig,
-      onDisconnect: (message) => stopSession(instance, message)
-    });
-
-    instance.appState = 'connected';
-    instance.statusElement.textContent = 'Connected. You can speak now.';
-    instance.talkButton.textContent = 'Stop Talking';
-    instance.talkButton.classList.add('active');
-    instance.talkButton.disabled = false;
-    instance.talkButton.style.background = '#dc2626';
-    logWidgetEvent(
-      'session',
-      'connected',
-      {
-        currentStateId: sessionConfig.currentStateId || null,
-        transport: sessionConfig.transport,
-        voice: sessionConfig.voice
-      },
-      {
-        traceId: instance.config.traceId,
-        provider: sessionConfig.provider,
-        model: sessionConfig.model
-      }
-    );
+    await connectSession(instance);
   } catch (error) {
+    if (instance.shell.isDestroyed) {
+      return;
+    }
+
     logWidgetError(
       'session',
       'start_failed',
@@ -142,130 +133,101 @@ const startSession = async (instance: WidgetInstance) => {
   }
 };
 
-const createCenteredContainer = (id: string) => {
-  const container = document.createElement('div');
-  container.id = id;
-  container.style.cssText = `
-    position: fixed;
-    top: ${window.innerHeight / 2}px;
-    left: ${window.innerWidth / 2}px;
-    transform: translate(-50%, -50%);
-    z-index: 10000;
-    max-width: 320px;
-    width: 90%;
-  `;
-
-  document.body.appendChild(container);
-  return container;
-};
-
-const addCloseButton = (container: HTMLElement, instance: WidgetInstance) => {
-  const closeButton = document.createElement('button');
-  closeButton.innerHTML = 'Г—';
-  closeButton.style.cssText = `
-    position: absolute;
-    top: -10px;
-    right: -10px;
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    border: none;
-    background: #dc2626;
-    color: white;
-    font-size: 16px;
-    font-weight: bold;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-  `;
-
-  closeButton.onclick = () => {
-    stopSession(instance);
-    container.remove();
-  };
-
-  container.appendChild(closeButton);
-};
-
-const initWidget = (config: WidgetConfig) => {
-  createWidgetHTML(config.container);
-  const container = document.getElementById(config.container);
-  const statusElement = container?.querySelector('#status') as HTMLParagraphElement | null;
-  const talkButton = container?.querySelector('#talk-button') as HTMLButtonElement | null;
-
-  if (!statusElement || !talkButton) {
-    throw new Error('Failed to create widget DOM elements');
+const normalizeRequiredValue = (value: string | undefined, label: string) => {
+  const normalizedValue = value?.trim();
+  if (!normalizedValue) {
+    throw new Error(`${label} is required.`);
   }
 
-  const instance: WidgetInstance = {
+  return normalizedValue;
+};
+
+const normalizeConfig = (config: WidgetConfig): WidgetConfig => {
+  return {
+    apiHost: config.apiHost || window.location.origin,
+    embedToken: normalizeRequiredValue(config.embedToken, 'Widget embed token'),
+    hostname: normalizeRequiredValue(config.hostname, 'Widget hostname'),
+    traceId: config.traceId
+  };
+};
+
+const initWidget = (inputConfig: WidgetConfig) => {
+  const config = normalizeConfig(inputConfig);
+  ensureRealtimeDebugPanel();
+
+  let instance!: WidgetInstance;
+  const shell = createWidgetShell({
+    hostname: config.hostname,
+    onRequestClose: () => {
+      if (instance) {
+        destroyWidget('Widget closed.');
+      }
+    }
+  });
+
+  instance = {
     runtime: null,
     appState: 'idle',
     config,
-    statusElement,
-    talkButton
+    shell
   };
 
-  talkButton.addEventListener('click', () => {
-    if (instance.appState === 'idle') {
-      void startSession(instance);
+  shell.talkButton.addEventListener('click', () => {
+    const activeInstance = instance;
+    if (activeInstance.appState === 'idle') {
+      void startSession(activeInstance);
       return;
     }
 
-    stopSession(instance);
+    stopSession(activeInstance);
   });
 
   const hostInfo = config.apiHost ? `Custom: ${config.apiHost}` : 'Auto-detected';
-  const domainInfo = config.hostname || window.location.hostname;
-  statusElement.textContent = `Ready for ${domainInfo} (${hostInfo}). Click to start!`;
+  const domainInfo = config.hostname;
+  shell.statusElement.textContent = `Ready for ${domainInfo} (${hostInfo}). Click to start!`;
+  updateButton(shell.talkButton, 'Start Talking', '#2563eb');
   logWidgetEvent('widget', 'initialized', { domainInfo, hostInfo });
 
   return instance;
 };
 
-const AIWidget = {
-  init: (config: WidgetConfig) => {
-    const instance = initWidget(config);
-    AIWidget.instance = instance;
-    return instance;
-  },
-  instance: null as WidgetInstance | null
-};
+let activeInstance: WidgetInstance | null = null;
 
- (window as any).AIWidget = AIWidget;
-
-const initializeWidget = () => {
-  const scripts = Array.from(document.getElementsByTagName('script'));
-  const currentScript = scripts.find((script) => script.src.includes('widget.js'));
-  if (!currentScript) {
+const destroyWidget = (message = 'Conversation ended.') => {
+  if (!activeInstance) {
     return;
   }
 
-  const containerId = `ai-widget-${Date.now()}`;
-  const container = createCenteredContainer(containerId);
-  const customHost = currentScript.getAttribute('sethost');
-  const config: WidgetConfig = {
-    container: containerId,
-    hostname: customHost || window.location.hostname
-  };
-
-  if (customHost) {
-    const scriptUrl = new URL(currentScript.src);
-    config.apiHost = `${scriptUrl.protocol}//${scriptUrl.host}`;
-  }
-
-  const instance = initWidget(config);
-  AIWidget.instance = instance;
-  addCloseButton(container, instance);
+  const currentInstance = activeInstance;
+  activeInstance = null;
+  stopSession(currentInstance, message);
+  currentInstance.shell.destroy();
 };
 
-const initialize = () => {
-  initializeWidget();
+const mountWidget = (config: WidgetConfig) => {
+  destroyWidget('Widget reloaded.');
+  activeInstance = initWidget(config);
+};
+
+const AIWidget: AIWidgetApi = {
+  destroy: destroyWidget
+};
+
+const globalWindow = window as Window & { AIWidget?: AIWidgetApi };
+
+globalWindow.AIWidget = AIWidget;
+
+const initializeWidget = () => {
+  const bootstrap = resolveEmbedBootstrap();
+  if (!bootstrap) {
+    return;
+  }
+
+  mountWidget(bootstrap);
 };
 
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initialize);
+  document.addEventListener('DOMContentLoaded', initializeWidget);
 } else {
-  initialize();
+  initializeWidget();
 }

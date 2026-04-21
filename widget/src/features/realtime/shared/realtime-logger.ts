@@ -13,6 +13,15 @@ interface RealtimeLoggerContext {
   transport?: string;
 }
 
+export interface RealtimeLogEntry extends RealtimeLoggerContext {
+  details?: unknown;
+  event: string;
+  level: RealtimeLogLevel;
+  scope: string;
+  sequence: number;
+  timestamp: string;
+}
+
 export interface RealtimeLogger {
   child(context: Partial<RealtimeLoggerContext>): RealtimeLogger;
   error(scope: string, event: string, details?: unknown): void;
@@ -24,6 +33,8 @@ const LOG_PREFIX = '[RealtimeTrace]';
 const MAX_ARRAY_ITEMS = 10;
 const MAX_DEPTH = 4;
 const MAX_STRING_LENGTH = 400;
+const logListeners = new Set<(entry: RealtimeLogEntry) => void>();
+let logSequence = 0;
 
 const getConsoleMethod = (level: RealtimeLogLevel) => {
   if (level === 'error') return console.error;
@@ -74,13 +85,16 @@ export const sanitizeForLog = (value: unknown, depth = 0): unknown => {
   return String(value);
 };
 
-const buildPayload = (
+const buildEntry = (
+  level: RealtimeLogLevel,
   context: RealtimeLoggerContext,
   scope: string,
   event: string,
   details?: unknown
 ) => {
-  const payload: Record<string, unknown> = {
+  const entry: RealtimeLogEntry = {
+    level,
+    sequence: ++logSequence,
     timestamp: new Date().toISOString(),
     scope,
     event,
@@ -88,10 +102,10 @@ const buildPayload = (
   };
 
   if (details !== undefined) {
-    payload.details = sanitizeForLog(details);
+    entry.details = sanitizeForLog(details);
   }
 
-  return payload;
+  return entry;
 };
 
 const writeLog = (
@@ -105,7 +119,9 @@ const writeLog = (
     return;
   }
 
-  getConsoleMethod(level)(LOG_PREFIX, buildPayload(context, scope, event, details));
+  const entry = buildEntry(level, context, scope, event, details);
+  getConsoleMethod(level)(LOG_PREFIX, entry);
+  logListeners.forEach((listener) => listener(entry));
 };
 
 export const createRealtimeLogger = (
@@ -135,6 +151,15 @@ const createRandomTraceSuffix = () => {
 
 export const createTraceId = () => {
   return `rt-${Date.now()}-${createRandomTraceSuffix()}`;
+};
+
+export const subscribeRealtimeLogs = (
+  listener: (entry: RealtimeLogEntry) => void
+) => {
+  logListeners.add(listener);
+  return () => {
+    logListeners.delete(listener);
+  };
 };
 
 const getToolNames = (state: SessionStateDefinition) => {

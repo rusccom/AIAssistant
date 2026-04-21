@@ -32,14 +32,13 @@ const assertSessionConfig = (data: any): ServerSessionConfig => {
 export const fetchSessionConfig = async (
   config: WidgetConfig
 ): Promise<ServerSessionConfig> => {
-  const hostname = config.hostname || window.location.hostname;
   const apiHost = resolveApiHost(config);
   const startedAt = Date.now();
 
   logWidgetEvent(
     'session',
     'config_requested',
-    { apiHost, hostname },
+    { apiHost, hostname: config.hostname },
     { traceId: config.traceId }
   );
 
@@ -47,7 +46,11 @@ export const fetchSessionConfig = async (
     const response = await fetch(`${apiHost}/api/token`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ hostname, traceId: config.traceId || null })
+      body: JSON.stringify({
+        hostname: config.hostname,
+        traceId: config.traceId || null,
+        embedToken: config.embedToken
+      })
     });
 
     if (!response.ok) {
@@ -80,7 +83,7 @@ export const fetchSessionConfig = async (
       'session',
       'config_failed',
       {
-        hostname,
+        hostname: config.hostname,
         durationMs: Date.now() - startedAt,
         message: error instanceof Error ? error.message : String(error)
       },

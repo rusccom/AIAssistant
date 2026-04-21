@@ -5,11 +5,24 @@ import {
   getRealtimeProviderCatalog,
   getRealtimeProviders
 } from '../features/realtime/shared/realtime.catalog';
+import { createWidgetEmbedToken } from '../features/widget-embed/embed-token';
+import { buildWidgetScriptUrl } from '../features/widget-embed/embed-script';
 
 const buildRealtimeResponse = () => ({
   voices: getRealtimeProviderCatalog('openai').voices,
   realtimeProviders: getRealtimeProviders()
 });
+
+const attachWidgetEmbedMeta = (req: Request, domains: any[]) => {
+  return domains.map((domain) => {
+    const widgetEmbedToken = createWidgetEmbedToken(domain.hostname);
+
+    return {
+      ...domain,
+      widgetScriptUrl: buildWidgetScriptUrl(req, domain.hostname, widgetEmbedToken)
+    };
+  });
+};
 
 export const getDashboardData = async (req: AuthRequest, res: Response) => {
   if (!req.user) {
@@ -38,7 +51,7 @@ export const getDomains = async (req: AuthRequest, res: Response) => {
   try {
     const domains = await dashboardService.getDomainsByUserId(req.user!.id);
     res.json({
-      domains,
+      domains: attachWidgetEmbedMeta(req, domains),
       ...buildRealtimeResponse()
     });
   } catch (error) {
@@ -54,7 +67,7 @@ export const getDashboardFullData = async (
   try {
     const dashboardData = await dashboardService.getFullDashboardData(req.user!.id);
     res.json({
-      domains: dashboardData.domains,
+      domains: attachWidgetEmbedMeta(req, dashboardData.domains),
       domainConfigs: dashboardData.domainConfigs,
       ...buildRealtimeResponse(),
       success: true

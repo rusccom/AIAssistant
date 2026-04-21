@@ -6,6 +6,11 @@ import { setupPage } from './layout/page-container';
 import pageContent from './bot-settings.content.html';
 import { setupImportModal } from './features/products/import/import-modal';
 import { setupRebuildEmbeddingsButton } from './features/products/embeddings/rebuild-embeddings';
+import {
+    buildWidgetEmbedSnippet,
+    copyWidgetEmbedSnippet,
+    openWidgetPreview
+} from './features/widget-integration/widget-embed';
 
 // Централизованные утилиты для устранения 19 дубликатов
 import { apiRequest, getAuthToken } from './utils/api-client';
@@ -59,6 +64,7 @@ let currentPage = 1;
 let totalPages = 1;
 let totalProducts = 0;
 let currentSearch = '';
+let domainWidgetScriptUrls: Record<string, string> = {};
 
 // Function to update domain indicator
 function updateDomainIndicator(domain: string | null) {
@@ -614,6 +620,9 @@ async function initializeBotSettings(token: string) {
     const botConfigSection = safeGetElement('bot-config-section') as HTMLDivElement;
     const botConfigForm = safeGetElement('bot-config-form') as HTMLFormElement;
     const selectedDomainLabel = safeGetElement('selected-domain-label') as HTMLElement;
+    const copyWidgetCodeBtn = safeGetElement('copy-widget-code-btn') as HTMLButtonElement;
+    const testWidgetBtn = safeGetElement('test-widget-btn') as HTMLButtonElement;
+    const widgetEmbedCode = safeGetElement('widget-embed-code') as HTMLTextAreaElement;
     
     // Modal elements
     const modal = safeGetElement('add-domain-modal') as HTMLDivElement;
@@ -648,6 +657,32 @@ async function initializeBotSettings(token: string) {
     };
 
     bindRealtimeSettingsForm(getRealtimeProviders);
+
+    const getSelectedWidgetScriptUrl = () => {
+        if (!selectedDomain) {
+            return '';
+        }
+
+        return domainWidgetScriptUrls[selectedDomain] || '';
+    };
+
+    const updateWidgetIntegration = () => {
+        const widgetScriptUrl = getSelectedWidgetScriptUrl();
+        const hasWidgetScript = Boolean(widgetScriptUrl);
+        if (widgetEmbedCode) {
+            widgetEmbedCode.value = hasWidgetScript
+                ? buildWidgetEmbedSnippet(widgetScriptUrl)
+                : '';
+        }
+        if (copyWidgetCodeBtn) {
+            copyWidgetCodeBtn.disabled = !hasWidgetScript;
+        }
+        if (testWidgetBtn) {
+            testWidgetBtn.disabled = !hasWidgetScript;
+        }
+    };
+
+    updateWidgetIntegration();
 
     // Conversation states are now managed exclusively by the visual editor
     // No text-based editing allowed in dashboard
@@ -715,8 +750,15 @@ async function initializeBotSettings(token: string) {
             // Сохраняем конфигурации доменов глобально
             (window as any).domainConfigs = domainConfigs;
             (window as any).realtimeProviders = realtimeProviders || [];
+            domainWidgetScriptUrls = domains.reduce((result: Record<string, string>, domain: any) => {
+                if (domain.widgetScriptUrl) {
+                    result[domain.hostname] = domain.widgetScriptUrl;
+                }
+                return result;
+            }, {});
             
             renderDomains(domains);
+            updateWidgetIntegration();
             
             // Заполняем список голосов
             if (voices && voices.length > 0) {
@@ -734,7 +776,13 @@ async function initializeBotSettings(token: string) {
         }
     };
 
-    const renderDomains = (domains: { id: string; hostname: string }[]) => {
+    const renderDomains = (
+        domains: {
+            id: string;
+            hostname: string;
+            widgetScriptUrl?: string;
+        }[]
+    ) => {
         const emptyState = document.getElementById('empty-domains');
         
         if (!domainsList || !emptyState) return;
@@ -760,46 +808,17 @@ async function initializeBotSettings(token: string) {
                     <div class="domain-icon">${firstLetter}</div>
                     <div class="domain-details">
                         <h3 class="domain-name">${domain.hostname}</h3>
-                        <p class="domain-status">Click to configure bot settings</p>
+                        <p class="domain-status">Click to configure bot settings and copy widget code</p>
                     </div>
                 </div>
             `;
-            
-            // Minimal addition: add "Test Bot" button to inject widget script with sethost=domain
-            const actions = document.createElement('div');
-            actions.className = 'domain-actions';
-            const testBtn = document.createElement('button');
-            testBtn.type = 'button';
-            testBtn.className = 'btn btn-secondary btn-sm';
-            testBtn.textContent = 'Test Bot';
-            testBtn.addEventListener('click', (ev) => {
-                ev.stopPropagation();
-                try {
-                    const script = document.createElement('script');
-                    // В development виджет раздается с backend (localhost:3000)
-                    // В production - с того же домена
-                    const isDev = window.location.hostname === 'localhost';
-                    const widgetUrl = isDev 
-                        ? 'http://localhost:3000/widget/widget.js'
-                        : '/widget/widget.js';
-                    script.src = widgetUrl;
-                    script.setAttribute('sethost', domain.hostname);
-                    script.id = `ai-widget-${Date.now()}`;
-                    document.head.appendChild(script);
-                    showSuccess(`Widget injected for ${domain.hostname}`);
-                } catch (err) {
-                    console.error('Widget injection error:', err);
-                    showError('Failed to inject widget script');
-                }
-            });
-            actions.appendChild(testBtn);
-            domainItem.appendChild(actions);
             
             domainItem.addEventListener('click', (e) => {
                 document.querySelectorAll('.domain-item').forEach(el => el.classList.remove('selected'));
                 domainItem.classList.add('selected');
                 selectedDomain = domain.hostname;
                 loadBotConfig(domain.hostname);
+                updateWidgetIntegration();
                 // Update domain indicator and load products
                 updateDomainIndicator(domain.hostname);
                 loadProducts(1, currentSearch);
@@ -950,6 +969,38 @@ async function initializeBotSettings(token: string) {
     if (botConfigForm) {
     botConfigForm.addEventListener('submit', saveBotConfig);
     }
+
+    copyWidgetCodeBtn?.addEventListener('click', async () => {
+        try {
+            const widgetScriptUrl = getSelectedWidgetScriptUrl();
+            if (!widgetScriptUrl) {
+                showError('Select a domain first.');
+                return;
+            }
+
+            await copyWidgetEmbedSnippet(widgetScriptUrl);
+            showSuccess('Embed code copied to clipboard.');
+        } catch (error) {
+            console.error('Widget code copy error:', error);
+            showError('Failed to copy embed code.');
+        }
+    });
+
+    testWidgetBtn?.addEventListener('click', () => {
+        try {
+            const widgetScriptUrl = getSelectedWidgetScriptUrl();
+            if (!widgetScriptUrl) {
+                showError('Select a domain first.');
+                return;
+            }
+
+            openWidgetPreview(widgetScriptUrl);
+            showSuccess(`Widget opened for ${selectedDomain}.`);
+        } catch (error) {
+            console.error('Widget preview error:', error);
+            showError('Failed to open widget preview.');
+        }
+    });
     
     // Visual Editor button handler
     const visualEditorBtn = safeGetElement('open-visual-editor-btn') as HTMLAnchorElement;

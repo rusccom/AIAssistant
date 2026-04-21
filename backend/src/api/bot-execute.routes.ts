@@ -5,6 +5,9 @@ import {
   logRealtimeInfo,
   sanitizeRealtimeLogValue
 } from '../features/realtime/shared/realtime-logging';
+import { buildRealtimeOriginMeta } from '../features/realtime/shared/realtime-origin';
+import { isTrustedWidgetRequest } from '../features/widget-embed/embed-access';
+import { readWidgetEmbedToken } from '../features/widget-embed/embed-token';
 
 const router = Router();
 
@@ -37,7 +40,39 @@ const buildServerErrorResponse = () => ({
 router.post('/:functionName', async (req: Request, res: Response) => {
   const { functionName } = req.params;
   const args = req.body || {};
+  const hostname = typeof args.hostname === 'string'
+    ? args.hostname.trim().toLowerCase()
+    : '';
   const traceId = args.traceId || null;
+  const embedToken = readWidgetEmbedToken(args.embedToken);
+
+  if (!hostname) {
+    return res.status(400).json({
+      success: false,
+      error: 'Hostname is required',
+      response: 'Hostname is required.'
+    });
+  }
+
+  if (!isTrustedWidgetRequest(hostname, embedToken)) {
+    logRealtimeError('tool.request_blocked', {
+      traceId,
+      turnId: args.turnId || null,
+      stateId: args.stateId || null,
+      functionName,
+      hostname,
+      ...buildRealtimeOriginMeta(req),
+      message: 'Origin does not match requested hostname and embed token is invalid'
+    });
+    return res.status(403).json({
+      success: false,
+      error: 'Widget request is not authorized for this hostname',
+      response: 'Request origin is not allowed for this widget configuration.'
+    });
+  }
+
+  args.hostname = hostname;
+  delete args.embedToken;
 
   logRealtimeInfo('tool.request_received', {
     traceId,
@@ -45,7 +80,7 @@ router.post('/:functionName', async (req: Request, res: Response) => {
     stateId: args.stateId || null,
     instructionVersion: args.instructionVersion || null,
     functionName,
-    hostname: args.hostname || null,
+    hostname,
     params: sanitizeRealtimeLogValue(args)
   });
 
@@ -68,7 +103,7 @@ router.post('/:functionName', async (req: Request, res: Response) => {
       turnId: args.turnId || null,
       stateId: args.stateId || null,
       functionName,
-      hostname: args.hostname || null,
+      hostname,
       message: error.message
     });
 

@@ -1,7 +1,7 @@
 export interface WidgetConfig {
   apiHost?: string;
-  container: string;
-  hostname?: string;
+  embedToken: string;
+  hostname: string;
   traceId?: string;
 }
 

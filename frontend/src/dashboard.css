@@ -315,6 +315,25 @@
     align-items: center;
     gap: 0.5rem;
 }
+.widget-embed-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+.widget-embed-code {
+    font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: #0f172a;
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    resize: vertical;
+}
+.widget-embed-help {
+    margin: 0;
+    color: #64748b;
+    font-size: 0.875rem;
+}
 .domain-configure-btn {
     padding: 0.5rem 1rem;
     background: #3b82f6;

@@ -12,16 +12,13 @@ export const APP_CONFIG = {
     // Порты
     BACKEND_PORT: process.env.PORT || 3000,
     FRONTEND_DEV_PORT: 9001,
-    WIDGET_DEV_PORT: 9000,
     
     // URLs
     FRONTEND_DEV_URL: `http://localhost:9001`,
-    WIDGET_DEV_URL: `http://localhost:9000`,
     
     // Defaults для разработки
     DEV_ALLOWED_ORIGINS: [
-        'http://localhost:9001', 
-        'http://localhost:9000'
+        'http://localhost:9001'
     ],
     
     // Домены по умолчанию для тестов

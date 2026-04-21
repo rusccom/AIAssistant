@@ -2,6 +2,7 @@
 
 import dotenv from 'dotenv';
 import path from 'path';
+import { createWidgetEmbedToken } from '../features/widget-embed/embed-token';
 
 // Загружаем переменные окружения
 dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
@@ -22,12 +23,17 @@ async function testHostnameFlow() {
         console.log(`📝 Описание: ${testCase.description}\n`);
 
         try {
+            const embedToken = createWidgetEmbedToken(testCase.hostname);
+
             // 1. Симуляция запроса токена от виджета
             console.log('🔑 Шаг 1: Виджет запрашивает токен...');
             const tokenResponse = await fetch(`${BASE_URL}/api/token`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ hostname: testCase.hostname })
+                body: JSON.stringify({
+                    hostname: testCase.hostname,
+                    embedToken
+                })
             });
 
             if (tokenResponse.status === 200) {
@@ -53,7 +59,8 @@ async function testHostnameFlow() {
             console.log('🔧 Шаг 3: Виджет добавляет hostname...');
             const enhancedParams = {
                 ...openaiParams,
-                hostname: testCase.hostname // Виджет добавляет hostname
+                hostname: testCase.hostname,
+                embedToken
             };
 
             console.log(`📋 Параметры от OpenAI: ${JSON.stringify(openaiParams)}`);
@@ -81,20 +88,23 @@ async function testHostnameFlow() {
                 console.log(`💬 Ошибка: ${errorData.error || errorData.response}`);
             }
 
-            // 5. Тестируем ситуацию БЕЗ hostname (как было бы без исправления)
-            console.log('\n🚫 Шаг 5: Тест БЕЗ hostname (старое поведение)...');
+            // 5. Тестируем ситуацию БЕЗ embed token (новый контракт должен отклонить запрос)
+            console.log('\n🚫 Шаг 5: Тест БЕЗ embed token...');
             const noHostnameResponse = await fetch(`${BASE_URL}/api/bot-execute/search_products`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(openaiParams) // Только параметры от OpenAI
+                body: JSON.stringify({
+                    ...openaiParams,
+                    hostname: testCase.hostname
+                })
             });
 
             if (noHostnameResponse.status === 200) {
                 const result = await noHostnameResponse.json();
-                console.log(`⚠️ Функция выполнена с default hostname`);
+                console.log(`⚠️ Функция выполнена без embed token`);
                 console.log(`💬 Response: "${result.response}"`);
             } else {
-                console.log(`❌ Ошибка без hostname: ${noHostnameResponse.status}`);
+                console.log(`❌ Ошибка без embed token: ${noHostnameResponse.status}`);
             }
 
         } catch (error: any) {
@@ -106,19 +116,18 @@ async function testHostnameFlow() {
 
     // 6. Резюме
     console.log('📋 === РЕЗЮМЕ ТЕСТИРОВАНИЯ ===\n');
-    console.log('✅ Процесс передачи hostname:');
-    console.log('   1. Виджет определяет hostname: window.location.hostname');
-    console.log('   2. Виджет запрашивает токен с hostname');
-    console.log('   3. Виджет сохраняет hostname в currentHostname');
-    console.log('   4. OpenAI вызывает функцию БЕЗ hostname');
-    console.log('   5. Виджет добавляет hostname в параметры');
-    console.log('   6. Backend получает полные параметры с hostname');
-    console.log('   7. Backend выполняет поиск в правильном домене');
+    console.log('✅ Процесс передачи widget identity:');
+    console.log('   1. Страница подключает widget.js с hostname и embed в URL');
+    console.log('   2. Виджет запрашивает токен с hostname и embed token');
+    console.log('   3. OpenAI вызывает функцию БЕЗ hostname');
+    console.log('   4. Виджет добавляет hostname и embed token в параметры');
+    console.log('   5. Backend валидирует embed token для hostname');
+    console.log('   6. Backend выполняет поиск в правильном домене');
     
     console.log('\n🔧 Технические детали:');
     console.log('   - OpenAI не знает о hostname (и не должен)');
-    console.log('   - Виджет ответственен за добавление hostname');
-    console.log('   - Backend получает hostname для каждого вызова');
+    console.log('   - Виджет ответственен за добавление hostname и embed token');
+    console.log('   - Backend получает hostname и embed token для каждого вызова');
     console.log('   - Поиск выполняется в контексте нужного домена');
 
     console.log('\n🎉 Hostname flow протестирован!');

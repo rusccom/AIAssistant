@@ -47,55 +47,112 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
         ? APP_CONFIG.DEV_ALLOWED_ORIGINS // Автоматические localhost origins для development
         : []; // Production требует явного указания доменов
 
-const corsOptions = {
-    origin: function (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
-        // 🔇 Логирование CORS только для не-localhost запросов
-        if (origin && !origin.includes('localhost')) {
-            console.log(`🌐 CORS check: origin="${origin}", allowed origins:`, allowedOrigins);
+const parseOrigin = (origin: string) => {
+    try {
+        return new URL(origin);
+    } catch {
+        return null;
+    }
+};
+
+const getRequestHost = (req: Request) => {
+    const forwardedHost = req.get('x-forwarded-host');
+    const requestHost = forwardedHost || req.get('host') || req.hostname || '';
+    return requestHost.split(',')[0].trim().toLowerCase();
+};
+
+const matchesConfiguredOrigin = (origin: string) => {
+    return allowedOrigins.some(allowed => {
+        if (allowed === origin) {
+            return true;
         }
-        
-        // Разрешаем запросы без origin (same-origin requests - когда frontend и backend на одном домене)
-        if (!origin) {
-            // 🔇 Убрали избыточное логирование same-origin запросов
-            return callback(null, true);
-        }
-        
-        // В development режиме автоматически разрешаем localhost origins
-        if (IS_DEVELOPMENT && origin && origin.includes('localhost')) {
-            console.log(`✅ CORS: Allowing localhost origin in development: ${origin}`);
-            return callback(null, true);
-        }
-        
-        // Проверяем точные совпадения и wildcard домены
-        const isAllowed = allowedOrigins.some(allowed => {
-            if (allowed === origin) {
-                return true; // Точное совпадение
-            }
-            
-            if (allowed.startsWith('*.')) {
-                // Wildcard домены: *.ondigitalocean.app
-                const domain = allowed.substring(2); // Убираем "*."
-                return origin.endsWith('.' + domain);
-            }
-            
+
+        if (!allowed.startsWith('*.')) {
             return false;
-        });
-        
-        if (isAllowed) {
-            console.log(`✅ CORS: Allowing configured origin: ${origin}`);
-            callback(null, true);
-        } else {
-            console.warn(`❌ CORS: Blocked request from unauthorized origin: ${origin}`);
-            console.log(`📝 CORS: Add "${origin}" or "*.domain.com" to ALLOWED_ORIGINS environment variable`);
-            callback(new Error('Not allowed by CORS'));
         }
-    },
-    credentials: true, // Разрешить отправку cookies
-    optionsSuccessStatus: 200
+
+        const originUrl = parseOrigin(origin);
+        if (!originUrl) {
+            return false;
+        }
+
+        const wildcardDomain = allowed.slice(2).toLowerCase();
+        return originUrl.hostname.toLowerCase().endsWith(`.${wildcardDomain}`);
+    });
+};
+
+const isPublicWidgetApiRoute = (pathName: string) => {
+    return pathName.startsWith('/api/token') || pathName.startsWith('/api/bot-execute');
+};
+
+const isRegisteredDomainOrigin = async (hostname: string) => {
+    const domain = await prisma.domain.findUnique({
+        where: { hostname },
+        select: { id: true }
+    });
+
+    return Boolean(domain);
+};
+
+const resolveCorsOptions = async (req: Request) => {
+    const origin = req.get('origin');
+    const baseOptions = {
+        credentials: true,
+        optionsSuccessStatus: 200
+    };
+
+    if (!origin) {
+        return { ...baseOptions, origin: false };
+    }
+
+    const originUrl = parseOrigin(origin);
+    if (!originUrl) {
+        console.warn(`❌ CORS: Invalid origin header "${origin}"`);
+        return { ...baseOptions, origin: false };
+    }
+
+    if (isPublicWidgetApiRoute(req.path)) {
+        return { ...baseOptions, origin: true };
+    }
+
+    const originHost = originUrl.host.toLowerCase();
+    const originHostname = originUrl.hostname.toLowerCase();
+    const requestHost = getRequestHost(req);
+
+    if (IS_DEVELOPMENT && originHostname.includes('localhost')) {
+        console.log(`✅ CORS: Allowing localhost origin in development: ${origin}`);
+        return { ...baseOptions, origin: true };
+    }
+
+    if (originHost === requestHost) {
+        return { ...baseOptions, origin: true };
+    }
+
+    if (matchesConfiguredOrigin(origin)) {
+        console.log(`✅ CORS: Allowing configured origin: ${origin}`);
+        return { ...baseOptions, origin: true };
+    }
+
+    if (await isRegisteredDomainOrigin(originHostname)) {
+        console.log(`✅ CORS: Allowing registered domain origin: ${origin}`);
+        return { ...baseOptions, origin: true };
+    }
+
+    console.warn(`❌ CORS: Blocked request from unauthorized origin: ${origin}`);
+    return { ...baseOptions, origin: false };
+};
+
+const corsOptionsDelegate = (
+    req: Request,
+    callback: (err: Error | null, options?: object) => void
+) => {
+    resolveCorsOptions(req)
+        .then((options) => callback(null, options))
+        .catch((error) => callback(error, { origin: false }));
 };
 
 // --- Middlewares ---
-app.use(cors(corsOptions));
+app.use(cors(corsOptionsDelegate));
 app.use(express.json());
 app.use(realtimeRequestLogger);
 
@@ -239,7 +296,6 @@ server.listen(port, () => {
   
   if (IS_DEVELOPMENT) {
     console.log(`📝 Frontend dev server: http://localhost:9001`);
-    console.log(`📦 Widget dev server: http://localhost:9000`);
     console.log(`🔧 Allowed CORS origins: ${allowedOrigins.join(', ')}`);
   } else {
     console.log(`🔒 Production server ready`);

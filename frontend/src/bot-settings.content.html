@@ -33,6 +33,24 @@
     <div id="bot-config" class="tab-content active">
     <form id="bot-config-form">
         <div class="form-subsection">
+            <div class="subsection-header">
+                <div>
+                    <h3 class="subsection-title">Widget Integration</h3>
+                    <p class="subsection-description">Copy the generated embed code for this domain and send it to your client as-is.</p>
+                </div>
+                <div class="header-buttons">
+                    <button type="button" id="copy-widget-code-btn" class="btn btn-primary">Copy Embed Code</button>
+                    <button type="button" id="test-widget-btn" class="btn btn-secondary">Test Widget</button>
+                </div>
+            </div>
+            <div class="widget-embed-panel">
+                <label for="widget-embed-code" class="label">Generated Embed Code</label>
+                <textarea id="widget-embed-code" class="textarea widget-embed-code" rows="3" readonly placeholder="Select a domain to generate the embed code."></textarea>
+                <p class="widget-embed-help">Paste this single script tag into the client website before the closing body tag.</p>
+            </div>
+        </div>
+
+        <div class="form-subsection">
             <h3 class="subsection-title">Personality and Tone</h3>
             <p class="subsection-description">Define the core character, communication style, and behavior of your AI assistant.</p>
 

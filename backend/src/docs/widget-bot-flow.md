@@ -14,7 +14,10 @@
 // Виджет запрашивает токен и конфигурацию
 const response = await fetch('/api/token', {
   method: 'POST',
-  body: JSON.stringify({ hostname: window.location.hostname })
+  body: JSON.stringify({
+    hostname: 'example.com',
+    embedToken: 'SIGNED_TOKEN_FROM_WIDGET_SCRIPT_URL'
+  })
 });
 
 const { token, instructions, tools, voice, model } = await response.json();

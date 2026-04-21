@@ -6,10 +6,7 @@ import {
 import { WidgetConfig } from './realtime-session.types';
 
 const resolveDefaultApiHost = () => {
-  const isLocalhost = ['localhost', '127.0.0.1'].includes(window.location.hostname);
-  return isLocalhost
-    ? 'http://localhost:3000'
-    : `${window.location.protocol}//${window.location.host}`;
+  return `${window.location.protocol}//${window.location.host}`;
 };
 
 export const resolveApiHost = (config: WidgetConfig) => {
@@ -52,7 +49,8 @@ export const createUniversalExecute = (
       const apiHost = resolveApiHost(config);
       const enhancedParams = {
         ...params,
-        hostname: config.hostname || window.location.hostname,
+        hostname: config.hostname,
+        embedToken: config.embedToken,
         traceId: config.traceId || null,
         stateId: currentStateId,
         ...traceContext
