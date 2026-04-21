@@ -17,6 +17,7 @@
     "build:widget": "npm run build --workspace=widget",
     "build:all": "npm run build:widget && npm run build:frontend && npm run build:backend",
     "start": "cd backend && npm start",
+    "postinstall": "npm run build:all",
     "install-all": "npm install && npm install --workspaces --if-present"
   },
   "overrides": {
