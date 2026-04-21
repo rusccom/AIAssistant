@@ -1,7 +1,7 @@
 import { logError, logInfo } from '../../../utils/logger';
 import { ConversationStateMachineBootstrap } from '../../conversation-state/state-machine.types';
 import { BotToolDefinition } from './realtime.types';
-import { ENABLE_REALTIME_TRACE } from '../../../../../shared/realtime-trace.config';
+import { ENABLE_REALTIME_TRACE } from '../../../config/realtime-trace.config';
 
 const MAX_ARRAY_ITEMS = 10;
 const MAX_DEPTH = 4;
