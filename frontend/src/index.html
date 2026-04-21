@@ -9,7 +9,7 @@
     <meta name="description" content="<%= htmlWebpackPlugin.options.seoDescription %>">
     <meta name="keywords" content="<%= htmlWebpackPlugin.options.seoKeywords %>">
     <meta name="author" content="<%= htmlWebpackPlugin.options.author %>">
-    <meta name="robots" content="index, follow">
+    <meta name="robots" content="<%= htmlWebpackPlugin.options.robots %>">
     <link rel="canonical" href="<%= htmlWebpackPlugin.options.ogUrl %>">
     
     <!-- Open Graph Meta Tags -->
@@ -58,7 +58,7 @@
     <%= htmlWebpackPlugin.options.criticalCss %>
     <!-- Favicon will be injected by HtmlWebpackPlugin -->
 </head>
-<body>
+<body class="public-page">
         <div id="app">
             <!-- Header will be inserted here -->
         
@@ -489,4 +489,4 @@
     <script data-collect-dnt="true" async src="https://scripts.simpleanalyticscdn.com/latest.js"></script>
     <noscript><img src="https://queue.simpleanalyticscdn.com/noscript.gif?collect-dnt=true" alt="" referrerpolicy="no-referrer-when-downgrade"/></noscript>
 </body>
-</html> 
+</html>

@@ -5,7 +5,7 @@
     "themeColor": "#3b82f6",
     "baseUrl": "https://callbotai.net",
     "twitterHandle": "rusccom",
-    "logo": "./logoAi.png"
+    "logo": "/logoAi.png"
   },
   "pages": {
     "index": {
@@ -14,7 +14,8 @@
       "keywords": "AI call center, voice bot, customer support automation, WebRTC, speech recognition, smart search, contact center, artificial intelligence",
       "ogTitle": "AI Call Center Next Generation",
       "ogDescription": "Revolutionary contact center automation system powered by AI. Voice bot, smart search, and 24/7 customer support in one platform.",
-      "ogType": "website"
+      "ogType": "website",
+      "robots": "index, follow"
     },
     "login": {
       "title": "Sign In - CallBotAi",
@@ -22,7 +23,8 @@
       "keywords": "login, sign in, AIAssistant, voice bot, call center dashboard",
       "ogTitle": "Sign In to AIAssistant",
       "ogDescription": "Access your AI call center dashboard and configure voice bot settings.",
-      "ogType": "website"
+      "ogType": "website",
+      "robots": "index, follow"
     },
     "register": {
       "title": "Create Account - CallBotAi",
@@ -30,31 +32,8 @@
       "keywords": "register, create account, AI agent, voice bot, call center automation, free trial",
       "ogTitle": "Join AIAssistant - Create Account",
       "ogDescription": "Build and test AI agents on your business cases for free. Join innovative companies using AI for business transformation.",
-      "ogType": "website"
-    },
-    "dashboard": {
-      "title": "Dashboard - AIAssistant",
-      "description": "AIAssistant dashboard with call statistics, domain management, and voice bot configuration. Monitor your AI call center performance.",
-      "keywords": "dashboard, analytics, call statistics, voice bot management, AI call center",
-      "ogTitle": "AIAssistant Dashboard",
-      "ogDescription": "Monitor and manage your AI call center with detailed analytics and configuration tools.",
-      "ogType": "webapp"
-    },
-    "bot-settings": {
-      "title": "Bot Settings - AIAssistant",
-      "description": "Configure your AI voice bot settings including voice selection, instructions, and conversation flows for optimal customer experience.",
-      "keywords": "bot settings, voice configuration, AI settings, call center bot, voice selection",
-      "ogTitle": "Voice Bot Configuration",
-      "ogDescription": "Configure AI voice bot settings for your call center automation.",
-      "ogType": "webapp"
-    },
-    "visual-editor": {
-      "title": "Visual Scenario Editor - AIAssistant",
-      "description": "Create and edit call center scenarios with visual drag-and-drop editor. Build complex conversation flows without coding.",
-      "keywords": "visual editor, scenario builder, conversation flow, drag and drop, call center scenarios",
-      "ogTitle": "Visual Scenario Editor",
-      "ogDescription": "Create complex call center scenarios with intuitive visual editor.",
-      "ogType": "webapp"
+      "ogType": "website",
+      "robots": "index, follow"
     }
   }
 }

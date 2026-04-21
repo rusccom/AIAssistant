@@ -1,6 +1,6 @@
-import './style.css';
-import { insertHeader, resetHeader } from './layout/Header';
-import { insertFooter } from './layout/Footer';
+import './public.css';
+import { insertHeader, resetHeader } from './layout/public/Header';
+import { insertFooter } from './layout/public/Footer';
 import { initSimpleFouc } from './utils/simple-fouc';
 import { initNavigation } from './utils/navigation';
 import { redirectIfAuthenticated } from './utils/auth';

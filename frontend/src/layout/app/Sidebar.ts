@@ -1,9 +1,9 @@
-import { getUser } from '../utils/auth';
+import { getUser } from '../../utils/auth';
 
 // Импортируем централизованные утилиты для устранения дубликатов
-import { apiRequest, getAuthToken, performLogout } from '../utils/api-client';
-import { API_ENDPOINTS, ROUTES } from '../utils/constants';
-import { showSuccess, handleApiError } from '../utils/error-handler';
+import { apiRequest, getAuthToken, performLogout } from '../../utils/api-client';
+import { API_ENDPOINTS, ROUTES } from '../../utils/constants';
+import { showSuccess, handleApiError } from '../../utils/error-handler';
 
 let sidebarInserted = false;
 
@@ -172,6 +172,6 @@ const updateUserInfo = async () => {
 
 const setActiveLink = async () => {
     // Используем новую универсальную систему навигации
-    const { updateActiveNavigation } = await import('../utils/navigation');
+    const { updateActiveNavigation } = await import('../../utils/navigation');
     updateActiveNavigation();
 };

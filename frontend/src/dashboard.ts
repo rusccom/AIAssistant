@@ -2,7 +2,7 @@ import './dashboard.css';
 import { initSimpleFouc } from './utils/simple-fouc';
 import { protectPage } from './utils/auth';
 import { initNavigation } from './utils/navigation';
-import { setupPage } from './layout/page-container';
+import { setupPage } from './layout/app/page-container';
 import pageContent from './dashboard.content.html';
 
 // Новые централизованные утилиты

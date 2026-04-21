@@ -1,10 +1,10 @@
 import { insertSidebar } from './Sidebar';
 import './layout.css';
-import { getUser } from '../utils/auth';
+import { getUser } from '../../utils/auth';
 
 // Импортируем централизованные утилиты для устранения дубликатов
-import { apiRequest, getAuthToken, clearAuthData } from '../utils/api-client';
-import { API_ENDPOINTS, ROUTES } from '../utils/constants';
+import { apiRequest, getAuthToken, clearAuthData } from '../../utils/api-client';
+import { API_ENDPOINTS, ROUTES } from '../../utils/constants';
 
 function setupMobileNavigation() {
     const toggleButton = document.getElementById('mobile-nav-toggle');

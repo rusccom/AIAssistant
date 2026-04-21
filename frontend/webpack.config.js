@@ -3,18 +3,54 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const fs = require('fs');
 
-const criticalCss = fs.readFileSync(path.resolve(__dirname, 'src/layout/critical-css.html'), 'utf-8');
+const publicCriticalCss = fs.readFileSync(
+  path.resolve(__dirname, 'src/layout/public/public-critical-css.html'),
+  'utf-8'
+);
+const appCriticalCss = fs.readFileSync(
+  path.resolve(__dirname, 'src/layout/app/app-critical-css.html'),
+  'utf-8'
+);
 const seoConfig = JSON.parse(fs.readFileSync(path.resolve(__dirname, 'src/seo-config.json'), 'utf-8'));
 
-// Configuration for all pages
 const pages = [
-    { name: 'index', title: 'AIAssistant - Intelligent AI Solutions', template: './src/index.html', favicon: true },
-    { name: 'login', title: 'Login - AIAssistant', template: './src/login.html', favicon: true },
-    { name: 'register', title: 'Register - AIAssistant', template: './src/register.html', favicon: true },
-    { name: 'dashboard', title: 'Dashboard - AIAssistant', template: './src/layout/dashboard.layout.html', favicon: true },
-    { name: 'bot-settings', title: 'Bot Settings - AIAssistant', template: './src/layout/dashboard.layout.html', favicon: false },
-    { name: 'visual-editor', title: 'Visual State Editor - AIAssistant', template: './src/visual-editor.html', favicon: true }
+    { name: 'index', title: 'AIAssistant - Intelligent AI Solutions', template: './src/index.html', favicon: true, group: 'public' },
+    { name: 'login', title: 'Login - AIAssistant', template: './src/login.html', favicon: true, group: 'public' },
+    { name: 'register', title: 'Register - AIAssistant', template: './src/register.html', favicon: true, group: 'public' },
+    { name: 'dashboard', title: 'Dashboard - AIAssistant', template: './src/layout/app/app.layout.html', favicon: true, group: 'app' },
+    { name: 'bot-settings', title: 'Bot Settings - AIAssistant', template: './src/layout/app/app.layout.html', favicon: false, group: 'app' },
+    { name: 'visual-editor', title: 'Visual State Editor - AIAssistant', template: './src/visual-editor.html', favicon: true, group: 'app' }
 ];
+
+const getEntryName = (page) => page.name.replace(/-/g, '_');
+const getOgUrl = (pageName, baseUrl) => `${baseUrl}${pageName === 'index' ? '' : `/${pageName}.html`}`;
+
+function createHtmlPlugin(page) {
+    const isPublicPage = page.group === 'public';
+    const globalSeo = seoConfig.global;
+    const seoData = isPublicPage ? seoConfig.pages[page.name] || {} : {};
+
+    return new HtmlWebpackPlugin({
+        template: page.template,
+        filename: `${page.name}.html`,
+        chunks: [getEntryName(page)],
+        title: seoData.title || page.title,
+        favicon: page.favicon ? './src/favicon.ico' : undefined,
+        criticalCss: isPublicPage ? publicCriticalCss : appCriticalCss,
+        robots: isPublicPage ? seoData.robots || 'index, follow' : 'noindex, nofollow',
+        seoDescription: seoData.description || '',
+        seoKeywords: seoData.keywords || '',
+        ogTitle: seoData.ogTitle || seoData.title || page.title,
+        ogDescription: seoData.ogDescription || seoData.description || '',
+        ogImage: isPublicPage ? `${globalSeo.baseUrl}${globalSeo.logo}` : '',
+        ogUrl: isPublicPage ? getOgUrl(page.name, globalSeo.baseUrl) : '',
+        ogType: seoData.ogType || 'website',
+        siteName: globalSeo.siteName,
+        author: globalSeo.author,
+        themeColor: globalSeo.themeColor,
+        twitterHandle: globalSeo.twitterHandle
+    });
+}
 
 module.exports = (env, argv) => {
   const isProduction = argv.mode === 'production';
@@ -22,7 +58,7 @@ module.exports = (env, argv) => {
   return {
   mode: argv.mode || 'development',
   entry: pages.reduce((acc, page) => {
-    acc[page.name.replace(/-/g, '_')] = `./src/${page.name}.ts`;
+    acc[getEntryName(page)] = `./src/${page.name}.ts`;
     return acc;
   }, {}),
   devtool: isProduction ? 'source-map' : 'inline-source-map',
@@ -58,31 +94,7 @@ module.exports = (env, argv) => {
     path: path.resolve(__dirname, 'dist'),
     clean: true,
   },
-  plugins: pages.map(page => {
-    const seoData = seoConfig.pages[page.name] || {};
-    const globalSeo = seoConfig.global;
-    
-    return new HtmlWebpackPlugin({
-        template: page.template,
-        filename: `${page.name}.html`,
-        chunks: [page.name.replace(/-/g, '_')],
-        title: seoData.title || page.title,
-        favicon: page.favicon ? './src/favicon.ico' : undefined,
-        criticalCss: criticalCss,
-        // SEO data
-        seoDescription: seoData.description || '',
-        seoKeywords: seoData.keywords || '',
-        ogTitle: seoData.ogTitle || seoData.title || page.title,
-        ogDescription: seoData.ogDescription || seoData.description || '',
-        ogImage: `${globalSeo.baseUrl}${globalSeo.logo}`,
-        ogUrl: `${globalSeo.baseUrl}${page.name === 'index' ? '' : '/' + page.name + '.html'}`,
-        ogType: seoData.ogType || 'website',
-        siteName: globalSeo.siteName,
-        author: globalSeo.author,
-        themeColor: globalSeo.themeColor,
-        twitterHandle: globalSeo.twitterHandle
-    });
-  }).concat([
+  plugins: pages.map(createHtmlPlugin).concat([
     new CopyWebpackPlugin({
       patterns: [
         { from: 'src/logoAi.png', to: 'logoAi.png' },
@@ -112,4 +124,4 @@ module.exports = (env, argv) => {
     historyApiFallback: true,
   },
   };
-}; 
+};

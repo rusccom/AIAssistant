@@ -1,5 +1,4 @@
 <style id="critical-css">
-    /* Critical CSS to prevent FOUC */
     * { box-sizing: border-box; }
     body {
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -12,22 +11,24 @@
         visibility: hidden;
         transition: opacity 0.3s ease, visibility 0.3s ease;
     }
-    
+
     body.loaded {
         opacity: 1;
         visibility: visible;
     }
-    
+
     #dashboard-layout {
         display: flex;
         min-height: 100vh;
     }
+
     .dashboard-content {
-        margin-left: 260px; /* Reserve space for sidebar */
+        margin-left: 260px;
     }
+
     @media (max-width: 768px) {
         .dashboard-content {
             margin-left: 0;
         }
     }
-</style> 
+</style>

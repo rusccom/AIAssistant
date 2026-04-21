@@ -2336,18 +2336,6 @@ h1, h2, h3, h4, h5 {
         height: 32px;
     }
     
-    .mobile-header-logo-image {
-        height: 32px;
-        width: auto;
-        object-fit: contain;
-    }
-    
-    .sidebar-brand-logo {
-        height: 32px;
-        width: auto;
-        object-fit: contain;
-    }
-    
     .feature-card,
     .value-card {
         padding: 1.25rem;
@@ -2359,71 +2347,6 @@ h1, h2, h3, h4, h5 {
 
 
 
-
-
-
-/* Domain Item Enhanced Styles */
-.domain-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 1rem;
-    border: 2px solid #e5e7eb;
-    border-radius: 0.75rem;
-    background-color: white;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    margin-bottom: 1rem;
-}
-
-.domain-item:hover {
-    border-color: #3b82f6;
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
-}
-
-.domain-item.selected {
-    border-color: #3b82f6;
-    background-color: #eff6ff;
-}
-
-.domain-info {
-    display: flex;
-    align-items: center;
-    flex: 1;
-}
-
-.domain-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #3b82f6, #6366f1);
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 600;
-    font-size: 1.25rem;
-    margin-right: 1rem;
-}
-
-.domain-details h3 {
-    margin: 0 0 0.25rem 0;
-    font-size: 1.125rem;
-    font-weight: 600;
-    color: #1f2937;
-}
-
-.domain-details p {
-    margin: 0;
-    color: #6b7280;
-    font-size: 0.875rem;
-}
-
-.domain-actions {
-    display: flex;
-    gap: 0.5rem;
-    margin-left: 1rem;
-}
 
 
 

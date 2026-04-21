@@ -4,11 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= htmlWebpackPlugin.options.title %></title>
+    <meta name="description" content="<%= htmlWebpackPlugin.options.seoDescription %>">
+    <meta name="keywords" content="<%= htmlWebpackPlugin.options.seoKeywords %>">
+    <meta name="author" content="<%= htmlWebpackPlugin.options.author %>">
+    <meta name="robots" content="<%= htmlWebpackPlugin.options.robots %>">
+    <link rel="canonical" href="<%= htmlWebpackPlugin.options.ogUrl %>">
+    <meta property="og:title" content="<%= htmlWebpackPlugin.options.ogTitle %>">
+    <meta property="og:description" content="<%= htmlWebpackPlugin.options.ogDescription %>">
+    <meta property="og:image" content="<%= htmlWebpackPlugin.options.ogImage %>">
+    <meta property="og:url" content="<%= htmlWebpackPlugin.options.ogUrl %>">
+    <meta property="og:type" content="<%= htmlWebpackPlugin.options.ogType %>">
+    <meta property="og:site_name" content="<%= htmlWebpackPlugin.options.siteName %>">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="<%= htmlWebpackPlugin.options.ogTitle %>">
+    <meta name="twitter:description" content="<%= htmlWebpackPlugin.options.ogDescription %>">
+    <meta name="twitter:image" content="<%= htmlWebpackPlugin.options.ogImage %>">
+    <meta name="twitter:site" content="<%= htmlWebpackPlugin.options.twitterHandle %>">
+    <meta name="theme-color" content="<%= htmlWebpackPlugin.options.themeColor %>">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <%= htmlWebpackPlugin.options.criticalCss %>
     <!-- Favicon will be injected by HtmlWebpackPlugin -->
 </head>
-<body>
+<body class="public-page">
     <div id="app">
         <!-- Header will be inserted here -->
         
@@ -239,4 +256,4 @@
     <script data-collect-dnt="true" async src="https://scripts.simpleanalyticscdn.com/latest.js"></script>
     <noscript><img src="https://queue.simpleanalyticscdn.com/noscript.gif?collect-dnt=true" alt="" referrerpolicy="no-referrer-when-downgrade"/></noscript>
 </body>
-</html> 
+</html>
