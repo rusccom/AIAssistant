@@ -1,5 +1,14 @@
 import { ENABLE_REALTIME_TRACE } from '../../../../../shared/realtime-trace.config';
 import {
+  copyText,
+  createEntryMeta,
+  formatEntryForCopy,
+  formatTime,
+  getVisibleEntries,
+  matchesFilter,
+  stringifyDetails
+} from './realtime-debug-panel.helpers';
+import {
   RealtimeLogEntry,
   subscribeRealtimeLogs
 } from '../shared/realtime-logger';
@@ -13,15 +22,6 @@ interface DebugPanelState {
 const PANEL_ID = 'ai-widget-realtime-debug-panel';
 const MAX_ENTRIES = 200;
 
-const formatTime = (timestamp: string) => {
-  const date = new Date(timestamp);
-  return date.toLocaleTimeString([], {
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit'
-  });
-};
-
 const createElement = <T extends HTMLElement>(
   tag: string,
   styles: Partial<CSSStyleDeclaration> = {}
@@ -29,38 +29,6 @@ const createElement = <T extends HTMLElement>(
   const element = document.createElement(tag) as T;
   Object.assign(element.style, styles);
   return element;
-};
-
-const stringifyDetails = (entry: RealtimeLogEntry) => {
-  return JSON.stringify(entry.details ?? {}, null, 2);
-};
-
-const getFilterableText = (entry: RealtimeLogEntry) => {
-  return JSON.stringify(entry).toLowerCase();
-};
-
-const matchesFilter = (entry: RealtimeLogEntry, filter: string) => {
-  if (!filter) {
-    return true;
-  }
-
-  return getFilterableText(entry).includes(filter);
-};
-
-const createEntryMeta = (entry: RealtimeLogEntry) => {
-  const details = (entry.details || {}) as Record<string, unknown>;
-  const parts = [
-    `#${entry.sequence}`,
-    entry.traceId ? `trace=${entry.traceId}` : null,
-    typeof details.turnId === 'string' ? `turn=${details.turnId}` : null,
-    typeof details.stateId === 'string' ? `state=${details.stateId}` : null,
-    typeof details.stateEntryId === 'string' ? `entry=${details.stateEntryId}` : null,
-    typeof details.transitionId === 'string' ? `transition=${details.transitionId}` : null,
-    entry.provider ? `provider=${entry.provider}` : null,
-    entry.model ? `model=${entry.model}` : null
-  ].filter(Boolean);
-
-  return parts.join(' | ');
 };
 
 const renderEntry = (entry: RealtimeLogEntry) => {
@@ -160,6 +128,16 @@ const createPanel = () => {
   });
   clearButton.textContent = 'Clear';
 
+  const copyButton = createElement<HTMLButtonElement>('button', {
+    border: 'none',
+    borderRadius: '8px',
+    background: '#ffffff',
+    padding: '6px 10px',
+    cursor: 'pointer',
+    fontSize: '11px'
+  });
+  copyButton.textContent = 'Copy All';
+
   const collapseButton = createElement<HTMLButtonElement>('button', {
     border: 'none',
     borderRadius: '8px',
@@ -170,7 +148,7 @@ const createPanel = () => {
   });
   collapseButton.textContent = 'Hide';
 
-  controls.append(clearButton, collapseButton);
+  controls.append(clearButton, copyButton, collapseButton);
   header.append(title, controls);
 
   const filterWrap = createElement<HTMLDivElement>('div', {
@@ -200,19 +178,21 @@ const createPanel = () => {
   });
 
   const render = () => {
+    const visibleEntries = getVisibleEntries(state);
     filterWrap.style.display = state.collapsed ? 'none' : 'block';
     body.style.display = state.collapsed ? 'none' : 'flex';
     root.style.height = state.collapsed ? 'auto' : '360px';
     collapseButton.textContent = state.collapsed ? 'Show' : 'Hide';
+    copyButton.disabled = visibleEntries.length === 0;
+    copyButton.style.opacity = copyButton.disabled ? '0.55' : '1';
+    copyButton.style.cursor = copyButton.disabled ? 'not-allowed' : 'pointer';
 
     if (state.collapsed) {
       return;
     }
 
     body.innerHTML = '';
-    state.entries
-      .filter((entry) => matchesFilter(entry, state.filter))
-      .forEach((entry) => body.appendChild(renderEntry(entry)));
+    visibleEntries.forEach((entry) => body.appendChild(renderEntry(entry)));
 
     body.scrollTop = body.scrollHeight;
   };
@@ -220,6 +200,26 @@ const createPanel = () => {
   clearButton.addEventListener('click', () => {
     state.entries = [];
     render();
+  });
+
+  copyButton.addEventListener('click', async () => {
+    const text = getVisibleEntries(state).map(formatEntryForCopy).join('\n\n');
+    if (!text) {
+      return;
+    }
+
+    try {
+      await copyText(text);
+      copyButton.textContent = 'Copied';
+      window.setTimeout(() => {
+        copyButton.textContent = 'Copy All';
+      }, 1200);
+    } catch {
+      copyButton.textContent = 'Failed';
+      window.setTimeout(() => {
+        copyButton.textContent = 'Copy All';
+      }, 1200);
+    }
   });
 
   collapseButton.addEventListener('click', () => {

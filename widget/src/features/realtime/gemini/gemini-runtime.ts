@@ -9,6 +9,7 @@ import { createLocalStateController } from '../shared/state-machine';
 import { createTurnTracker } from '../shared/turn-tracker';
 import { createUniversalExecute } from '../shared/universal-execute';
 import { summarizeGeminiMessage } from './gemini-message-summary';
+import { createGeminiResumeState } from './gemini-resume-state';
 import { buildConnectConfig } from './gemini-session-config';
 import {
   ActiveRealtimeSession,
@@ -221,8 +222,8 @@ export const startGeminiRuntime = async (
   let closed = false;
   let generation = 0;
   let sessionReady = false;
-  let resumeHandle: string | null = null;
   let liveSession: any;
+  const resumeState = createGeminiResumeState();
 
   const setClosed = () => {
     closed = true;
@@ -250,7 +251,7 @@ export const startGeminiRuntime = async (
   const openSession = createSessionOpener(
     input,
     logger,
-    () => resumeHandle,
+    resumeState.getResumeHandle,
     enqueueMessage(async (message) => {
       if (closed) {
         return;
@@ -269,10 +270,12 @@ export const startGeminiRuntime = async (
         return;
       }
 
-      if (message.sessionResumptionUpdate?.newHandle) {
-        resumeHandle = message.sessionResumptionUpdate.newHandle;
+      if (message.sessionResumptionUpdate) {
+        const resumeTrace = resumeState.update(message.sessionResumptionUpdate);
         logger.info('transport', 'session_handle_updated', {
-          resumable: message.sessionResumptionUpdate.resumable ?? null,
+          canResume: resumeTrace.canResume,
+          hasResumeHandle: Boolean(resumeTrace.handle),
+          resumable: resumeTrace.resumable,
           stateId: stateController.getCurrentState().id
         });
       }
@@ -322,8 +325,14 @@ export const startGeminiRuntime = async (
 
       generation += 1;
       try {
+        const resumeTrace = resumeState.getTrace();
         logger.info('runtime', 'reconnect_for_state_transition', {
           fromStateId: previousStateId,
+          hasResumeHandle: Boolean(resumeTrace.handle),
+          resumeStrategy: resumeTrace.canResume
+            ? 'session_resume'
+            : 'cold_reconnect',
+          resumable: resumeTrace.resumable,
           stateEntryId: stateController.getCurrentStateTrace().entryId,
           toStateId: nextState.id,
           transitionId: stateController.getCurrentStateTrace().transitionId
@@ -336,7 +345,6 @@ export const startGeminiRuntime = async (
           transitionId: stateController.getCurrentStateTrace().transitionId
         });
         sessionReady = false;
-        resumeHandle = null;
         const previousSession = getSession();
         liveSession = undefined;
         previousSession?.close();
