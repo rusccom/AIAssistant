@@ -265,7 +265,9 @@ export const logTransitionRejected = (
   reason: string
 ) => {
   logger?.warn('state', 'transition_rejected', {
-    allowedTransitionIds: state.transitions.map((transition) => transition.next_step),
+    allowedTransitionToolNames: state.transitions.map(
+      (transition) => transition.toolName || null
+    ),
     currentState: summarizeState(state),
     currentStateEntryId: entry.entryId,
     pendingTransition: toPendingTransitionTrace(pendingTransition),

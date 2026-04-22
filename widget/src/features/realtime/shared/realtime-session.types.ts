@@ -13,6 +13,7 @@ export interface GeminiThinkingConfig {
 export interface StateTransition {
   condition?: string;
   next_step: string;
+  toolName?: string | null;
 }
 
 export interface BotToolDefinition {

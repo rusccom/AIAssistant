@@ -4,6 +4,7 @@ import {
   summarizeResult
 } from './realtime-logger';
 import { WidgetConfig } from './realtime-session.types';
+import { findTransitionByToolName } from './state-transition-tools';
 
 const resolveDefaultApiHost = () => {
   return `${window.location.protocol}//${window.location.host}`;
@@ -26,6 +27,7 @@ export const createUniversalExecute = (
     const pendingTransition = stateController.getPendingTransition();
     const currentStateId = currentState.id;
     const traceContext = getTraceContext?.() || {};
+    const transition = findTransitionByToolName(currentState, toolName);
 
     logger?.info('tool', 'execute_started', {
       currentStateId,
@@ -39,10 +41,10 @@ export const createUniversalExecute = (
     });
 
     try {
-      if (toolName === 'transition_state') {
+      if (transition) {
         const result = stateController.scheduleTransition({
           instructionVersion: traceContext.instructionVersion as string | null,
-          nextStateId: params.nextStateId as string | undefined,
+          nextStateId: transition.next_step,
           reason: params.reason as string | undefined,
           source: 'tool_execute',
           toolName,

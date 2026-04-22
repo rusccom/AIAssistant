@@ -58,7 +58,8 @@ export const summarizeRealtimeStateMachine = (
     instructionVersion: state.instructionVersion,
     instructionsLength: state.instructionsLength,
     toolNames: summarizeRealtimeTools(state.tools),
-    transitionIds: state.transitions.map((transition) => transition.next_step),
+    transitionCount: state.transitions.length,
+    transitionToolNames: state.transitions.map((transition) => transition.toolName),
     hasThinkingConfig: Boolean(state.geminiThinkingConfig)
   }));
 };

@@ -11,9 +11,10 @@ import {
 } from '../realtime/shared/realtime.catalog';
 import { buildStateScopedInstructions } from './state-machine.instructions';
 import { resolveStartStateId, parseConversationStates } from './state-machine.schema';
-import { transitionStateToolDefinition } from './state-machine.tools';
+import { buildStateTransitionTools } from './state-transition-tools';
 import { createStateInstructionVersion } from './state-machine.version';
 import {
+  CompiledConversationTransition,
   CompiledConversationState,
   ConversationStateDefinition,
   ConversationStateMachineBootstrap,
@@ -26,12 +27,12 @@ const REASONING_PRESETS = {
   deep: { thinkingLevel: 'high' }
 } as const;
 
-const buildAllowedTools = (state: ConversationStateDefinition): BotToolDefinition[] => {
+const buildAllowedTools = (
+  state: ConversationStateDefinition,
+  transitionTools: BotToolDefinition[]
+): BotToolDefinition[] => {
   const definitions = getAllFunctionDefinitions() as BotToolDefinition[];
   const allowedTools = state.allowedTools || [];
-  const transitionTools = state.transitions.length > 0
-    ? [transitionStateToolDefinition]
-    : [];
 
   if (allowedTools.length === 0) {
     return [...definitions, ...transitionTools];
@@ -57,9 +58,10 @@ const buildCompiledState = (
   provider: RealtimeProviderId,
   state: ConversationStateDefinition
 ): CompiledConversationState => {
+  const compiledTransitions = buildStateTransitionTools(state);
   const instructions = buildStateScopedInstructions(botConfig, state);
-  const tools = buildAllowedTools(state);
-  const transitions = state.transitions;
+  const tools = buildAllowedTools(state, compiledTransitions.tools);
+  const transitions = compiledTransitions.transitions;
 
   return {
     id: state.id,
@@ -83,7 +85,7 @@ const buildFallbackState = (
 ): CompiledConversationState => {
   const instructions = buildStateScopedInstructions(botConfig, null);
   const tools = getAllFunctionDefinitions() as BotToolDefinition[];
-  const transitions: ConversationStateDefinition['transitions'] = [];
+  const transitions: CompiledConversationTransition[] = [];
 
   return {
     id: 'default',

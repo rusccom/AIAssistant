@@ -168,8 +168,8 @@ const getToolNames = (state: SessionStateDefinition) => {
   return state.tools.map((tool) => tool.function.name);
 };
 
-const getTransitionIds = (state: SessionStateDefinition) => {
-  return state.transitions.map((transition) => transition.next_step);
+const getTransitionToolNames = (state: SessionStateDefinition) => {
+  return state.transitions.map((transition) => transition.toolName || null);
 };
 
 export const summarizeState = (state: SessionStateDefinition) => {
@@ -178,7 +178,7 @@ export const summarizeState = (state: SessionStateDefinition) => {
     instructionVersion: state.instructionVersion || null,
     instructionsLength: state.instructionsLength ?? state.instructions.length,
     toolNames: getToolNames(state),
-    transitionIds: getTransitionIds(state),
+    transitionToolNames: getTransitionToolNames(state),
     hasThinkingConfig: Boolean(state.geminiThinkingConfig)
   };
 };

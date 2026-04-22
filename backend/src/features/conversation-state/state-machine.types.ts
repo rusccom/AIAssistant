@@ -10,6 +10,10 @@ export interface ConversationTransition {
   next_step: string;
 }
 
+export interface CompiledConversationTransition extends ConversationTransition {
+  toolName: string;
+}
+
 export interface ConversationStateDefinition {
   allowedTools?: string[];
   description: string;
@@ -27,7 +31,7 @@ export interface CompiledConversationState {
   instructions: string;
   instructionsLength: number;
   tools: BotToolDefinition[];
-  transitions: ConversationTransition[];
+  transitions: CompiledConversationTransition[];
 }
 
 export interface ConversationStateMachineBootstrap {

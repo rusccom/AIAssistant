@@ -1,72 +1,47 @@
-import { generateBaseAgentInstructions } from '../../services/instructions.service';
 import { ConversationStateDefinition } from './state-machine.types';
 
-const formatList = (items: string[]) => {
-  if (items.length === 0) {
-    return '- none';
-  }
+const USER_BASE_FIELDS = [
+  'identity',
+  'task',
+  'demeanor',
+  'tone',
+  'levelOfEnthusiasm',
+  'formality',
+  'levelOfEmotion',
+  'fillerWords',
+  'pacing',
+  'otherDetails',
+  'instructions'
+] as const;
 
-  return items.map((item) => `- ${item}`).join('\n');
+const normalizeText = (value: unknown) => {
+  return typeof value === 'string' ? value.trim() : '';
 };
 
-const formatTransitions = (state: ConversationStateDefinition | null) => {
-  if (!state || state.transitions.length === 0) {
-    return '- No outgoing transitions. Conclude the conversation when this state is complete.';
-  }
-
-  return state.transitions
-    .map((transition) => {
-      const condition = transition.condition || 'when the state goal is complete';
-      return `- ${transition.next_step}: ${condition}`;
-    })
-    .join('\n');
+const collectBaseInstructions = (config: any) => {
+  return USER_BASE_FIELDS
+    .map((field) => normalizeText(config?.[field]))
+    .filter(Boolean);
 };
 
-const buildStateBlock = (state: ConversationStateDefinition | null) => {
+const collectStateInstructions = (state: ConversationStateDefinition | null) => {
   if (!state) {
-    return `
-# Current Conversation State
-You have reached the end of the conversation flow.
-
-Rules:
-- Wrap up politely and naturally.
-- Do not call business tools unless the user starts a new task.
-- Do not mention internal state IDs or system mechanics.
-`.trim();
+    return [];
   }
 
-  return `
-# Current Conversation State
-## State ID
-${state.id}
-
-## Goal
-${state.description || 'Complete the current step before moving on.'}
-
-## State Instructions
-${formatList(state.instructions)}
-
-## Example Phrases
-${formatList(state.examples)}
-
-## Allowed Next States
-${formatTransitions(state)}
-
-## State Rules
-- You are currently in this state only.
-- Do not mention internal state IDs or system mechanics to the user.
-- Use \`transition_state\` only when one of the allowed next states should become active.
-- Every \`transition_state\` call must include a short internal \`reason\` explaining why the transition should happen now.
-- Keep \`reason\` factual and brief so it is useful for logs and debugging.
-- If you ask a question that should be handled by the next state, call \`transition_state\` in the same assistant turn.
-- Treat the current state as the instruction set for what you say now, and the next state as the instruction set for the user's next reply.
-- If the state is not complete yet, stay in the current state.
-`.trim();
+  return [
+    normalizeText(state.description),
+    ...state.instructions.map(normalizeText),
+    ...state.examples.map(normalizeText)
+  ].filter(Boolean);
 };
 
 export const buildStateScopedInstructions = (
   config: any,
   state: ConversationStateDefinition | null
 ) => {
-  return `${generateBaseAgentInstructions(config)}\n\n${buildStateBlock(state)}`.trim();
+  return [
+    ...collectBaseInstructions(config),
+    ...collectStateInstructions(state)
+  ].join('\n\n').trim();
 };

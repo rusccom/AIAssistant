@@ -1,12 +1,12 @@
 import { createHash } from 'crypto';
 import { BotToolDefinition } from '../realtime/shared/realtime.types';
-import { ConversationTransition } from './state-machine.types';
+import { CompiledConversationTransition } from './state-machine.types';
 
 interface StateVersionInput {
   id: string;
   instructions: string;
   tools: BotToolDefinition[];
-  transitions: ConversationTransition[];
+  transitions: CompiledConversationTransition[];
 }
 
 const buildStateSignature = (input: StateVersionInput) => {
@@ -14,7 +14,7 @@ const buildStateSignature = (input: StateVersionInput) => {
     id: input.id,
     instructions: input.instructions,
     toolNames: input.tools.map((tool) => tool.function.name),
-    transitionIds: input.transitions.map((transition) => transition.next_step)
+    transitionToolNames: input.transitions.map((transition) => transition.toolName)
   });
 };
 

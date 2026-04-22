@@ -153,7 +153,7 @@ export const createLocalStateController = (
           pendingTransition,
           'nextStateId_missing'
         );
-        return 'nextStateId is required for transition_state.';
+        return 'A valid transition target is required.';
       }
 
       if (pendingTransition) {
@@ -165,7 +165,7 @@ export const createLocalStateController = (
           pendingTransition,
           'pending_transition_exists'
         );
-        return `A transition to "${pendingTransition.nextStateId}" is already scheduled. Finish the current turn first.`;
+        return 'A state transition is already scheduled. Finish the current turn first.';
       }
 
       if (!canTransition(currentState, input.nextStateId)) {
@@ -177,13 +177,13 @@ export const createLocalStateController = (
           pendingTransition,
           'transition_not_allowed'
         );
-        return `Transition to "${input.nextStateId}" is not allowed from "${currentState.id}".`;
+        return 'This transition is not allowed from the current state.';
       }
 
       pendingTransition = createPendingTransition(currentState, currentEntry, input);
       logger?.info('state', 'transition_requested', {
-        allowedTransitionIds: currentState.transitions.map(
-          (transition) => transition.next_step
+        allowedTransitionToolNames: currentState.transitions.map(
+          (transition) => transition.toolName || null
         ),
         pendingTransition: toPendingTransitionTrace(pendingTransition),
         reason: pendingTransition.reason,
@@ -194,7 +194,7 @@ export const createLocalStateController = (
         transitionId: pendingTransition.id,
         turnId: pendingTransition.turnId
       });
-      return `Transition to "${input.nextStateId}" is scheduled for the next assistant turn.`;
+      return 'State transition is scheduled for the next assistant turn.';
     }
   };
 };
