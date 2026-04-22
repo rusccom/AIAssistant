@@ -80,6 +80,58 @@
     background: var(--ct-surface-subtle);
 }
 
+.admin-settings-panel {
+    display: grid;
+    gap: 0.9rem;
+    padding: 1rem;
+    border: 1px solid var(--ct-border-soft);
+    border-radius: var(--ct-radius-lg);
+    background: linear-gradient(180deg, #ffffff 0%, var(--ct-surface-subtle) 100%);
+    box-shadow: var(--ct-shadow-sm);
+}
+
+.admin-settings-panel__header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.admin-settings-panel__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--ct-accent-soft);
+    color: var(--ct-accent);
+    flex-shrink: 0;
+}
+
+.admin-settings-panel__icon svg {
+    width: 20px;
+    height: 20px;
+    fill: currentColor;
+}
+
+.admin-settings-panel__copy {
+    min-width: 0;
+}
+
+.admin-settings-panel__title {
+    color: var(--ct-text-strong);
+    font-size: 0.9rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.admin-settings-panel__description {
+    margin-top: 0.15rem;
+    color: var(--ct-text-muted);
+    font-size: 0.78rem;
+    line-height: 1.4;
+}
+
 .user-profile {
     display: flex;
     align-items: center;
@@ -88,6 +140,11 @@
     border: 1px solid var(--ct-border-soft);
     border-radius: var(--ct-radius-md);
     background: #ffffff;
+}
+
+.user-info {
+    min-width: 0;
+    flex: 1;
 }
 
 .user-avatar {
@@ -132,9 +189,13 @@
 }
 
 .sidebar-theme-switcher {
-    padding: 0 0.15rem;
+    padding: 0;
 }
 
 .sidebar-theme-switcher .theme-switcher__control {
     min-width: 100%;
+}
+
+.sidebar-theme-switcher .form-help {
+    max-width: 24ch;
 }

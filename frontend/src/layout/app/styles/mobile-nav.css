@@ -131,9 +131,16 @@
     fill: currentColor;
 }
 
-.mobile-user-section,
-.mobile-theme-section {
+.mobile-admin-settings {
     padding: 0.25rem 0;
+}
+
+.admin-settings-panel--mobile {
+    box-shadow: none;
+}
+
+.mobile-admin-settings .theme-switcher__control {
+    min-width: 100%;
 }
 
 .mobile-user-profile {
@@ -143,7 +150,8 @@
     padding: 1rem;
     border: 1px solid var(--ct-border-soft);
     border-radius: var(--ct-radius-lg);
-    background: var(--ct-surface-subtle);
+    background: #ffffff;
+    cursor: pointer;
 }
 
 .mobile-user-avatar {
@@ -165,6 +173,20 @@
 }
 
 .mobile-user-email {
+    display: block;
+    color: var(--ct-text-strong);
+    font-weight: 700;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.mobile-user-info {
+    min-width: 0;
+    flex: 1;
+}
+
+.mobile-user-name {
     display: block;
     color: var(--ct-text-strong);
     font-weight: 700;
