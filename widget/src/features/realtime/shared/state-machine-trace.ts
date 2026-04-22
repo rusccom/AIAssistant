@@ -1,5 +1,5 @@
 import type { RealtimeLogger } from './realtime-logger';
-import { summarizeState } from './realtime-logger';
+import { describeStateForTrace } from './realtime-logger';
 import type {
   SessionStateDefinition,
   SessionStateMachine
@@ -186,7 +186,7 @@ export const logStateSelected = (
 ) => {
   logger?.info('state', 'selected', {
     reason: entry.selectedReason,
-    state: summarizeState(state),
+    state: describeStateForTrace(state),
     stateEntryId: entry.entryId,
     stateId: state.id,
     stateTrace: toStateTrace(entry),
@@ -215,7 +215,7 @@ export const logStateActivated = (
     activationDelayMs: entry.activatedAtMs - entry.selectedAtMs,
     reason: entry.selectedReason,
     source: input.source,
-    state: summarizeState(state),
+    state: describeStateForTrace(state),
     stateEntryId: entry.entryId,
     stateId: state.id,
     stateTrace: toStateTrace(entry),
@@ -245,7 +245,7 @@ export const logStateFinalized = (
     reason: input.reason || entry.selectedReason || null,
     selectedDurationMs: finalizedAtMs - entry.selectedAtMs,
     source: input.source,
-    state: summarizeState(state),
+    state: describeStateForTrace(state),
     stateEntryId: entry.entryId,
     stateId: state.id,
     stateTrace: toStateTrace(entry),
@@ -268,7 +268,7 @@ export const logTransitionRejected = (
     allowedTransitionToolNames: state.transitions.map(
       (transition) => transition.toolName || null
     ),
-    currentState: summarizeState(state),
+    currentState: describeStateForTrace(state),
     currentStateEntryId: entry.entryId,
     pendingTransition: toPendingTransitionTrace(pendingTransition),
     reason,
@@ -298,7 +298,7 @@ export const logTransitionApplied = (
     stateEntryId: nextEntry.entryId,
     stateId: nextState.id,
     stateTrace: toStateTrace(nextEntry),
-    toState: summarizeState(nextState),
+    toState: describeStateForTrace(nextState),
     toStateEntryId: nextEntry.entryId,
     toStateId: nextState.id,
     toolName: pendingTransition.toolName,

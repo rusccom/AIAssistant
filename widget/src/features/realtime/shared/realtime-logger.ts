@@ -29,9 +29,9 @@ export interface RealtimeLogger {
   warn(scope: string, event: string, details?: unknown): void;
 }
 
-const MAX_ARRAY_ITEMS = 10;
-const MAX_DEPTH = 4;
-const MAX_STRING_LENGTH = 400;
+const MAX_ARRAY_ITEMS = 1000;
+const MAX_DEPTH = 12;
+const MAX_STRING_LENGTH = 100000;
 const logListeners = new Set<(entry: RealtimeLogEntry) => void>();
 let logSequence = 0;
 
@@ -180,6 +180,23 @@ export const summarizeState = (state: SessionStateDefinition) => {
     toolNames: getToolNames(state),
     transitionToolNames: getTransitionToolNames(state),
     hasThinkingConfig: Boolean(state.geminiThinkingConfig)
+  };
+};
+
+export const describeStateForTrace = (state: SessionStateDefinition) => {
+  return {
+    stateId: state.id,
+    instructionVersion: state.instructionVersion || null,
+    instructions: state.instructions,
+    instructionsLength: state.instructionsLength ?? state.instructions.length,
+    tools: getToolNames(state),
+    transitionToolNames: getTransitionToolNames(state),
+    transitions: state.transitions.map((transition) => ({
+      condition: transition.condition || null,
+      nextStateId: transition.next_step,
+      toolName: transition.toolName || null
+    })),
+    geminiThinkingConfig: state.geminiThinkingConfig || null
   };
 };
 

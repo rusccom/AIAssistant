@@ -8,6 +8,7 @@ export interface WidgetShell {
 interface CreateWidgetShellOptions {
   hostname: string;
   onRequestClose: () => void;
+  secondaryPanel?: HTMLElement | null;
 }
 
 const HOST_ATTRIBUTE = 'data-ai-assistant-widget-root';
@@ -61,6 +62,10 @@ const createStyle = () => {
       overflow: hidden;
     }
 
+    .panel[data-layout="wide"] {
+      width: min(920px, calc(100vw - 32px));
+    }
+
     .header {
       display: flex;
       align-items: flex-start;
@@ -96,7 +101,21 @@ const createStyle = () => {
     }
 
     .body {
+      display: flex;
+      gap: 18px;
+      align-items: stretch;
       padding: 0 24px 24px;
+    }
+
+    .main {
+      flex: 1 1 0;
+      min-width: 0;
+    }
+
+    .secondary {
+      width: min(340px, 100%);
+      min-width: 0;
+      display: flex;
     }
 
     .status {
@@ -135,15 +154,29 @@ const createStyle = () => {
       transform: none;
       box-shadow: none;
     }
+
+    @media (max-width: 860px) {
+      .body {
+        flex-direction: column;
+      }
+
+      .secondary {
+        width: 100%;
+      }
+    }
   `;
   return style;
 };
 
-const createPanel = (hostname: string) => {
+const createPanel = (
+  hostname: string,
+  secondaryPanel?: HTMLElement | null
+) => {
   const overlay = document.createElement('div');
   const panel = document.createElement('section');
   const header = document.createElement('div');
   const body = document.createElement('div');
+  const main = document.createElement('div');
   const textWrap = document.createElement('div');
   const title = document.createElement('h1');
   const subtitle = document.createElement('p');
@@ -155,11 +188,13 @@ const createPanel = (hostname: string) => {
   panel.className = 'panel';
   header.className = 'header';
   body.className = 'body';
+  main.className = 'main';
   title.className = 'title';
   subtitle.className = 'subtitle';
   closeButton.className = 'close';
   statusElement.className = 'status';
   talkButton.className = 'talkButton';
+  panel.dataset.layout = secondaryPanel ? 'wide' : 'compact';
 
   title.textContent = 'Voice Assistant';
   subtitle.textContent = `Connected to ${hostname}`;
@@ -171,7 +206,14 @@ const createPanel = (hostname: string) => {
 
   textWrap.append(title, subtitle);
   header.append(textWrap, closeButton);
-  body.append(statusElement, talkButton);
+  main.append(statusElement, talkButton);
+  body.appendChild(main);
+  if (secondaryPanel) {
+    const side = document.createElement('div');
+    side.className = 'secondary';
+    side.appendChild(secondaryPanel);
+    body.appendChild(side);
+  }
   panel.append(header, body);
   overlay.appendChild(panel);
 
@@ -218,7 +260,8 @@ export const createWidgetShell = (
   const host = createHost();
   const shadowRoot = host.attachShadow({ mode: 'open' });
   const { closeButton, overlay, panel, statusElement, talkButton } = createPanel(
-    options.hostname
+    options.hostname,
+    options.secondaryPanel
   );
   const cleanupKeyHandler = attachEscapeHandler(options.onRequestClose);
 

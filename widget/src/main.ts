@@ -1,7 +1,14 @@
-import { ENABLE_REALTIME_TRACE } from '../../shared/realtime-trace.config';
+import {
+  ENABLE_REALTIME_TRACE,
+  ENABLE_WIDGET_MODAL_TRACE
+} from '../../shared/realtime-trace.config';
 import { resolveEmbedBootstrap } from './features/embed/embed-config';
 import { createWidgetShell, WidgetShell } from './features/embed/widget-shell';
 import { ensureRealtimeDebugPanel } from './features/realtime/debug/realtime-debug-panel';
+import {
+  createWidgetModalTraceView,
+  WidgetModalTraceView
+} from './features/realtime/modal-trace/modal-trace-view';
 import { ensureWidgetConsoleBridge } from './features/realtime/debug/widget-console-bridge';
 import { fetchSessionConfig } from './features/realtime/shared/session-config';
 import {
@@ -22,6 +29,7 @@ interface WidgetInstance {
   config: WidgetConfig;
   runtime: ActiveRealtimeSession | null;
   shell: WidgetShell;
+  traceView: WidgetModalTraceView | null;
 }
 
 interface AIWidgetApi {
@@ -157,8 +165,14 @@ const initWidget = (inputConfig: WidgetConfig) => {
   const config = normalizeConfig(inputConfig);
 
   let instance!: WidgetInstance;
+  const traceView = ENABLE_WIDGET_MODAL_TRACE
+    ? createWidgetModalTraceView({
+      getTraceId: () => instance?.config.traceId || null
+    })
+    : null;
   const shell = createWidgetShell({
     hostname: config.hostname,
+    secondaryPanel: traceView?.element || null,
     onRequestClose: () => {
       if (instance) {
         destroyWidget('Widget closed.');
@@ -170,7 +184,8 @@ const initWidget = (inputConfig: WidgetConfig) => {
     runtime: null,
     appState: 'idle',
     config,
-    shell
+    shell,
+    traceView
   };
 
   shell.talkButton.addEventListener('click', () => {
@@ -202,6 +217,7 @@ const destroyWidget = (message = 'Conversation ended.') => {
   const currentInstance = activeInstance;
   activeInstance = null;
   stopSession(currentInstance, message);
+  currentInstance.traceView?.destroy();
   currentInstance.shell.destroy();
 };
 
