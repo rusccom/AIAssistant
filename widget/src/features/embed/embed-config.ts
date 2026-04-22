@@ -1,3 +1,4 @@
+import { captureExternalRealtimeLog } from '../realtime/shared/realtime-logger';
 import { WidgetConfig } from '../realtime/shared/realtime-session.types';
 
 const WIDGET_SCRIPT_NAME = 'widget.js';
@@ -35,7 +36,10 @@ const readRequiredQueryParam = (script: HTMLScriptElement, name: string) => {
     return value;
   }
 
-  console.error(`Widget script is missing required "${name}" query parameter.`);
+  captureExternalRealtimeLog('error', 'widget', 'missing_query_param', {
+    message: `Widget script is missing required "${name}" query parameter.`,
+    param: name
+  });
   return null;
 };
 

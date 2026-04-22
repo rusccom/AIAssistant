@@ -114,7 +114,6 @@ export const createUniversalExecute = (
         ...traceContext,
         message: error instanceof Error ? error.message : String(error)
       });
-      console.error(`Widget tool execution failed for ${toolName}:`, error);
       return `Sorry, there was an error executing ${toolName}.`;
     }
   };

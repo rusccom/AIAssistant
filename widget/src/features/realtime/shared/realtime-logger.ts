@@ -29,18 +29,11 @@ export interface RealtimeLogger {
   warn(scope: string, event: string, details?: unknown): void;
 }
 
-const LOG_PREFIX = '[RealtimeTrace]';
 const MAX_ARRAY_ITEMS = 10;
 const MAX_DEPTH = 4;
 const MAX_STRING_LENGTH = 400;
 const logListeners = new Set<(entry: RealtimeLogEntry) => void>();
 let logSequence = 0;
-
-const getConsoleMethod = (level: RealtimeLogLevel) => {
-  if (level === 'error') return console.error;
-  if (level === 'warn') return console.warn;
-  return console.info;
-};
 
 const isPlainObject = (value: unknown): value is Record<string, unknown> => {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -108,6 +101,16 @@ const buildEntry = (
   return entry;
 };
 
+const publishEntry = (
+  entry: RealtimeLogEntry
+) => {
+  if (!ENABLE_REALTIME_TRACE) {
+    return;
+  }
+
+  logListeners.forEach((listener) => listener(entry));
+};
+
 const writeLog = (
   level: RealtimeLogLevel,
   context: RealtimeLoggerContext,
@@ -120,8 +123,7 @@ const writeLog = (
   }
 
   const entry = buildEntry(level, context, scope, event, details);
-  getConsoleMethod(level)(LOG_PREFIX, entry);
-  logListeners.forEach((listener) => listener(entry));
+  publishEntry(entry);
 };
 
 export const createRealtimeLogger = (
@@ -217,4 +219,15 @@ export const logWidgetError = (
   context: RealtimeLoggerContext = {}
 ) => {
   createRealtimeLogger(context).error(scope, event, details);
+};
+
+export const captureExternalRealtimeLog = (
+  level: RealtimeLogLevel,
+  scope: string,
+  event: string,
+  details?: unknown,
+  context: RealtimeLoggerContext = {}
+) => {
+  const entry = buildEntry(level, context, scope, event, details);
+  publishEntry(entry);
 };

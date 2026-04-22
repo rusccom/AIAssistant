@@ -2,6 +2,7 @@ import { ENABLE_REALTIME_TRACE } from '../../shared/realtime-trace.config';
 import { resolveEmbedBootstrap } from './features/embed/embed-config';
 import { createWidgetShell, WidgetShell } from './features/embed/widget-shell';
 import { ensureRealtimeDebugPanel } from './features/realtime/debug/realtime-debug-panel';
+import { ensureWidgetConsoleBridge } from './features/realtime/debug/widget-console-bridge';
 import { fetchSessionConfig } from './features/realtime/shared/session-config';
 import {
   createTraceId,
@@ -128,7 +129,6 @@ const startSession = async (instance: WidgetInstance) => {
       { message: error instanceof Error ? error.message : String(error) },
       { traceId: instance.config.traceId }
     );
-    console.error('Error starting session:', error);
     stopSession(instance, 'Connection failed. Please try again.');
   }
 };
@@ -152,8 +152,9 @@ const normalizeConfig = (config: WidgetConfig): WidgetConfig => {
 };
 
 const initWidget = (inputConfig: WidgetConfig) => {
-  const config = normalizeConfig(inputConfig);
   ensureRealtimeDebugPanel();
+  ensureWidgetConsoleBridge();
+  const config = normalizeConfig(inputConfig);
 
   let instance!: WidgetInstance;
   const shell = createWidgetShell({
@@ -218,6 +219,8 @@ const globalWindow = window as Window & { AIWidget?: AIWidgetApi };
 globalWindow.AIWidget = AIWidget;
 
 const initializeWidget = () => {
+  ensureRealtimeDebugPanel();
+  ensureWidgetConsoleBridge();
   const bootstrap = resolveEmbedBootstrap();
   if (!bootstrap) {
     return;
