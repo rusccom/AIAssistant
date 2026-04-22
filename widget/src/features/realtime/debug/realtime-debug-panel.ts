@@ -54,6 +54,8 @@ const createEntryMeta = (entry: RealtimeLogEntry) => {
     entry.traceId ? `trace=${entry.traceId}` : null,
     typeof details.turnId === 'string' ? `turn=${details.turnId}` : null,
     typeof details.stateId === 'string' ? `state=${details.stateId}` : null,
+    typeof details.stateEntryId === 'string' ? `entry=${details.stateEntryId}` : null,
+    typeof details.transitionId === 'string' ? `transition=${details.transitionId}` : null,
     entry.provider ? `provider=${entry.provider}` : null,
     entry.model ? `model=${entry.model}` : null
   ].filter(Boolean);

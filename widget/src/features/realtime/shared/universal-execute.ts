@@ -21,26 +21,43 @@ export const createUniversalExecute = (
 ) => {
   return async (params: Record<string, unknown>, toolName: string) => {
     const startedAt = Date.now();
-    const currentStateId = stateController.getCurrentState().id;
+    const currentState = stateController.getCurrentState();
+    const currentStateTrace = stateController.getCurrentStateTrace();
+    const pendingTransition = stateController.getPendingTransition();
+    const currentStateId = currentState.id;
     const traceContext = getTraceContext?.() || {};
 
     logger?.info('tool', 'execute_started', {
       currentStateId,
+      stateEntryId: currentStateTrace.entryId,
+      stateId: currentStateId,
+      stateTrace: currentStateTrace,
       toolName,
+      transitionId: pendingTransition?.id || currentStateTrace.transitionId || null,
       params,
       ...traceContext
     });
 
     try {
       if (toolName === 'transition_state') {
-        const result = stateController.scheduleTransition(
-          params.nextStateId as string | undefined,
-          params.reason as string | undefined
-        );
+        const result = stateController.scheduleTransition({
+          instructionVersion: traceContext.instructionVersion as string | null,
+          nextStateId: params.nextStateId as string | undefined,
+          reason: params.reason as string | undefined,
+          source: 'tool_execute',
+          toolName,
+          turnId: traceContext.turnId as string | null
+        });
         logger?.info('tool', 'execute_finished', {
           currentStateId,
           toolName,
           durationMs: Date.now() - startedAt,
+          stateEntryId: currentStateTrace.entryId,
+          stateId: currentStateId,
+          transitionId:
+            stateController.getPendingTransition()?.id
+            || currentStateTrace.transitionId
+            || null,
           result: summarizeResult(result)
         });
         return result;
@@ -53,6 +70,8 @@ export const createUniversalExecute = (
         embedToken: config.embedToken,
         traceId: config.traceId || null,
         stateId: currentStateId,
+        stateEntryId: currentStateTrace.entryId,
+        transitionId: pendingTransition?.id || null,
         ...traceContext
       };
 
@@ -77,6 +96,9 @@ export const createUniversalExecute = (
         durationMs: Date.now() - startedAt,
         success: Boolean(result.success),
         statusCode: response.status,
+        stateEntryId: currentStateTrace.entryId,
+        stateId: currentStateId,
+        transitionId: pendingTransition?.id || null,
         result: summarizeResult(output)
       });
 
@@ -86,6 +108,9 @@ export const createUniversalExecute = (
         currentStateId,
         toolName,
         durationMs: Date.now() - startedAt,
+        stateEntryId: currentStateTrace.entryId,
+        stateId: currentStateId,
+        transitionId: pendingTransition?.id || null,
         ...traceContext,
         message: error instanceof Error ? error.message : String(error)
       });

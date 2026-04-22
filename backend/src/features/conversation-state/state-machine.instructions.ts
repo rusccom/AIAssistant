@@ -56,6 +56,8 @@ ${formatTransitions(state)}
 - You are currently in this state only.
 - Do not mention internal state IDs or system mechanics to the user.
 - Use \`transition_state\` only when one of the allowed next states should become active.
+- Every \`transition_state\` call must include a short internal \`reason\` explaining why the transition should happen now.
+- Keep \`reason\` factual and brief so it is useful for logs and debugging.
 - If you ask a question that should be handled by the next state, call \`transition_state\` in the same assistant turn.
 - Treat the current state as the instruction set for what you say now, and the next state as the instruction set for the user's next reply.
 - If the state is not complete yet, stay in the current state.

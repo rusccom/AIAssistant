@@ -26,6 +26,9 @@ const buildRequestMeta = (req: Request) => {
     traceId: body.traceId || req.get('x-trace-id') || null,
     turnId: body.turnId || null,
     hostname: body.hostname || null,
+    stateEntryId: body.stateEntryId || null,
+    stateId: body.stateId || null,
+    transitionId: body.transitionId || null,
     toolName: getToolName(req.path),
     bodyKeys: Object.keys(body).slice(0, 10)
   };

@@ -28,16 +28,29 @@ const playAudioParts = async (message: any, player: AudioPlayer) => {
 const createDisconnectHandler = (
   input: StartRuntimeInput,
   logger: RealtimeLogger,
+  stateController: ReturnType<typeof createLocalStateController>,
   isClosed: () => boolean,
   getGeneration: () => number,
-  setClosed: () => void
+  setClosed: () => void,
+  getTurnId: () => string | null
 ) => (generation: number) => (message: string) => {
   if (isClosed() || generation !== getGeneration()) {
     return;
   }
 
   setClosed();
-  logger.warn('session', 'disconnected', { generation, message });
+  stateController.finalizeCurrentState({
+    reason: message,
+    source: 'gemini.session_disconnected',
+    turnId: getTurnId()
+  });
+  logger.warn('session', 'disconnected', {
+    generation,
+    message,
+    stateEntryId: stateController.getCurrentStateTrace().entryId,
+    stateId: stateController.getCurrentState().id,
+    transitionId: stateController.getPendingTransition()?.id || null
+  });
   input.onDisconnect(message);
 };
 
@@ -163,10 +176,17 @@ const createCloseHandler = (
   player: AudioPlayer,
   getSession: () => any,
   setClosed: () => void,
-  logger: RealtimeLogger
+  logger: RealtimeLogger,
+  stateController: ReturnType<typeof createLocalStateController>,
+  getTurnId: () => string | null
 ) => () => {
   logger.info('session', 'closed_by_widget');
   setClosed();
+  stateController.finalizeCurrentState({
+    reason: 'closed_by_widget',
+    source: 'gemini.closed_by_widget',
+    turnId: getTurnId()
+  });
   recorder.stop();
   player.close();
   getSession()?.close();
@@ -184,8 +204,9 @@ export const startGeminiRuntime = async (
     logger
   );
   const turnTracker = createTurnTracker({
-    getPendingTransitionId: () => stateController.getPendingStateId(),
+    getPendingTransition: () => stateController.getPendingTransition(),
     getState: () => stateController.getCurrentState(),
+    getStateTrace: () => stateController.getCurrentStateTrace(),
     logger
   });
   const execute = createUniversalExecute(
@@ -210,9 +231,11 @@ export const startGeminiRuntime = async (
   const onDisconnect = createDisconnectHandler(
     input,
     logger,
+    stateController,
     () => closed,
     () => generation,
-    setClosed
+    setClosed,
+    () => turnTracker.getCurrentTurnId()
   );
   const canSend = () => !closed && sessionReady;
   const handleToolCall = createToolCallHandler(
@@ -235,7 +258,12 @@ export const startGeminiRuntime = async (
 
       if (message.setupComplete) {
         sessionReady = true;
+        stateController.activateCurrentState({
+          source: 'gemini.setup_complete',
+          turnId: turnTracker.getCurrentTurnId()
+        });
         logger.info('transport', 'setup_complete', {
+          stateEntryId: stateController.getCurrentStateTrace().entryId,
           stateId: stateController.getCurrentState().id
         });
         return;
@@ -281,9 +309,13 @@ export const startGeminiRuntime = async (
       }
 
       const previousStateId = stateController.getCurrentState().id;
+      const completedTurnId = turnTracker.getCurrentTurnId();
       logger.info('transport', 'turn_done', { stateId: previousStateId });
       turnTracker.completeTurn('gemini.turn_complete');
-      const nextState = stateController.applyPendingState();
+      const nextState = stateController.applyPendingState({
+        source: 'gemini.turn_complete',
+        turnId: completedTurnId
+      });
       if (!nextState || closed) {
         return;
       }
@@ -292,7 +324,16 @@ export const startGeminiRuntime = async (
       try {
         logger.info('runtime', 'reconnect_for_state_transition', {
           fromStateId: previousStateId,
-          toStateId: nextState.id
+          stateEntryId: stateController.getCurrentStateTrace().entryId,
+          toStateId: nextState.id,
+          transitionId: stateController.getCurrentStateTrace().transitionId
+        });
+        logger.info('state', 'activation_requested', {
+          source: 'gemini.transition_reconnect',
+          stateEntryId: stateController.getCurrentStateTrace().entryId,
+          stateId: stateController.getCurrentState().id,
+          stateTrace: stateController.getCurrentStateTrace(),
+          transitionId: stateController.getCurrentStateTrace().transitionId
         });
         sessionReady = false;
         resumeHandle = null;
@@ -312,9 +353,24 @@ export const startGeminiRuntime = async (
   );
 
   sessionReady = false;
+  logger.info('state', 'activation_requested', {
+    source: 'gemini.initial_connect',
+    stateEntryId: stateController.getCurrentStateTrace().entryId,
+    stateId: stateController.getCurrentState().id,
+    stateTrace: stateController.getCurrentStateTrace(),
+    transitionId: stateController.getCurrentStateTrace().transitionId
+  });
   liveSession = await openSession(stateController.getCurrentState(), generation);
   await startRecorder(recorder, getSession, () => !closed && sessionReady, logger);
   return {
-    close: createCloseHandler(recorder, player, getSession, setClosed, logger)
+    close: createCloseHandler(
+      recorder,
+      player,
+      getSession,
+      setClosed,
+      logger,
+      stateController,
+      () => turnTracker.getCurrentTurnId()
+    )
   };
 };

@@ -1,112 +1,200 @@
+import { SessionStateDefinition, SessionStateMachine } from './realtime-session.types';
 import {
-  SessionStateDefinition,
-  SessionStateMachine
-} from './realtime-session.types';
-import { RealtimeLogger, summarizeState } from './realtime-logger';
+  ActiveStateEntry,
+  ActivateStateInput,
+  ApplyPendingStateInput,
+  canTransition,
+  createPendingTransition,
+  createStateEntry,
+  FinalizeStateInput,
+  logStateActivated,
+  logStateFinalized,
+  logStateSelected,
+  logTransitionApplied,
+  logTransitionRejected,
+  PendingTransition,
+  PendingTransitionTrace,
+  resolveInitialState,
+  StateTrace,
+  toPendingTransitionTrace,
+  toStateTrace,
+  TransitionRequestInput
+} from './state-machine-trace';
+import { summarizeState, type RealtimeLogger } from './realtime-logger';
+
+export type {
+  ActivateStateInput,
+  ApplyPendingStateInput,
+  FinalizeStateInput,
+  PendingTransitionTrace,
+  StateTrace,
+  TransitionRequestInput
+} from './state-machine-trace';
 
 export interface LocalStateController {
-  applyPendingState(): SessionStateDefinition | null;
+  activateCurrentState(input: ActivateStateInput): void;
+  applyPendingState(input: ApplyPendingStateInput): SessionStateDefinition | null;
+  finalizeCurrentState(input: FinalizeStateInput): void;
   getCurrentState(): SessionStateDefinition;
-  getPendingStateId(): string | null;
-  scheduleTransition(nextStateId?: string, reason?: string): string;
+  getCurrentStateTrace(): StateTrace;
+  getPendingTransition(): PendingTransitionTrace | null;
+  scheduleTransition(input: TransitionRequestInput): string;
 }
 
-const resolveInitialState = (
+const resolveNextState = (
   stateMachine: SessionStateMachine,
-  currentStateId?: string | null
-): SessionStateDefinition => {
-  const currentState = stateMachine.states.find(
-    (state) => state.id === currentStateId
-  );
-  if (currentState) {
-    return currentState;
-  }
-
-  const initialState = stateMachine.states.find(
-    (state) => state.id === stateMachine.initialStateId
-  );
-
-  return initialState || stateMachine.states[0];
+  pendingTransition: PendingTransition
+) => {
+  return stateMachine.states.find((state) => state.id === pendingTransition.nextStateId);
 };
-
-const canTransition = (
-  state: SessionStateDefinition,
-  nextStateId: string
-) => state.transitions.some((transition) => transition.next_step === nextStateId);
 
 export const createLocalStateController = (
   stateMachine: SessionStateMachine,
   currentStateId?: string | null,
   logger?: RealtimeLogger
 ): LocalStateController => {
-  let currentState = resolveInitialState(stateMachine, currentStateId);
-  let pendingStateId: string | null = null;
+  const resolvedInitialState = resolveInitialState(stateMachine, currentStateId);
+  let currentState = resolvedInitialState.state;
+  let currentEntry: ActiveStateEntry = createStateEntry(currentState, {
+    reason: resolvedInitialState.source,
+    source: resolvedInitialState.source
+  });
+  let pendingTransition: PendingTransition | null = null;
 
   logger?.info('state', 'initialized', {
+    currentStateEntryId: currentEntry.entryId,
     initialStateId: stateMachine.initialStateId || null,
-    currentStateId: currentStateId || null,
-    state: summarizeState(currentState)
+    requestedCurrentStateId: currentStateId || null,
+    resolutionSource: resolvedInitialState.source,
+    state: summarizeState(currentState),
+    stateEntryId: currentEntry.entryId,
+    stateId: currentState.id
+  });
+
+  logStateSelected(logger, currentState, currentEntry, {
+    currentStateEntryId: currentEntry.entryId,
+    initialStateId: stateMachine.initialStateId || null,
+    requestedCurrentStateId: currentStateId || null,
+    resolutionSource: resolvedInitialState.source
   });
 
   return {
-    getCurrentState: () => currentState,
-    getPendingStateId: () => pendingStateId,
-    scheduleTransition: (nextStateId, reason) => {
-      if (!nextStateId) {
-        logger?.warn('state', 'transition_rejected', {
-          currentStateId: currentState.id,
-          reason: 'nextStateId_missing'
-        });
-        return 'nextStateId is required for transition_state.';
-      }
-
-      if (pendingStateId) {
-        logger?.warn('state', 'transition_rejected', {
-          currentStateId: currentState.id,
-          pendingStateId,
-          requestedStateId: nextStateId,
-          reason: 'pending_transition_exists'
-        });
-        return `A transition to "${pendingStateId}" is already scheduled. Finish the current turn first.`;
-      }
-
-      if (!canTransition(currentState, nextStateId)) {
-        logger?.warn('state', 'transition_rejected', {
-          currentState: summarizeState(currentState),
-          requestedStateId: nextStateId,
-          reason: 'transition_not_allowed'
-        });
-        return `Transition to "${nextStateId}" is not allowed from "${currentState.id}".`;
-      }
-
-      pendingStateId = nextStateId;
-      logger?.info('state', 'transition_requested', {
-        currentStateId: currentState.id,
-        nextStateId,
-        reason: reason || null
-      });
-      return `Transition to "${nextStateId}" is scheduled for the next assistant turn.`;
+    activateCurrentState: (input) => {
+      logStateActivated(logger, currentState, currentEntry, input);
     },
-    applyPendingState: () => {
-      if (!pendingStateId) {
-        return null;
-      }
+    applyPendingState: (input) => {
+      if (!pendingTransition) return null;
 
-      const nextStateId = pendingStateId;
-      const nextState = stateMachine.states.find((state) => state.id === nextStateId);
-      pendingStateId = null;
+      const nextTransition = pendingTransition;
+      const nextState = resolveNextState(stateMachine, nextTransition);
+      pendingTransition = null;
+
       if (!nextState) {
-        logger?.warn('state', 'transition_missing_target', { nextStateId });
+        logger?.warn('state', 'transition_missing_target', {
+          pendingTransition: toPendingTransitionTrace(nextTransition),
+          reason: 'missing_target_state',
+          stateEntryId: currentEntry.entryId,
+          stateId: currentState.id,
+          transitionId: nextTransition.id
+        });
         return null;
       }
 
       const previousStateId = currentState.id;
+      const previousEntryId = currentEntry.entryId;
+
+      logStateFinalized(logger, currentState, currentEntry, {
+        reason: nextTransition.reason,
+        source: input.source,
+        turnId: input.turnId || nextTransition.turnId
+      }, nextTransition);
+
       currentState = nextState;
-      logger?.info('state', 'transition_applied', {
+      currentEntry = createStateEntry(currentState, {
         fromStateId: previousStateId,
-        toState: summarizeState(currentState)
+        reason: nextTransition.reason,
+        source: 'transition',
+        toolName: nextTransition.toolName,
+        transitionId: nextTransition.id,
+        turnId: input.turnId || nextTransition.turnId
       });
+
+      logTransitionApplied(
+        logger,
+        previousStateId,
+        previousEntryId,
+        currentState,
+        currentEntry,
+        nextTransition,
+        input
+      );
+
+      logStateSelected(logger, currentState, currentEntry, {
+        fromStateEntryId: previousEntryId,
+        fromStateId: previousStateId,
+        selectionSource: input.source
+      });
+
       return currentState;
+    },
+    finalizeCurrentState: (input) => {
+      logStateFinalized(logger, currentState, currentEntry, input, pendingTransition);
+    },
+    getCurrentState: () => currentState,
+    getCurrentStateTrace: () => toStateTrace(currentEntry),
+    getPendingTransition: () => toPendingTransitionTrace(pendingTransition),
+    scheduleTransition: (input) => {
+      if (!input.nextStateId) {
+        logTransitionRejected(
+          logger,
+          currentState,
+          currentEntry,
+          input.nextStateId,
+          pendingTransition,
+          'nextStateId_missing'
+        );
+        return 'nextStateId is required for transition_state.';
+      }
+
+      if (pendingTransition) {
+        logTransitionRejected(
+          logger,
+          currentState,
+          currentEntry,
+          input.nextStateId,
+          pendingTransition,
+          'pending_transition_exists'
+        );
+        return `A transition to "${pendingTransition.nextStateId}" is already scheduled. Finish the current turn first.`;
+      }
+
+      if (!canTransition(currentState, input.nextStateId)) {
+        logTransitionRejected(
+          logger,
+          currentState,
+          currentEntry,
+          input.nextStateId,
+          pendingTransition,
+          'transition_not_allowed'
+        );
+        return `Transition to "${input.nextStateId}" is not allowed from "${currentState.id}".`;
+      }
+
+      pendingTransition = createPendingTransition(currentState, currentEntry, input);
+      logger?.info('state', 'transition_requested', {
+        allowedTransitionIds: currentState.transitions.map(
+          (transition) => transition.next_step
+        ),
+        pendingTransition: toPendingTransitionTrace(pendingTransition),
+        reason: pendingTransition.reason,
+        state: summarizeState(currentState),
+        stateEntryId: currentEntry.entryId,
+        stateId: currentState.id,
+        toolName: pendingTransition.toolName,
+        transitionId: pendingTransition.id,
+        turnId: pendingTransition.turnId
+      });
+      return `Transition to "${input.nextStateId}" is scheduled for the next assistant turn.`;
     }
   };
 };

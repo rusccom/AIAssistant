@@ -1,3 +1,7 @@
+import type {
+  PendingTransitionTrace,
+  StateTrace
+} from './state-machine';
 import { RealtimeLogger, summarizeState } from './realtime-logger';
 import { SessionStateDefinition } from './realtime-session.types';
 
@@ -11,8 +15,9 @@ interface TurnOutputSummary {
 }
 
 interface CreateTurnTrackerInput {
-  getPendingTransitionId?: () => string | null;
+  getPendingTransition?: () => PendingTransitionTrace | null;
   getState: () => SessionStateDefinition;
+  getStateTrace?: () => StateTrace;
   logger: RealtimeLogger;
 }
 
@@ -83,7 +88,11 @@ export const createTurnTracker = (
     input.logger.info('turn', 'started', {
       turnId: activeTurn.id,
       source,
-      state: summarizeState(input.getState())
+      state: summarizeState(input.getState()),
+      stateEntryId: input.getStateTrace?.()?.entryId || null,
+      stateId: input.getStateTrace?.()?.stateId || input.getState().id,
+      stateTrace: input.getStateTrace?.() || null,
+      transitionId: input.getPendingTransition?.()?.id || null
     });
 
     return activeTurn.id;
@@ -106,13 +115,20 @@ export const createTurnTracker = (
       }
 
       const state = input.getState();
+      const stateTrace = input.getStateTrace?.() || null;
+      const pendingTransition = input.getPendingTransition?.() || null;
       input.logger.info('turn', 'completed', {
         turnId: activeTurn.id,
         source,
         startedBy: activeTurn.source,
         durationMs: Date.now() - activeTurn.startedAt,
-        pendingTransitionId: input.getPendingTransitionId?.() || null,
+        pendingTransition,
+        pendingTransitionId: pendingTransition?.id || null,
         state: summarizeState(state),
+        stateEntryId: stateTrace?.entryId || null,
+        stateId: stateTrace?.stateId || state.id,
+        stateTrace,
+        transitionId: pendingTransition?.id || stateTrace?.transitionId || null,
         output: activeTurn.output
       });
 

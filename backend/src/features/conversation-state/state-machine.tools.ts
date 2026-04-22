@@ -12,10 +12,10 @@ export const transitionStateToolDefinition = {
         },
         reason: {
           type: 'string' as const,
-          description: 'Short internal reason why the transition should happen now.'
+          description: 'Required short internal reason why the transition should happen now.'
         }
       },
-      required: ['nextStateId'] as const
+      required: ['nextStateId', 'reason'] as const
     }
   }
 };
