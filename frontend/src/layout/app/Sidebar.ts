@@ -26,41 +26,13 @@ const sidebarTemplate = `
             </a>
         </nav>
         <div class="sidebar-footer">
-            <div class="admin-settings-panel">
-                <div class="admin-settings-panel__header">
-                    <div class="admin-settings-panel__icon" aria-hidden="true">
-                        <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.31.06-.63.06-.94s-.02-.63-.06-.94l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.6-.22l-2.39.96a7.3 7.3 0 0 0-1.62-.94l-.36-2.54A.5.5 0 0 0 13.91 1h-3.82a.5.5 0 0 0-.49.42l-.36 2.54c-.57.23-1.11.54-1.62.94l-2.39-.96a.5.5 0 0 0-.6.22L2.71 7.48a.5.5 0 0 0 .12.64l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94l-2.03 1.58a.5.5 0 0 0-.12.64l1.92 3.32a.5.5 0 0 0 .6.22l2.39-.96c.5.4 1.05.71 1.62.94l.36 2.54a.5.5 0 0 0 .49.42h3.82a.5.5 0 0 0 .49-.42l.36-2.54c.57-.23 1.11-.54 1.62-.94l2.39.96a.5.5 0 0 0 .6-.22l1.92-3.32a.5.5 0 0 0-.12-.64l-2.03-1.58ZM12 15.5A3.5 3.5 0 1 1 12 8a3.5 3.5 0 0 1 0 7.5Z"></path></svg>
-                    </div>
-                    <div class="admin-settings-panel__copy">
-                        <div class="admin-settings-panel__title" data-i18n="app.settings.title">Administrator Settings</div>
-                        <div class="admin-settings-panel__description" data-i18n="app.settings.description">Password, language and workspace style</div>
-                    </div>
+            <div class="user-profile" id="user-profile-button" style="cursor: pointer;">
+                <div class="user-avatar">
+                    <svg class="user-avatar-icon" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"></path></svg>
                 </div>
-                <div class="user-profile" id="user-profile-button" style="cursor: pointer;">
-                    <div class="user-avatar">
-                        <svg class="user-avatar-icon" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"></path></svg>
-                    </div>
-                    <div class="user-info">
-                        <div class="user-name">Administrator</div>
-                        <div class="user-email">admin@ai.com</div>
-                    </div>
-                </div>
-                <div class="theme-switcher sidebar-theme-switcher">
-                    <label class="theme-switcher__label" for="sidebar-language-select" data-i18n="common.language.label">Language</label>
-                    <select
-                        id="sidebar-language-select"
-                        class="select theme-switcher__control"
-                        data-app-language-select
-                    ></select>
-                    <p class="form-help" data-i18n="common.language.help">Changes apply immediately and are saved for the next visit.</p>
-                </div>
-                <div class="theme-switcher sidebar-theme-switcher">
-                    <label class="theme-switcher__label" for="sidebar-theme-select" data-i18n="common.theme.workspaceStyle">Workspace Style</label>
-                    <select
-                        id="sidebar-theme-select"
-                        class="select theme-switcher__control"
-                        data-client-theme-select
-                    ></select>
+                <div class="user-info">
+                    <div class="user-name">Administrator</div>
+                    <div class="user-email">admin@ai.com</div>
                 </div>
             </div>
             <a href="#" class="nav-item logout-item" id="logout-button">

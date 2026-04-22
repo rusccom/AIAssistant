@@ -189,12 +189,25 @@
 
 .conversation-states-info ul {
     margin: 0;
-    padding-left: 1rem;
+    padding: 0;
+    list-style: none;
     color: var(--ct-text-muted);
+}
+
+.conversation-states-info li {
+    position: relative;
+    padding-left: 1.15rem;
 }
 
 .conversation-states-info li + li {
     margin-top: 0.45rem;
+}
+
+.conversation-states-info li::before {
+    content: '•';
+    position: absolute;
+    left: 0.15rem;
+    color: var(--ct-text-soft);
 }
 
 .template-link {

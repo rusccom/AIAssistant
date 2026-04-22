@@ -63,6 +63,10 @@ a {
     gap: 1rem 1.25rem;
 }
 
+.form-grid > * {
+    min-width: 0;
+}
+
 @media (max-width: 768px) {
     .form-grid {
         grid-template-columns: 1fr;

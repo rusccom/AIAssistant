@@ -131,16 +131,8 @@
     fill: currentColor;
 }
 
-.mobile-admin-settings {
+.mobile-user-section {
     padding: 0.25rem 0;
-}
-
-.admin-settings-panel--mobile {
-    box-shadow: none;
-}
-
-.mobile-admin-settings .theme-switcher__control {
-    min-width: 100%;
 }
 
 .mobile-user-profile {
@@ -150,8 +142,7 @@
     padding: 1rem;
     border: 1px solid var(--ct-border-soft);
     border-radius: var(--ct-radius-lg);
-    background: #ffffff;
-    cursor: pointer;
+    background: var(--ct-surface-subtle);
 }
 
 .mobile-user-avatar {
@@ -184,12 +175,6 @@
 .mobile-user-info {
     min-width: 0;
     flex: 1;
-}
-
-.mobile-user-name {
-    display: block;
-    color: var(--ct-text-strong);
-    font-weight: 700;
 }
 
 .mobile-user-hint {

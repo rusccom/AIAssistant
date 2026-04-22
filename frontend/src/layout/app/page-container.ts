@@ -5,7 +5,7 @@ import './styles/layout-base.css';
 import './styles/sidebar.css';
 import './styles/mobile-nav.css';
 import { getUser } from '../../utils/auth';
-import { refreshLocalizedUi, t } from '../../features/localization';
+import { refreshLocalizedUi } from '../../features/localization';
 
 // Импортируем централизованные утилиты для устранения дубликатов
 import { apiRequest, getAuthToken, clearAuthData } from '../../utils/api-client';
@@ -65,9 +65,8 @@ function setupMobileNavigation() {
 }
 
 async function updateMobileUserEmail() {
-    const mobileNameEl = document.getElementById('mobile-user-name');
     const mobileEmailEl = document.getElementById('mobile-user-email');
-    if (!mobileNameEl || !mobileEmailEl) return;
+    if (!mobileEmailEl) return;
 
     let user = getUser();
     if (!user) {
@@ -84,9 +83,6 @@ async function updateMobileUserEmail() {
         }
     }
 
-    mobileNameEl.textContent = user?.firstName
-        ? `${user.firstName} ${user.lastName}`
-        : t('app.user.defaultName');
     mobileEmailEl.textContent = user?.email || 'admin@ai.com';
 }
 

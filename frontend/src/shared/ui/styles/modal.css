@@ -49,6 +49,15 @@
     justify-content: flex-end;
 }
 
+.modal-settings-grid {
+    padding-top: 1rem;
+    border-top: 1px solid var(--ct-border-soft);
+}
+
+.modal-settings-grid .form-group {
+    margin-bottom: 0;
+}
+
 .modal-title {
     margin: 0;
     color: var(--ct-text-strong);
