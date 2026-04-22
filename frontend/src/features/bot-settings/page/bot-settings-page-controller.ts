@@ -1,10 +1,20 @@
-import { apiRequest } from '../../../utils/api-client';
-import { API_ENDPOINTS, ROUTES } from '../../../utils/constants';
-import { handleApiError, showError, showSuccess } from '../../../utils/error-handler';
+import {
+    APP_LANGUAGE_CHANGE_EVENT,
+    refreshLocalizedUi,
+    t
+} from '../../localization';
 import { setElementVisible } from '../../../shared/ui/dom';
-import { setupImportModal } from '../../products/import/import-modal';
+import { apiRequest } from '../../../utils/api-client';
+import { ROUTES } from '../../../utils/constants';
+import { handleApiError, showError, showSuccess } from '../../../utils/error-handler';
 import { setupRebuildEmbeddingsButton } from '../../products/embeddings/rebuild-embeddings';
-import { bindRealtimeSettingsForm, syncRealtimeSettingsForm, type RealtimeProviderOption } from '../../realtime/realtime-settings';
+import { setupImportModal } from '../../products/import/import-modal';
+import {
+    bindRealtimeSettingsForm,
+    syncRealtimeSettingsForm,
+    type RealtimeProviderOption
+} from '../../realtime/realtime-settings';
+import { ProductSectionController } from '../products/product-section-controller';
 import { createDomainCardMarkup } from '../renderers/bot-settings-ui';
 import type {
     BotSettingsDashboardData,
@@ -12,7 +22,6 @@ import type {
     BotSettingsDomainRecord,
     BotSettingsWindow
 } from '../types';
-import { ProductSectionController } from '../products/product-section-controller';
 import {
     bindTabNavigation,
     bindWidgetActions,
@@ -40,6 +49,7 @@ export class BotSettingsPageController {
         this.productSection.init();
         this.bindDomainModal();
         this.bindBotConfigForm();
+        this.bindLanguageRefresh();
         bindWidgetActions({
             getSelectedDomain: () => this.selectedDomain,
             getWidgetScriptUrl: () => this.getSelectedWidgetScriptUrl()
@@ -75,11 +85,15 @@ export class BotSettingsPageController {
         });
     }
 
+    private bindLanguageRefresh(): void {
+        document.addEventListener(APP_LANGUAGE_CHANGE_EVENT, () => this.refreshLanguage());
+    }
+
     private bindVisualEditorLink(): void {
         (document.getElementById('open-visual-editor-btn') as HTMLAnchorElement | null)?.addEventListener('click', (event) => {
             if (!this.selectedDomain) {
                 event.preventDefault();
-                showError('Please select a domain first');
+                showError(t('botSettings.messages.selectDomainFirst'));
                 return;
             }
 
@@ -87,13 +101,12 @@ export class BotSettingsPageController {
         });
     }
 
-
     private async fetchDashboardData(): Promise<void> {
         try {
-            const { data } = await apiRequest<BotSettingsDashboardData>(API_ENDPOINTS.DASHBOARD.DATA);
+            const { data } = await apiRequest<BotSettingsDashboardData>('/api/dashboard/data');
 
             if (!data.success) {
-                throw new Error('Server error');
+                throw new Error(t('common.messages.serverError'));
             }
 
             this.appWindow.domainConfigs = data.domainConfigs;
@@ -113,7 +126,7 @@ export class BotSettingsPageController {
             } else {
                 const voiceSelect = document.getElementById('voice') as HTMLSelectElement | null;
                 if (voiceSelect) {
-                    voiceSelect.innerHTML = '<option value="alloy">Alloy (Default)</option>';
+                    voiceSelect.innerHTML = `<option value="alloy">${t('botSettings.personality.defaultVoice')}</option>`;
                 }
             }
         } catch (error) {
@@ -122,9 +135,19 @@ export class BotSettingsPageController {
         }
     }
 
+    private refreshLanguage(): void {
+        refreshLocalizedUi(document);
+        this.renderDomains(this.appWindow.domains || []);
+        this.productSection.refreshLanguage();
+        updateDomainIndicator(this.selectedDomain);
+        updateWidgetIntegration(this.getSelectedWidgetScriptUrl());
+    }
+
     private renderDomains(domains: BotSettingsDomainRecord[]): void {
         const domainsList = document.getElementById('domains-list');
         const emptyState = document.getElementById('empty-domains');
+
+        this.appWindow.domains = domains;
 
         if (!domainsList || !emptyState) {
             return;
@@ -205,7 +228,7 @@ export class BotSettingsPageController {
         };
 
         try {
-            await apiRequest(`${API_ENDPOINTS.BOT_CONFIG.BASE}?domain=${this.selectedDomain}`, {
+            await apiRequest(`/api/bot-config?domain=${this.selectedDomain}`, {
                 body: JSON.stringify(configData),
                 method: 'PUT'
             });
@@ -213,7 +236,7 @@ export class BotSettingsPageController {
                 ...(this.appWindow.domainConfigs || {}),
                 [this.selectedDomain]: { ...currentConfig, ...configData }
             };
-            showSuccess('Configuration saved successfully.');
+            showSuccess(t('botSettings.messages.configSaved'));
         } catch (error) {
             console.error(error);
             handleApiError(error, 'saving configuration');
@@ -226,7 +249,7 @@ export class BotSettingsPageController {
         const hostname = input?.value.trim() || '';
 
         if (!hostname) {
-            showError('Please enter a domain name.');
+            showError(t('botSettings.messages.enterDomainName'));
             return;
         }
 
@@ -237,13 +260,13 @@ export class BotSettingsPageController {
             });
 
             if (response.status === 409) {
-                showError('This domain has already been added.');
+                showError(t('botSettings.messages.domainAlreadyExists'));
                 return;
             }
 
             closeAddDomainModal();
             await this.fetchDashboardData();
-            showSuccess('Domain added successfully.');
+            showSuccess(t('botSettings.messages.domainAdded'));
         } catch (error) {
             console.error(error);
             handleApiError(error, 'adding domain');

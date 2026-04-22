@@ -1,3 +1,5 @@
+import { t } from '../../localization';
+
 export interface ImportVariant {
     title: string;
     price: number;
@@ -36,7 +38,7 @@ export async function parseImportFile(file: File): Promise<RawImportRow[]> {
         return parseCsvContent(content);
     }
 
-    throw new Error('Only CSV and JSON files are supported.');
+    throw new Error(t('botSettings.import.unsupportedFile'));
 }
 
 export function processImportData(rawData: RawImportRow[], groupVariants = true): ImportProduct[] {
@@ -51,7 +53,7 @@ function readFileAsText(file: File): Promise<string> {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => resolve(String(reader.result ?? ''));
-        reader.onerror = () => reject(new Error('Failed to read the selected file.'));
+        reader.onerror = () => reject(new Error(t('botSettings.import.fileReadError')));
         reader.readAsText(file);
     });
 }
@@ -68,7 +70,7 @@ function parseJsonContent(content: string): RawImportRow[] {
     const parsed = JSON.parse(removeBom(content));
 
     if (!Array.isArray(parsed)) {
-        throw new Error('JSON file must contain an array.');
+        throw new Error(t('botSettings.import.jsonArrayRequired'));
     }
 
     return parsed.filter(isRecord);
@@ -78,14 +80,16 @@ function parseCsvContent(content: string): RawImportRow[] {
     const lines = removeBom(content).split(/\r?\n/).filter(hasValue);
 
     if (lines.length < 2) {
-        throw new Error('CSV file must have at least a header and one data row.');
+        throw new Error(t('botSettings.import.csvRowRequired'));
     }
 
     const delimiter = detectDelimiter(lines[0]);
     const headers = parseCsvLine(lines[0], delimiter);
 
     if (headers.length < 3) {
-        throw new Error(`Invalid CSV format. Expected multiple columns, found: ${headers.join(', ')}`);
+        throw new Error(t('botSettings.import.csvInvalidFormat', {
+            headers: headers.join(', ')
+        }));
     }
 
     return lines.slice(1).map(line => mapCsvRow(headers, parseCsvLine(line, delimiter)));

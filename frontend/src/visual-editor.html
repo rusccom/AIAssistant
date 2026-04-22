@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -29,26 +29,26 @@
         <div class="editor-header">
             <div class="editor-header__identity">
                 <div class="editor-header__title-row">
-                    <h1 id="header-title">Visual State Editor</h1>
+                    <h1 id="header-title" data-i18n="visualEditor.header.title">Visual State Editor</h1>
                     <span id="header-domain-badge" class="editor-domain-badge" hidden></span>
                 </div>
-                <p class="editor-header__caption">Conversation flow editor</p>
+                <p class="editor-header__caption" data-i18n="visualEditor.header.caption">Conversation flow editor</p>
             </div>
             <div class="editor-header__actions">
-                <button id="back-to-settings-btn" class="btn btn-secondary editor-action editor-action--ghost">Back</button>
+                <button id="back-to-settings-btn" class="btn btn-secondary editor-action editor-action--ghost" data-i18n="common.buttons.back">Back</button>
                 <div class="editor-header__action-group">
-                    <button id="add-state-btn" class="btn btn-secondary editor-action">Add State</button>
-                    <button id="save-states-btn" class="btn btn-success editor-action editor-action--accent">Save</button>
-                    <button id="clear-canvas-btn" class="btn btn-danger editor-action editor-action--danger">Clear</button>
+                    <button id="add-state-btn" class="btn btn-secondary editor-action" data-i18n="visualEditor.header.addState">Add State</button>
+                    <button id="save-states-btn" class="btn btn-success editor-action editor-action--accent" data-i18n="common.buttons.save">Save</button>
+                    <button id="clear-canvas-btn" class="btn btn-danger editor-action editor-action--danger" data-i18n="common.buttons.clear">Clear</button>
                 </div>
             </div>
         </div>
         <div class="editor-container">
             <div class="editor-sidebar">
                 <div class="sidebar-section">
-                    <h3>Properties</h3>
+                    <h3 data-i18n="visualEditor.properties.title">Properties</h3>
                     <div id="properties-panel">
-                        <p>Select a state to edit its properties</p>
+                        <p data-i18n="visualEditor.properties.empty">Select a state to edit its properties</p>
                     </div>
                 </div>
             </div>
@@ -57,10 +57,10 @@
                     <div class="canvas-toolbar__zoom">
                         <button id="zoom-in-btn" class="btn btn-sm">+</button>
                         <button id="zoom-out-btn" class="btn btn-sm">-</button>
-                        <button id="zoom-reset-btn" class="btn btn-sm">Reset</button>
+                        <button id="zoom-reset-btn" class="btn btn-sm" data-i18n="common.buttons.reset">Reset</button>
                         <span id="zoom-level">100%</span>
                     </div>
-                    <div id="connection-status" style="display: none;">
+                    <div id="connection-status" style="display: none;" data-i18n="visualEditor.canvas.connectTarget">
                         Click target to connect
                     </div>
                 </div>
@@ -71,68 +71,86 @@
             </div>
         </div>
         <div id="context-menu" class="context-menu" style="display: none;">
-            <div class="context-menu-item" data-action="create-connection">Create Connection</div>
-            <div class="context-menu-item" data-action="edit-state">Edit State</div>
-            <div class="context-menu-item" data-action="delete-state">Delete State</div>
+            <div class="context-menu-item" data-action="create-connection" data-i18n="visualEditor.context.createConnection">Create Connection</div>
+            <div class="context-menu-item" data-action="edit-state" data-i18n="visualEditor.context.editState">Edit State</div>
+            <div class="context-menu-item" data-action="delete-state" data-i18n="visualEditor.context.deleteState">Delete State</div>
         </div>
         <div id="edit-state-modal" class="modal" style="display: none;">
             <div class="modal-content">
                 <div class="modal-header">
                     <div class="modal-header-left">
-                        <h3>Edit State</h3>
-                        <button id="ai-assist-btn" class="btn btn-success">AI Assistant</button>
+                        <h3 data-i18n="visualEditor.modal.editTitle">Edit State</h3>
+                        <button id="ai-assist-btn" class="btn btn-success" data-i18n="visualEditor.modal.aiTitle">AI Assistant</button>
                     </div>
-                    <button class="close-btn" id="close-edit-modal">&times;</button>
+                    <button class="close-btn" id="close-edit-modal" aria-label="Close" data-i18n-aria-label="common.buttons.close">&times;</button>
                 </div>
                 <div class="modal-body">
                     <div class="form-group">
-                        <label>State ID:</label>
+                        <label data-i18n="visualEditor.modal.stateId">State ID:</label>
                         <input type="text" id="state-id-input" class="form-control">
                     </div>
                     <div class="form-group">
-                        <label>Description:</label>
+                        <label data-i18n="visualEditor.modal.description">Description:</label>
                         <textarea id="state-description-input" class="form-control" rows="3"></textarea>
                     </div>
                     <div class="form-group">
-                        <label>Instructions:</label>
-                        <textarea id="state-instructions-input" class="form-control" rows="5" placeholder="Enter instructions, one per line"></textarea>
+                        <label data-i18n="visualEditor.modal.instructions">Instructions:</label>
+                        <textarea
+                            id="state-instructions-input"
+                            class="form-control"
+                            rows="5"
+                            placeholder="Enter instructions, one per line"
+                            data-i18n-placeholder="visualEditor.modal.instructionsPlaceholder"
+                        ></textarea>
                     </div>
                     <div class="form-group">
-                        <label>Examples:</label>
-                        <textarea id="state-examples-input" class="form-control" rows="3" placeholder="Enter examples, one per line"></textarea>
+                        <label data-i18n="visualEditor.modal.examples">Examples:</label>
+                        <textarea
+                            id="state-examples-input"
+                            class="form-control"
+                            rows="3"
+                            placeholder="Enter examples, one per line"
+                            data-i18n-placeholder="visualEditor.modal.examplesPlaceholder"
+                        ></textarea>
                     </div>
                     <div class="form-group" id="state-reasoning-group" style="display: none;">
-                        <label>Reasoning mode:</label>
+                        <label data-i18n="visualEditor.modal.reasoning">Reasoning mode:</label>
                         <select id="state-reasoning-mode" class="form-control">
-                            <option value="inherit">Inherit provider default</option>
-                            <option value="fast">Fast</option>
-                            <option value="balanced">Balanced</option>
-                            <option value="deep">Deep</option>
+                            <option value="inherit" data-i18n="visualEditor.modal.reasoningInherit">Inherit provider default</option>
+                            <option value="fast" data-i18n="visualEditor.modal.reasoningFast">Fast</option>
+                            <option value="balanced" data-i18n="visualEditor.modal.reasoningBalanced">Balanced</option>
+                            <option value="deep" data-i18n="visualEditor.modal.reasoningDeep">Deep</option>
                         </select>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button id="cancel-edit-btn" class="btn btn-secondary">Cancel</button>
-                    <button id="save-edit-btn" class="btn btn-primary">Save</button>
+                    <button id="cancel-edit-btn" class="btn btn-secondary" data-i18n="common.buttons.cancel">Cancel</button>
+                    <button id="save-edit-btn" class="btn btn-primary" data-i18n="common.buttons.save">Save</button>
                 </div>
             </div>
         </div>
         <div id="ai-assist-modal" class="modal" style="display: none;">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h3>AI Assistant</h3>
-                    <button class="close-btn" id="close-ai-modal">&times;</button>
+                    <h3 data-i18n="visualEditor.modal.aiTitle">AI Assistant</h3>
+                    <button class="close-btn" id="close-ai-modal" aria-label="Close" data-i18n-aria-label="common.buttons.close">&times;</button>
                 </div>
                 <div class="modal-body">
                     <div class="form-group">
-                        <label for="ai-prompt-input">What should this state do?</label>
-                        <textarea id="ai-prompt-input" class="form-control" rows="4" placeholder="e.g., Greet the user and ask for their name"></textarea>
+                        <label for="ai-prompt-input" data-i18n="visualEditor.ai.label">What should this state do?</label>
+                        <textarea
+                            id="ai-prompt-input"
+                            class="form-control"
+                            rows="4"
+                            placeholder="e.g., Greet the user and ask for their name"
+                            data-i18n-placeholder="visualEditor.ai.placeholder"
+                        ></textarea>
                     </div>
                     <div id="ai-error-message" class="error-message" style="display: none;"></div>
                 </div>
                 <div class="modal-footer">
-                    <button id="cancel-ai-btn" class="btn btn-secondary">Cancel</button>
-                    <button id="generate-content-btn" class="btn btn-primary">Generate</button>
+                    <button id="cancel-ai-btn" class="btn btn-secondary" data-i18n="common.buttons.cancel">Cancel</button>
+                    <button id="generate-content-btn" class="btn btn-primary" data-i18n="common.buttons.generate">Generate</button>
                 </div>
             </div>
         </div>
@@ -140,4 +158,4 @@
     <script data-collect-dnt="true" async src="https://scripts.simpleanalyticscdn.com/latest.js"></script>
     <noscript><img src="https://queue.simpleanalyticscdn.com/noscript.gif?collect-dnt=true" alt="" referrerpolicy="no-referrer-when-downgrade"/></noscript>
 </body>
-</html> 
+</html>

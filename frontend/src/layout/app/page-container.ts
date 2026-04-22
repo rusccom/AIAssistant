@@ -5,6 +5,7 @@ import './styles/layout-base.css';
 import './styles/sidebar.css';
 import './styles/mobile-nav.css';
 import { getUser } from '../../utils/auth';
+import { refreshLocalizedUi } from '../../features/localization';
 
 // Импортируем централизованные утилиты для устранения дубликатов
 import { apiRequest, getAuthToken, clearAuthData } from '../../utils/api-client';
@@ -105,4 +106,5 @@ export function setupPage(pageContent: string) {
     // Setup mobile navigation
     setupMobileNavigation();
     mountClientThemeControls();
+    refreshLocalizedUi(document);
 } 

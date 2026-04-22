@@ -1,4 +1,5 @@
 import { closeLayer, openLayer, setElementVisible } from '../../../shared/ui/dom';
+import { t } from '../../localization';
 import { showError, showSuccess } from '../../../utils/error-handler';
 import { buildWidgetEmbedSnippet, copyWidgetEmbedSnippet, openWidgetPreview } from '../../widget-integration/widget-embed';
 
@@ -28,32 +29,34 @@ export function bindWidgetActions(options: WidgetActionsOptions): void {
     document.getElementById('copy-widget-code-btn')?.addEventListener('click', async () => {
         const widgetScriptUrl = options.getWidgetScriptUrl();
         if (!widgetScriptUrl) {
-            showError('Select a domain first.');
+            showError(t('botSettings.messages.selectDomainFirstShort'));
             return;
         }
 
         try {
             await copyWidgetEmbedSnippet(widgetScriptUrl);
-            showSuccess('Embed code copied to clipboard.');
+            showSuccess(t('botSettings.messages.embedCopied'));
         } catch (error) {
             console.error('Widget code copy error:', error);
-            showError('Failed to copy embed code.');
+            showError(t('botSettings.messages.embedCopyFailed'));
         }
     });
 
     document.getElementById('test-widget-btn')?.addEventListener('click', () => {
         const widgetScriptUrl = options.getWidgetScriptUrl();
         if (!widgetScriptUrl) {
-            showError('Select a domain first.');
+            showError(t('botSettings.messages.selectDomainFirstShort'));
             return;
         }
 
         try {
             openWidgetPreview(widgetScriptUrl);
-            showSuccess(`Widget opened for ${options.getSelectedDomain()}.`);
+            showSuccess(t('botSettings.messages.widgetOpened', {
+                domain: options.getSelectedDomain() || ''
+            }));
         } catch (error) {
             console.error('Widget preview error:', error);
-            showError('Failed to open widget preview.');
+            showError(t('botSettings.messages.widgetOpenFailed'));
         }
     });
 }
@@ -92,7 +95,7 @@ export function updateDomainIndicator(domain: string | null): void {
     }
 
     if (domainName) {
-        domainName.textContent = domain || 'No domain selected';
+        domainName.textContent = domain || t('botSettings.products.noDomainSelected');
     }
 }
 

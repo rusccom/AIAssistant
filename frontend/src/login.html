@@ -36,13 +36,13 @@
                         <div class="auth-logo">
                             <img src="./logoAi.png" alt="AIAssistant Logo" class="auth-logo-image">
                         </div>
-                        <h1 class="auth-title">Welcome Back</h1>
-                        <p class="auth-subtitle">Sign in to your account to continue</p>
+                        <h1 class="auth-title" data-i18n="auth.login.title">Welcome Back</h1>
+                        <p class="auth-subtitle" data-i18n="auth.login.subtitle">Sign in to your account to continue</p>
                     </div>
                     
                     <form class="auth-form" id="login-form">
                         <div class="form-group">
-                            <label for="email" class="form-label">Email Address</label>
+                            <label for="email" class="form-label" data-i18n="auth.login.emailLabel">Email Address</label>
                             <div class="input-wrapper">
                                 <div class="input-icon">
                                     
@@ -53,6 +53,7 @@
                                     name="email" 
                                     class="form-input" 
                                     placeholder="Enter your email"
+                                    data-i18n-placeholder="auth.login.emailPlaceholder"
                                     required
                                     autocomplete="email"
                                 >
@@ -60,10 +61,24 @@
                         </div>
                         
                         <div class="form-group">
-                            <label for="password" class="form-label">Password</label>
+                            <label for="password" class="form-label" data-i18n="auth.login.passwordLabel">Password</label>
                             <div class="password-wrapper">
-                                <input type="password" id="password" name="password" required class="form-input" placeholder="Enter your password">
-                                <button type="button" id="password-toggle" class="password-toggle" aria-label="Toggle password visibility">
+                                <input
+                                    type="password"
+                                    id="password"
+                                    name="password"
+                                    required
+                                    class="form-input"
+                                    placeholder="Enter your password"
+                                    data-i18n-placeholder="auth.login.passwordPlaceholder"
+                                >
+                                <button
+                                    type="button"
+                                    id="password-toggle"
+                                    class="password-toggle"
+                                    aria-label="Toggle password visibility"
+                                    data-i18n-aria-label="common.password.toggleVisibility"
+                                >
                                     <svg class="password-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <path class="eye-open" d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                                         <circle class="eye-open" cx="12" cy="12" r="3"></circle>
@@ -77,12 +92,12 @@
                         </div>
                         
                         <div class="form-options">
-                            <a href="#" class="forgot-password">Forgot password?</a>
+                            <a href="#" class="forgot-password" data-i18n="auth.login.forgotPassword">Forgot password?</a>
                         </div>
                         
                         <div class="form-group">
                             <button type="submit" id="login-button" class="auth-button">
-                                <span class="button-text">Sign In</span>
+                                <span class="button-text" data-i18n="auth.login.submit">Sign In</span>
                                 <div class="button-spinner" style="display: none;">
                                     <div class="spinner"></div>
                                 </div>
@@ -98,9 +113,8 @@
                     </form>
                     
                     <div class="auth-footer">
-                        <p class="auth-footer-text">
-                            Don't have an account? 
-                            <a href="/register.html" class="auth-link">Create account</a>
+                        <p class="auth-footer-text" data-i18n-html="auth.login.switchText">
+                            Don't have an account? <a href="/register.html" class="auth-link">Create account</a>
                         </p>
                     </div>
                 </div>
@@ -111,8 +125,8 @@
                             
                         </div>
                         <div class="feature-content">
-                            <h3 class="feature-title">Enterprise Security</h3>
-                            <p class="feature-text">Your data is protected with bank-level encryption and security protocols.</p>
+                            <h3 class="feature-title" data-i18n="auth.login.featureSecurityTitle">Enterprise Security</h3>
+                            <p class="feature-text" data-i18n="auth.login.featureSecurityText">Your data is protected with bank-level encryption and security protocols.</p>
                         </div>
                     </div>
                     
@@ -121,8 +135,8 @@
                             
                         </div>
                         <div class="feature-content">
-                            <h3 class="feature-title">Lightning Fast</h3>
-                            <p class="feature-text">Experience instant AI responses with our optimized infrastructure.</p>
+                            <h3 class="feature-title" data-i18n="auth.login.featureSpeedTitle">Lightning Fast</h3>
+                            <p class="feature-text" data-i18n="auth.login.featureSpeedText">Experience instant AI responses with our optimized infrastructure.</p>
                         </div>
                     </div>
                     
@@ -131,8 +145,8 @@
                             
                         </div>
                         <div class="feature-content">
-                            <h3 class="feature-title">24/7 Support</h3>
-                            <p class="feature-text">Get help whenever you need it with our round-the-clock support team.</p>
+                            <h3 class="feature-title" data-i18n="auth.login.featureSupportTitle">24/7 Support</h3>
+                            <p class="feature-text" data-i18n="auth.login.featureSupportText">Get help whenever you need it with our round-the-clock support team.</p>
                         </div>
                     </div>
                 </div>

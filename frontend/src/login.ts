@@ -6,6 +6,9 @@ import { setupPasswordToggle } from './utils/password-toggle';
 import { redirectIfAuthenticated } from './utils/auth';
 import { initNavigation } from './utils/navigation';
 import { apiRequest, saveAuthData, API_ENDPOINTS, PAGES } from './utils/api-client';
+import { initializeAppLanguage, t } from './features/localization';
+
+initializeAppLanguage('titles.login');
 
 // Redirect if user is already logged in - stop execution if redirecting
 redirectIfAuthenticated();
@@ -57,7 +60,7 @@ async function handleLoginFormSubmit(event: Event) {
     if(errorDiv) errorDiv.style.display = 'none';
 
     if (!email || !password) {
-        showError('Please enter both email and password.');
+        showError(t('auth.login.validation.missingCredentials'));
         return;
     }
 
@@ -74,10 +77,10 @@ async function handleLoginFormSubmit(event: Event) {
             console.log('✅ Логин успешен, токен сохранен на год');
             window.location.href = PAGES.DASHBOARD;
         } else {
-            showError(data.message || 'Login failed.');
+            showError(data.message || t('auth.login.validation.failed'));
         }
     } catch (error) {
-        showError('An error occurred. Please try again.');
+        showError(t('auth.login.validation.genericError'));
     }
 }
 

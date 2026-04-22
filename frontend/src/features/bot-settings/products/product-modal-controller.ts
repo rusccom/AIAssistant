@@ -1,4 +1,5 @@
 import { closeLayer, openLayer, setElementVisible } from '../../../shared/ui/dom';
+import { t } from '../../localization';
 import { showError } from '../../../utils/error-handler';
 import { appendVariantRow } from '../renderers/bot-settings-ui';
 import type {
@@ -78,6 +79,11 @@ export class ProductModalController {
         this.resetForm();
     }
 
+    public refreshLanguage(): void {
+        this.updateHeader();
+        this.refreshVariantRows();
+    }
+
     private get modal(): HTMLDivElement | null {
         return document.getElementById('product-modal') as HTMLDivElement | null;
     }
@@ -125,7 +131,7 @@ export class ProductModalController {
             const sku = (document.getElementById('simple-sku') as HTMLInputElement | null)?.value?.trim() || '';
 
             if (price <= 0) {
-                showError('Please enter a valid price');
+                showError(t('botSettings.messages.validPrice'));
                 return null;
             }
 
@@ -134,17 +140,17 @@ export class ProductModalController {
 
         const variantRows = Array.from(this.variantsContainer?.querySelectorAll('.dynamic-variant-row') || []);
         if (variantRows.length === 0) {
-            showError('Please add at least one product variant');
+            showError(t('botSettings.messages.addVariant'));
             return null;
         }
 
         return variantRows.map((row) => {
-            const title = (row.querySelector('input[placeholder*="Variant name"]') as HTMLInputElement | null)?.value?.trim() || '';
-            const sku = (row.querySelector('input[placeholder="SKU"]') as HTMLInputElement | null)?.value?.trim() || '';
-            const price = parseFloat((row.querySelector('input[placeholder*="Price"]') as HTMLInputElement | null)?.value || '0');
+            const title = (row.querySelector('[data-variant-field="title"]') as HTMLInputElement | null)?.value?.trim() || '';
+            const sku = (row.querySelector('[data-variant-field="sku"]') as HTMLInputElement | null)?.value?.trim() || '';
+            const price = parseFloat((row.querySelector('[data-variant-field="price"]') as HTMLInputElement | null)?.value || '0');
 
             if (!title || price <= 0) {
-                throw new Error('Please fill in all required variant fields');
+                throw new Error(t('botSettings.messages.variantFields'));
             }
 
             return { title, price: Math.round(price * 100), sku };
@@ -183,7 +189,7 @@ export class ProductModalController {
         const productDesc = (document.getElementById('product-description') as HTMLTextAreaElement | null)?.value?.trim() || '';
 
         if (!productName) {
-            showError('Please enter a product name');
+            showError(t('botSettings.messages.productName'));
             return;
         }
 
@@ -253,11 +259,35 @@ export class ProductModalController {
         const submitButton = document.getElementById('submit-product-btn');
 
         if (title) {
-            title.textContent = this.mode === 'add' ? 'Add Product' : 'Edit Product';
+            title.textContent = this.mode === 'add'
+                ? t('botSettings.products.addTitle')
+                : t('botSettings.products.editTitle');
         }
 
         if (submitButton) {
-            submitButton.textContent = this.mode === 'add' ? 'Save Product' : 'Update Product';
+            submitButton.textContent = this.mode === 'add'
+                ? t('botSettings.products.saveProduct')
+                : t('botSettings.products.updateProduct');
         }
+    }
+
+    private refreshVariantRows(): void {
+        this.variantsContainer?.querySelectorAll('.dynamic-variant-row').forEach((row) => {
+            const titleInput = row.querySelector('[data-variant-field="title"]') as HTMLInputElement | null;
+            const priceInput = row.querySelector('[data-variant-field="price"]') as HTMLInputElement | null;
+            const deleteButton = row.querySelector('.btn-delete-row') as HTMLButtonElement | null;
+
+            if (titleInput) {
+                titleInput.placeholder = t('botSettings.products.variantNamePlaceholder');
+            }
+
+            if (priceInput) {
+                priceInput.placeholder = t('botSettings.products.simplePrice');
+            }
+
+            if (deleteButton) {
+                deleteButton.setAttribute('aria-label', t('botSettings.products.deleteVariant'));
+            }
+        });
     }
 }

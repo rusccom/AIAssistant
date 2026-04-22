@@ -1,11 +1,12 @@
 import './import-status.css';
 
+import { closeLayer, openLayer } from '../../../shared/ui/dom';
+import { t } from '../../localization';
 import { apiRequest } from '../../../utils/api-client';
 import { API_ENDPOINTS } from '../../../utils/constants';
 import { showError, showSuccess, showWarning } from '../../../utils/error-handler';
-import { closeLayer, openLayer } from '../../../shared/ui/dom';
-import { ImportProduct, parseImportFile, processImportData } from './import-parser';
 import { ImportStatusController } from './import-status';
+import { ImportProduct, parseImportFile, processImportData } from './import-parser';
 
 interface SetupImportModalOptions {
     getSelectedDomain: () => string | null;
@@ -13,28 +14,28 @@ interface SetupImportModalOptions {
 }
 
 interface BulkImportResponse {
-    message?: string;
-    imported?: number;
-    failed?: number;
-    errors?: string[];
     error?: string;
+    errors?: string[];
+    failed?: number;
+    imported?: number;
+    message?: string;
 }
 
 type ImportElements = {
-    trigger: HTMLButtonElement;
-    modal: HTMLDivElement;
-    form: HTMLFormElement;
-    fileInput: HTMLInputElement;
-    groupCheckbox: HTMLInputElement;
-    submitBtn: HTMLButtonElement;
-    closeBtn: HTMLButtonElement;
     cancelBtn: HTMLButtonElement;
+    closeBtn: HTMLButtonElement;
+    fileInput: HTMLInputElement;
+    form: HTMLFormElement;
+    groupCheckbox: HTMLInputElement;
+    modal: HTMLDivElement;
+    submitBtn: HTMLButtonElement;
+    trigger: HTMLButtonElement;
 };
 
 type ImportRequestError = Error & { details?: string[] };
 type ImportContext = {
-    file: File;
     domain: string;
+    file: File;
     groupVariants: boolean;
 };
 
@@ -51,10 +52,10 @@ export function setupImportModal(options: SetupImportModalOptions): void {
     elements.trigger.addEventListener('click', () => openModal(elements, status));
     elements.closeBtn.addEventListener('click', closeModal);
     elements.cancelBtn.addEventListener('click', closeModal);
-    elements.form.addEventListener('submit', event => {
+    elements.form.addEventListener('submit', (event) => {
         void submitImport(event, elements, status, options, closeModal);
     });
-    elements.modal.addEventListener('click', event => {
+    elements.modal.addEventListener('click', (event) => {
         if (event.target === elements.modal) {
             closeModal();
         }
@@ -130,12 +131,12 @@ function getImportContext(
     const domain = options.getSelectedDomain();
 
     if (!file) {
-        showError('Please select a file.');
+        showError(t('botSettings.import.selectFile'));
         return null;
     }
 
     if (!domain) {
-        showError('Please select a domain first');
+        showError(t('botSettings.messages.selectDomainFirst'));
         return null;
     }
 
@@ -162,23 +163,31 @@ async function prepareProducts(
     groupVariants: boolean,
     status: ImportStatusController
 ): Promise<ImportProduct[]> {
-    status.start('reading', `Reading "${file.name}"`);
+    status.start('reading', t('botSettings.import.readingFile', { fileName: file.name }));
 
     const rawData = await parseImportFile(file);
 
     if (rawData.length === 0) {
-        throw new Error('No data found in file.');
+        throw new Error(t('botSettings.import.noData'));
     }
 
-    status.update('processing', 'Preparing products for import', `${rawData.length} rows found`);
+    status.update(
+        'processing',
+        t('botSettings.import.preparingProducts'),
+        t('botSettings.import.rowsFound', { count: rawData.length })
+    );
 
     const products = processImportData(rawData, groupVariants);
 
     if (products.length === 0) {
-        throw new Error('No valid products found in file.');
+        throw new Error(t('botSettings.import.noValidProducts'));
     }
 
-    status.update('uploading', 'Uploading products to the server', buildUploadMeta(rawData.length, products.length, groupVariants));
+    status.update(
+        'uploading',
+        t('botSettings.import.uploadingProducts'),
+        buildUploadMeta(rawData.length, products.length, groupVariants)
+    );
     return products;
 }
 
@@ -196,7 +205,7 @@ async function sendImportRequest(products: ImportProduct[], domain: string): Pro
 }
 
 function createImportRequestError(data: BulkImportResponse): ImportRequestError {
-    const message = data.error || data.message || 'Failed to import products';
+    const message = data.error || data.message || t('common.messages.serverError');
     const error = new Error(message) as ImportRequestError;
     error.details = Array.isArray(data.errors) ? data.errors : [];
     return error;
@@ -204,14 +213,15 @@ function createImportRequestError(data: BulkImportResponse): ImportRequestError 
 
 function buildUploadMeta(rawRows: number, products: number, groupVariants: boolean): string {
     return groupVariants
-        ? `${rawRows} rows grouped into ${products} products`
-        : `${products} products prepared from ${rawRows} rows`;
+        ? t('botSettings.import.groupedMeta', { rows: rawRows, products })
+        : t('botSettings.import.ungroupedMeta', { rows: rawRows, products });
 }
 
 function createResultSummary(result: BulkImportResponse): string {
-    const imported = result.imported ?? 0;
-    const failed = result.failed ?? 0;
-    return `Imported: ${imported} | Errors: ${failed}`;
+    return t('botSettings.import.summary', {
+        failed: result.failed ?? 0,
+        imported: result.imported ?? 0
+    });
 }
 
 async function refreshProducts(
@@ -219,7 +229,7 @@ async function refreshProducts(
     refresh: SetupImportModalOptions['refreshProducts'],
     result: BulkImportResponse
 ): Promise<boolean> {
-    status.update('refreshing', 'Refreshing the price list', createResultSummary(result));
+    status.update('refreshing', t('botSettings.import.refreshingTable'), createResultSummary(result));
 
     try {
         await refresh();
@@ -241,19 +251,19 @@ function finishImport(
 }
 
 function notifyImportResult(result: BulkImportResponse, refreshFailed: boolean): void {
-    const message = result.message || createResultSummary(result);
+    const summary = createResultSummary(result);
 
     if (refreshFailed) {
-        showWarning(`${message}\nProducts were imported, but the table did not refresh automatically.`);
+        showWarning(`${summary}\n${t('botSettings.import.refreshWarning')}`);
         return;
     }
 
     if ((result.failed ?? 0) > 0) {
-        showWarning(message);
+        showWarning(summary);
         return;
     }
 
-    showSuccess(message);
+    showSuccess(summary);
 }
 
 function scheduleClose(closeModal: () => void, failed: number): void {
@@ -263,27 +273,30 @@ function scheduleClose(closeModal: () => void, failed: number): void {
 
 function buildCompletionMessage(result: BulkImportResponse, refreshFailed: boolean): string {
     if (refreshFailed) {
-        return 'Import completed. Refresh the table manually if needed';
+        return t('botSettings.import.refreshPending');
     }
 
-    return result.failed ? 'Import completed with warnings' : 'Import completed successfully';
+    return result.failed ? t('botSettings.import.completedWithWarnings') : t('botSettings.import.completed');
 }
 
 function buildCompletionSummary(result: BulkImportResponse, refreshFailed: boolean): string {
     const summary = createResultSummary(result);
-    return refreshFailed ? `${summary} | Table refresh pending` : summary;
+
+    return refreshFailed
+        ? t('botSettings.import.refreshPendingSummary', { summary })
+        : summary;
 }
 
 function handleImportError(error: unknown, status: ImportStatusController): void {
     const message = getErrorMessage(error);
     const details = getErrorDetails(error);
 
-    status.finishError(message, details[0] || 'Review the file and try again');
+    status.finishError(message, details[0] || t('botSettings.import.errorFallback'));
     showError(formatErrorMessage(message, details));
 }
 
 function getErrorMessage(error: unknown): string {
-    return error instanceof Error ? error.message : 'Failed to import products';
+    return error instanceof Error ? error.message : t('common.messages.serverError');
 }
 
 function getErrorDetails(error: unknown): string[] {
@@ -299,7 +312,10 @@ function formatErrorMessage(message: string, details: string[]): string {
         return message;
     }
 
-    const suffix = details.length > extra.length ? `\n... and ${details.length - extra.length} more errors` : '';
+    const suffix = details.length > extra.length
+        ? `\n${t('botSettings.import.moreErrors', { count: details.length - extra.length })}`
+        : '';
+
     return `${message}\n${extra.join('\n')}${suffix}`;
 }
 
@@ -309,5 +325,5 @@ function setBusyState(elements: ImportElements, busy: boolean): void {
     elements.cancelBtn.disabled = busy;
     elements.fileInput.disabled = busy;
     elements.groupCheckbox.disabled = busy;
-    elements.submitBtn.textContent = busy ? 'Importing...' : 'Import';
+    elements.submitBtn.textContent = busy ? t('botSettings.import.inProgress') : t('common.buttons.import');
 }

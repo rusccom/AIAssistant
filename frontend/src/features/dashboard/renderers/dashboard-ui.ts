@@ -4,6 +4,7 @@ import {
     renderEmptyStateMarkup,
     renderStatusBadgeMarkup
 } from '../../../shared/ui/primitives';
+import { t } from '../../localization';
 
 export interface SessionCardModel {
     createdDate: string;
@@ -17,8 +18,8 @@ export interface SessionCardModel {
 
 export function renderDashboardErrorState(): string {
     return renderEmptyStateMarkup({
-        title: 'Unable to load sessions',
-        description: 'Please check your connection and try refreshing the page.'
+        title: t('dashboard.error.title'),
+        description: t('dashboard.error.description')
     });
 }
 
@@ -28,15 +29,15 @@ export function renderDashboardLoadingSkeleton(count = 3): string {
 
 export function renderDashboardNoResultsState(): string {
     return renderEmptyStateMarkup({
-        title: 'No matching sessions',
-        description: 'Try adjusting your search criteria or clear the search.'
+        title: t('dashboard.noResults.title'),
+        description: t('dashboard.noResults.description')
     });
 }
 
 export function renderDashboardEmptyState(): string {
     return renderEmptyStateMarkup({
-        title: 'No sessions found',
-        description: 'Start your first AI conversation to begin tracking sessions.'
+        title: t('dashboard.empty.title'),
+        description: t('dashboard.empty.description')
     });
 }
 
@@ -48,28 +49,28 @@ function renderSessionCard(model: SessionCardModel): string {
     return `
         <article
             class="session-card"
-            data-details-href="${escapeHtml(model.detailsHref)}"
-            data-session-id="${escapeHtml(model.id)}"
+                data-details-href="${escapeHtml(model.detailsHref)}"
+                data-session-id="${escapeHtml(model.id)}"
         >
             <div class="session-card-header">
-                <h3 class="session-id">Session #${escapeHtml(model.id)}</h3>
+                <h3 class="session-id">${escapeHtml(t('dashboard.session.id', { id: model.id }))}</h3>
                 ${renderStatusBadgeMarkup({
-                    label: model.isActive ? 'Active' : 'Inactive',
+                    label: model.isActive ? t('dashboard.session.active') : t('dashboard.session.inactive'),
                     tone: model.isActive ? 'success' : 'neutral'
                 })}
             </div>
             <div class="session-details">
-                ${renderSessionDetail('Created', model.createdDate)}
-                ${renderSessionDetail('Time', model.createdTime)}
-                ${renderSessionDetail('Messages', String(model.messages))}
-                ${renderSessionDetail('Status', model.status)}
+                ${renderSessionDetail(t('dashboard.session.created'), model.createdDate)}
+                ${renderSessionDetail(t('dashboard.session.time'), model.createdTime)}
+                ${renderSessionDetail(t('dashboard.session.messages'), String(model.messages))}
+                ${renderSessionDetail(t('dashboard.session.status'), model.status)}
             </div>
             <div class="session-actions">
                 <a
                     href="${escapeHtml(model.detailsHref)}"
                     class="btn btn-primary session-details-link"
                 >
-                    View Details
+                    ${escapeHtml(t('dashboard.session.viewDetails'))}
                 </a>
                 ${renderButtonMarkup({
                     attrs: {
@@ -77,7 +78,7 @@ function renderSessionCard(model: SessionCardModel): string {
                         type: 'button'
                     },
                     extraClasses: ['session-download-btn'],
-                    label: 'Download',
+                    label: t('dashboard.session.download'),
                     variant: 'secondary'
                 })}
             </div>

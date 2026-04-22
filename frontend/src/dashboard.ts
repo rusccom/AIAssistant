@@ -1,13 +1,12 @@
 import './features/dashboard/styles/dashboard-page.css';
 
 import pageContent from './dashboard.content.html';
-import { setupPage } from './layout/app/page-container';
-import { protectPage } from './utils/auth';
-import { initNavigation } from './utils/navigation';
-import { initSimpleFouc } from './utils/simple-fouc';
-import { apiRequest, getAuthToken } from './utils/api-client';
-import { API_ENDPOINTS, ROUTES } from './utils/constants';
-import { showError } from './utils/error-handler';
+import {
+    APP_LANGUAGE_CHANGE_EVENT,
+    getActiveAppLocale,
+    initializeAppLanguage,
+    t
+} from './features/localization';
 import {
     renderDashboardEmptyState,
     renderDashboardErrorState,
@@ -15,35 +14,37 @@ import {
     renderDashboardNoResultsState,
     renderSessionCards
 } from './features/dashboard/renderers/dashboard-ui';
+import { setupPage } from './layout/app/page-container';
+import { apiRequest, getAuthToken } from './utils/api-client';
+import { protectPage } from './utils/auth';
+import { API_ENDPOINTS, ROUTES } from './utils/constants';
+import { showError } from './utils/error-handler';
+import { initNavigation } from './utils/navigation';
+import { initSimpleFouc } from './utils/simple-fouc';
 
 protectPage();
+initializeAppLanguage('titles.dashboard');
 initSimpleFouc();
 initNavigation();
 
-declare global {
-    interface Window {
-        lucide: {
-            createIcons: () => void;
-        };
-    }
-}
-
 interface SessionData {
-    id: string;
     createdAt: string;
-    userMessagesCount: number;
-    status?: string;
+    id: string;
     lastActivity?: string;
+    status?: string;
+    userMessagesCount: number;
 }
 
 interface DashboardStats {
-    totalSessions: number;
-    totalMessages: number;
     activeSessions: number;
+    totalMessages: number;
+    totalSessions: number;
 }
 
 let allSessions: SessionData[] = [];
 let filteredSessions: SessionData[] = [];
+let hasLoadError = false;
+let isLoading = false;
 
 function initializePage(): void {
     setupPage(pageContent);
@@ -55,6 +56,7 @@ function initializePage(): void {
 
     setupSearch();
     setupSessionListInteractions();
+    document.addEventListener(APP_LANGUAGE_CHANGE_EVENT, renderCurrentDashboardState);
     void loadDashboardData();
 }
 
@@ -114,8 +116,8 @@ function setupSessionListInteractions(): void {
 function filterSessions(query: string): void {
     filteredSessions = query
         ? allSessions.filter((session) =>
-            session.id.toLowerCase().includes(query) ||
-            new Date(session.createdAt).toLocaleDateString().includes(query)
+            session.id.toLowerCase().includes(query)
+            || new Date(session.createdAt).toLocaleDateString(getActiveAppLocale()).includes(query)
         )
         : [...allSessions];
 
@@ -177,6 +179,8 @@ async function loadDashboardData(): Promise<void> {
         return;
     }
 
+    isLoading = true;
+    hasLoadError = false;
     showLoadingSkeleton();
 
     try {
@@ -184,11 +188,12 @@ async function loadDashboardData(): Promise<void> {
 
         allSessions = sessions || [];
         filteredSessions = [...allSessions];
+        isLoading = false;
 
         updateStats({
-            totalSessions: allSessions.length,
+            activeSessions: allSessions.filter((session) => Boolean(session.id)).length,
             totalMessages: allSessions.reduce((sum, session) => sum + (session.userMessagesCount || 0), 0),
-            activeSessions: allSessions.filter((session) => Boolean(session.id)).length
+            totalSessions: allSessions.length
         });
 
         if (allSessions.length === 0) {
@@ -199,12 +204,37 @@ async function loadDashboardData(): Promise<void> {
         renderSessions(allSessions);
     } catch (error) {
         console.error('Failed to load dashboard data:', error);
+        isLoading = false;
+        hasLoadError = true;
 
         const sessionList = document.getElementById('session-list');
         if (sessionList) {
             sessionList.innerHTML = renderDashboardErrorState();
         }
     }
+}
+
+function renderCurrentDashboardState(): void {
+    if (isLoading) {
+        showLoadingSkeleton();
+        return;
+    }
+
+    if (hasLoadError) {
+        const sessionList = document.getElementById('session-list');
+        if (sessionList) {
+            sessionList.innerHTML = renderDashboardErrorState();
+        }
+        return;
+    }
+
+    if (allSessions.length === 0) {
+        showEmptyState();
+        return;
+    }
+
+    const searchInput = document.getElementById('session-search') as HTMLInputElement | null;
+    filterSessions(searchInput?.value.toLowerCase().trim() || '');
 }
 
 function renderSessions(sessions: SessionData[]): void {
@@ -226,13 +256,16 @@ function renderSessions(sessions: SessionData[]): void {
             const daysDiff = (Date.now() - lastActivity.getTime()) / (1000 * 60 * 60 * 24);
 
             return {
-                createdDate: createdAt.toLocaleDateString(),
-                createdTime: createdAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                createdDate: createdAt.toLocaleDateString(getActiveAppLocale()),
+                createdTime: createdAt.toLocaleTimeString(getActiveAppLocale(), {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                }),
                 detailsHref: `/session.html?id=${encodeURIComponent(session.id)}`,
                 id: session.id,
                 isActive: daysDiff <= 7,
                 messages: session.userMessagesCount || 0,
-                status: session.status || 'Completed'
+                status: session.status || t('dashboard.session.defaultStatus')
             };
         })
     );
@@ -257,6 +290,6 @@ async function downloadSession(sessionId: string): Promise<void> {
         window.URL.revokeObjectURL(url);
     } catch (error) {
         console.error('Failed to download session:', error);
-        showError('Failed to download session. Please try again.');
+        showError(t('dashboard.session.downloadError'));
     }
 }

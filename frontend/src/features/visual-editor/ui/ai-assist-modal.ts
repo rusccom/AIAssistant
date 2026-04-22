@@ -1,4 +1,5 @@
 import type { AiAssistModalElements } from '../types/editor-types';
+import { t } from '../../localization';
 
 interface AiAssistModalCallbacks {
     onGenerate: (prompt: string) => Promise<void>;
@@ -44,7 +45,7 @@ export class AiAssistModalController {
     private async handleGenerate(): Promise<void> {
         const prompt = this.elements.promptInput.value.trim();
         if (!prompt) {
-            this.showError('Please enter a description of what this state should do.');
+            this.showError(t('visualEditor.ai.emptyPrompt'));
             return;
         }
 
@@ -55,7 +56,7 @@ export class AiAssistModalController {
             await this.callbacks.onGenerate(prompt);
             this.close();
         } catch (error) {
-            const message = error instanceof Error ? error.message : 'Failed to generate content.';
+            const message = error instanceof Error ? error.message : t('visualEditor.ai.failed');
             this.showError(message);
             this.setBusy(false);
         }
@@ -69,6 +70,8 @@ export class AiAssistModalController {
 
     private setBusy(busy: boolean): void {
         this.elements.generateButton.disabled = busy;
-        this.elements.generateButton.textContent = busy ? 'Generating...' : 'Generate';
+        this.elements.generateButton.textContent = busy
+            ? t('visualEditor.ai.generating')
+            : t('common.buttons.generate');
     }
 }

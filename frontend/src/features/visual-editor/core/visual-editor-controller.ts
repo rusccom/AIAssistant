@@ -1,5 +1,6 @@
 import { ROUTES } from '../../../utils/constants';
 import { showError } from '../../../utils/error-handler';
+import { t } from '../../localization';
 import { StateBlock } from '../blocks/state-block';
 import { EditorCanvas } from '../canvas/editor-canvas';
 import {
@@ -19,11 +20,25 @@ import {
     canUseEditorStateId,
     collectRegularStateData,
     destroyStateBlocks,
-    setBlocksDescriptionVisible,
+    setBlocksDescriptionVisible
 } from './visual-editor-state-helpers';
-import { buildStateData, getNextStateCounter, normalizeGeneratedState, updateHeaderState } from './visual-editor-support';
+import {
+    buildStateData,
+    getNextStateCounter,
+    normalizeGeneratedState,
+    updateHeaderState
+} from './visual-editor-support';
 import { getVisibleViewport } from '../utils/state-position';
-import type { Connection, ConnectableBlock, EditorElements, EditStateFormValue, ProviderKind, StateData, SpecialStateId } from '../types/editor-types';
+import type {
+    Connection,
+    ConnectableBlock,
+    EditorElements,
+    EditStateFormValue,
+    ProviderKind,
+    StateData,
+    SpecialStateId
+} from '../types/editor-types';
+
 export class VisualEditorController {
     private readonly canvas: EditorCanvas;
     private readonly connectionFlow: VisualEditorConnectionCoordinator;
@@ -37,6 +52,7 @@ export class VisualEditorController {
     private selectedDomain: string | null = null;
     private selectedProvider: ProviderKind = 'openai';
     private stateCounter = 1;
+
     public constructor(private readonly elements: EditorElements) {
         let connectionFlow: VisualEditorConnectionCoordinator | undefined;
 
@@ -44,9 +60,16 @@ export class VisualEditorController {
             onContextMenu: (event, stateId) => this.showContextMenu(event, stateId),
             onViewportChange: () => connectionFlow?.redraw()
         });
-        this.contextMenu = new ContextMenuController(elements.contextMenu, { onAction: (action, stateId) => this.handleContextAction(action, stateId) });
-        this.editModal = new EditStateModalController(elements.editModal, { onOpenAiAssist: () => this.aiAssistModal.open(), onSave: (value) => this.saveEditedState(value) });
-        this.aiAssistModal = new AiAssistModalController(elements.aiAssistModal, { onGenerate: (prompt) => this.generateStateByPrompt(prompt) });
+        this.contextMenu = new ContextMenuController(elements.contextMenu, {
+            onAction: (action, stateId) => this.handleContextAction(action, stateId)
+        });
+        this.editModal = new EditStateModalController(elements.editModal, {
+            onOpenAiAssist: () => this.aiAssistModal.open(),
+            onSave: (value) => this.saveEditedState(value)
+        });
+        this.aiAssistModal = new AiAssistModalController(elements.aiAssistModal, {
+            onGenerate: (prompt) => this.generateStateByPrompt(prompt)
+        });
         this.propertiesPanel = new PropertiesPanelController(elements.propertiesPanel, {
             onDeleteConnection: (from, to) => this.connectionFlow.deleteConnection(from, to),
             onEditState: (stateId) => this.openStateEditor(stateId),
@@ -56,7 +79,9 @@ export class VisualEditorController {
         this.selection = new VisualEditorSelectionCoordinator(this.propertiesPanel);
         connectionFlow = new VisualEditorConnectionCoordinator({
             canvas: this.canvas,
-            confirmDeleteConnection: (from, to) => window.confirm(`Delete connection from "${from}" to "${to}"?`),
+            confirmDeleteConnection: (from, to) => window.confirm(
+                t('visualEditor.messages.deleteConnection', { from, to })
+            ),
             onConnectionsChanged: () => {
                 if (!connectionFlow) {
                     return;
@@ -64,17 +89,23 @@ export class VisualEditorController {
 
                 this.selection.refreshPropertiesPanel(this.states, connectionFlow.getAll());
             },
-            onInvalidConnection: () => showError('Cannot create this connection'),
+            onInvalidConnection: () => showError(t('visualEditor.messages.invalidConnection')),
             resolveBlock: (stateId) => this.resolveBlock(stateId),
             states: this.states
         });
         this.connectionFlow = connectionFlow;
     }
+
     public async initialize(): Promise<void> {
         this.bindPageEvents();
         this.canvas.renderSpecialBlocks();
         this.refreshHeader();
         await this.loadInitialDomain();
+    }
+
+    public refreshLanguage(): void {
+        this.refreshHeader();
+        this.selection.refreshPropertiesPanel(this.states, this.connectionFlow.getAll());
     }
 
     public refreshTheme(): void {
@@ -100,6 +131,7 @@ export class VisualEditorController {
         block.refreshTheme();
         this.canvas.stage.draw();
     }
+
     private bindPageEvents(): void {
         bindVisualEditorPageEvents(this.elements, {
             onAddState: () => this.addState(),
@@ -112,19 +144,23 @@ export class VisualEditorController {
             onZoomReset: () => this.canvas.resetZoom()
         });
     }
+
     private clearCanvas(): void {
         this.connectionFlow.clear();
         destroyStateBlocks(this.states);
         this.selection.clearAfterCanvasReset();
         this.canvas.renderSpecialBlocks();
     }
+
     private clearSelection(): void {
         this.selection.clearSelection(this.states);
     }
+
     private async generateStateByPrompt(prompt: string): Promise<void> {
         const content = await requestGeneratedState(prompt, collectRegularStateData(this.states));
         this.editModal.applyGeneratedContent(normalizeGeneratedState(this.stateCounter, content));
     }
+
     private async loadInitialDomain(): Promise<void> {
         this.selectedDomain = await initializeVisualEditorDomain();
         this.refreshHeader();
@@ -135,22 +171,38 @@ export class VisualEditorController {
 
         await loadVisualEditorDomainSnapshot(this.selectedDomain, this.getSceneActions());
     }
+
     private handleContextAction(action: string, stateId: string): void {
-        if (action === 'create-connection') this.connectionFlow.startConnectionCreation(stateId);
-        if (action === 'edit-state') this.openStateEditor(stateId);
-        if (action === 'delete-state') this.removeState(stateId);
+        if (action === 'create-connection') {
+            this.connectionFlow.startConnectionCreation(stateId);
+        }
+        if (action === 'edit-state') {
+            this.openStateEditor(stateId);
+        }
+        if (action === 'delete-state') {
+            this.removeState(stateId);
+        }
     }
+
     private handleKeyDown(event: KeyboardEvent): void {
-        if (event.key === 'Escape') this.clearSelection();
+        if (event.key === 'Escape') {
+            this.clearSelection();
+        }
+
         const selectedStateId = this.selection.getSelectedStateId();
-        if (event.key === 'Delete' && selectedStateId) this.removeState(selectedStateId);
+        if (event.key === 'Delete' && selectedStateId) {
+            this.removeState(selectedStateId);
+        }
     }
+
     private navigateToSettings(): void {
         const target = this.selectedDomain
             ? `${ROUTES.BOT_SETTINGS}?domain=${encodeURIComponent(this.selectedDomain)}`
             : ROUTES.BOT_SETTINGS;
+
         window.location.href = target;
     }
+
     private openStateEditor(stateId: string): void {
         this.selection.openStateEditor({
             openEditor: (state, isGeminiProvider) => this.editModal.open(state, isGeminiProvider),
@@ -159,6 +211,7 @@ export class VisualEditorController {
             states: this.states
         });
     }
+
     private refreshHeader(): void {
         updateHeaderState(
             this.elements.header.title,
@@ -167,15 +220,26 @@ export class VisualEditorController {
             this.selectedDomain
         );
     }
+
     private removeState(stateId: string): void {
         const block = this.states.get(stateId);
-        if (!block) return;
+        if (!block) {
+            return;
+        }
+
         this.connectionFlow.removeAllForState(stateId);
         block.destroy();
         this.states.delete(stateId);
         this.selection.handleStateRemoval(stateId, this.states, this.connectionFlow.getAll());
     }
-    private resolveBlock(stateId: string): ConnectableBlock | undefined { return this.states.get(stateId) || (stateId === 'start' || stateId === 'end' ? this.canvas.getSpecialBlock(stateId) : undefined); }
+
+    private resolveBlock(stateId: string): ConnectableBlock | undefined {
+        return this.states.get(stateId)
+            || (stateId === 'start' || stateId === 'end'
+                ? this.canvas.getSpecialBlock(stateId)
+                : undefined);
+    }
+
     private async saveStates(): Promise<void> {
         await saveVisualEditorSnapshot(
             this.selectedDomain,
@@ -184,32 +248,49 @@ export class VisualEditorController {
             this.connectionFlow.getAll()
         );
     }
+
     private saveEditedState(value: EditStateFormValue): void {
         const current = this.selection.getSelectedState(this.states);
-        if (!current) return;
-        if (!value.id || !canUseEditorStateId(this.states, value.id, current.id)) return void showError('State ID must be unique.');
+        if (!current) {
+            return;
+        }
+
+        if (!value.id || !canUseEditorStateId(this.states, value.id, current.id)) {
+            showError(t('visualEditor.messages.uniqueStateId'));
+            return;
+        }
+
         const previousId = current.id;
         current.updateData({ ...value });
+
         if (previousId !== value.id) {
             this.states.delete(previousId);
             this.states.set(value.id, current);
             this.connectionFlow.updateStateId(previousId, value.id);
             this.selection.updateSelectedStateId(value.id);
         }
+
         this.editModal.close();
         this.selection.refreshPropertiesPanel(this.states, this.connectionFlow.getAll());
     }
+
     private selectState(stateId: string): void {
         this.selection.selectState(stateId, this.states, this.connectionFlow.getAll());
     }
+
     private setDragMode(enabled: boolean): void {
         const hideDescriptions = enabled && this.states.size > 15;
         setBlocksDescriptionVisible(this.states, !hideDescriptions);
     }
+
     private setProvider(provider: ProviderKind): void {
         this.selectedProvider = provider;
     }
-    private showContextMenu(event: MouseEvent, stateId: string | SpecialStateId): void { this.contextMenu.show(event, stateId); }
+
+    private showContextMenu(event: MouseEvent, stateId: string | SpecialStateId): void {
+        this.contextMenu.show(event, stateId);
+    }
+
     private getSceneActions() {
         return {
             addState: (state: StateData) => this.addState(state),

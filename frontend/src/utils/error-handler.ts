@@ -1,5 +1,6 @@
 import { showToast } from '../components';
-import { CSS_CLASSES, MESSAGES, SELECTORS } from './constants';
+import { t } from '../features/localization';
+import { CSS_CLASSES, SELECTORS } from './constants';
 
 export type NotificationType = 'error' | 'success' | 'warning' | 'info';
 
@@ -47,16 +48,16 @@ export function handleApiError(error: any, context?: string): void {
     console.error(`API Error${context ? ` in ${context}` : ''}:`, error);
 
     if (error.message?.includes('Unauthorized')) {
-        showError(MESSAGES.ERRORS.UNAUTHORIZED);
+        showError(t('common.messages.unauthorized'));
         return;
     }
 
     if (error.message?.includes('Network')) {
-        showError(MESSAGES.ERRORS.NETWORK_ERROR);
+        showError(t('common.messages.networkError'));
         return;
     }
 
-    showError(MESSAGES.ERRORS.SERVER_ERROR);
+    showError(t('common.messages.serverError'));
 }
 
 export function handleValidationError(field: string, message?: string): void {
@@ -66,7 +67,7 @@ export function handleValidationError(field: string, message?: string): void {
         fieldElement.classList.add(CSS_CLASSES.ERROR);
     }
 
-    showError(message || MESSAGES.VALIDATION.REQUIRED_FIELDS);
+    showError(message || t('common.messages.requiredFields'));
 }
 
 function findNotificationContainer(type: NotificationType): HTMLElement | null {

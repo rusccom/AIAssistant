@@ -6,6 +6,7 @@ import type {
     StateData,
     VisibleViewport
 } from '../types/editor-types';
+import { t } from '../../localization';
 import { getConnectionsFromBotStates, getRegularStates } from '../services/editor-serializer';
 import { getNextStatePosition } from '../utils/state-position';
 
@@ -25,7 +26,7 @@ export function buildStateData(
 ): StateData {
     return {
         id: patch.id || `state-${stateCounter}`,
-        description: patch.description || 'New State',
+        description: patch.description || t('visualEditor.state.new'),
         instructions: patch.instructions || [],
         examples: patch.examples || [],
         reasoningMode: patch.reasoningMode || 'inherit',
@@ -70,10 +71,10 @@ export function updateHeaderState(
     saveButton: HTMLButtonElement,
     selectedDomain: string | null
 ): void {
-    title.textContent = 'Visual State Editor';
+    title.textContent = t('visualEditor.header.title');
     domainBadge.textContent = selectedDomain || '';
     domainBadge.hidden = !selectedDomain;
     saveButton.title = selectedDomain
-        ? 'Save states to database for selected domain'
-        : 'Download states as JSON file';
+        ? t('visualEditor.header.saveWithDomain')
+        : t('visualEditor.header.saveWithoutDomain');
 }

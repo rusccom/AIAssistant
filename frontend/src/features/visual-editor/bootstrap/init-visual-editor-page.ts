@@ -7,6 +7,11 @@ import {
     initializeClientTheme,
     mountClientThemeControls
 } from '../../client-theme/theme-controller';
+import {
+    APP_LANGUAGE_CHANGE_EVENT,
+    initializeAppLanguage,
+    t
+} from '../../localization';
 import { getEditorElements } from '../dom/editor-elements';
 import { VisualEditorController } from '../core/visual-editor-controller';
 
@@ -16,7 +21,7 @@ function redirectIfTokenMissing(): boolean {
         return false;
     }
 
-    showError('Please log in to access the visual editor');
+    showError(t('visualEditor.messages.loginRequired'));
     window.location.href = ROUTES.LOGIN;
     return true;
 }
@@ -27,6 +32,7 @@ function exposeController(controller: VisualEditorController): void {
 }
 
 export async function initVisualEditorPage(): Promise<void> {
+    initializeAppLanguage('titles.visualEditor');
     initializeClientTheme();
     initSimpleFouc();
     initNavigation();
@@ -41,6 +47,7 @@ export async function initVisualEditorPage(): Promise<void> {
         await controller.initialize();
         mountClientThemeControls();
         document.addEventListener(CLIENT_THEME_CHANGE_EVENT, () => controller.refreshTheme());
+        document.addEventListener(APP_LANGUAGE_CHANGE_EVENT, () => controller.refreshLanguage());
     } catch (error) {
         console.error('Failed to initialize visual editor', error);
     }

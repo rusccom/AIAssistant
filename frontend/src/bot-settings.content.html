@@ -1,12 +1,24 @@
 <header class="dashboard-header">
-    <h1>Bot Settings</h1>
-    <p>Configure the behavior and appearance of your AI assistant.</p>
+    <h1 data-i18n="botSettings.header.title">Bot Settings</h1>
+    <p data-i18n="botSettings.header.subtitle">Configure the behavior and appearance of your AI assistant.</p>
 </header>
 
 <div class="content-section">
+    <div class="form-subsection">
+        <h3 class="subsection-title" data-i18n="botSettings.language.title">Interface Language</h3>
+        <p class="subsection-description" data-i18n="botSettings.language.description">Choose the language used across the client interface.</p>
+        <div class="form-group">
+            <label for="app-language-select" class="label" data-i18n="botSettings.language.label">Client Language</label>
+            <select id="app-language-select" class="select" data-app-language-select></select>
+            <p class="form-help" data-i18n="common.language.help">Changes apply immediately and are saved for the next visit.</p>
+        </div>
+    </div>
+</div>
+
+<div class="content-section">
     <div class="section-header">
-        <h2 class="section-title">Manage Domains</h2>
-        <button id="add-domain-btn" class="btn btn-primary">Add Domain</button>
+        <h2 class="section-title" data-i18n="botSettings.manageDomains.title">Manage Domains</h2>
+        <button id="add-domain-btn" class="btn btn-primary" data-i18n="botSettings.manageDomains.add">Add Domain</button>
     </div>
     <div id="domains-list">
         <!-- Domains will be dynamically inserted here -->
@@ -16,149 +28,183 @@
             <div class="empty-state-icon">
                 
             </div>
-            <h3>No domains added yet</h3>
-            <p>Add a domain to start configuring your bot.</p>
+            <h3 data-i18n="botSettings.manageDomains.emptyTitle">No domains added yet</h3>
+            <p data-i18n="botSettings.manageDomains.emptyDescription">Add a domain to start configuring your bot.</p>
         </div>
     </div>
 </div>
 
 <div class="content-section" id="bot-config-section" hidden>
     <h2 class="section-title">
-        Configuration for: <span id="selected-domain-label" class="selected-domain-label"></span>
+        <span data-i18n="botSettings.configurationFor">Configuration for:</span>
+        <span id="selected-domain-label" class="selected-domain-label"></span>
     </h2>
     <div class="tabs">
-        <button class="tab-link active" data-tab="bot-config">Bot Configuration</button>
-        <button class="tab-link" data-tab="data-config">Data Configuration</button>
+        <button class="tab-link active" data-tab="bot-config" data-i18n="botSettings.tabs.botConfig">Bot Configuration</button>
+        <button class="tab-link" data-tab="data-config" data-i18n="botSettings.tabs.dataConfig">Data Configuration</button>
     </div>
     <div id="bot-config" class="tab-content active">
-    <form id="bot-config-form">
-        <div class="form-subsection">
-            <div class="subsection-header">
-                <div>
-                    <h3 class="subsection-title">Widget Integration</h3>
-                    <p class="subsection-description">Copy the generated embed code for this domain and send it to your client as-is.</p>
+        <form id="bot-config-form">
+            <div class="form-subsection">
+                <div class="subsection-header">
+                    <div>
+                        <h3 class="subsection-title" data-i18n="botSettings.widget.title">Widget Integration</h3>
+                        <p class="subsection-description" data-i18n="botSettings.widget.description">Copy the generated embed code for this domain and send it to your client as-is.</p>
+                    </div>
+                    <div class="header-buttons">
+                        <button type="button" id="copy-widget-code-btn" class="btn btn-primary" data-i18n="botSettings.widget.copy">Copy Embed Code</button>
+                        <button type="button" id="test-widget-btn" class="btn btn-secondary" data-i18n="botSettings.widget.test">Test Widget</button>
+                    </div>
                 </div>
-                <div class="header-buttons">
-                    <button type="button" id="copy-widget-code-btn" class="btn btn-primary">Copy Embed Code</button>
-                    <button type="button" id="test-widget-btn" class="btn btn-secondary">Test Widget</button>
+                <div class="widget-embed-panel">
+                    <label for="widget-embed-code" class="label" data-i18n="botSettings.widget.generatedCode">Generated Embed Code</label>
+                    <textarea
+                        id="widget-embed-code"
+                        class="textarea widget-embed-code"
+                        rows="3"
+                        readonly
+                        placeholder="Select a domain to generate the embed code."
+                        data-i18n-placeholder="botSettings.widget.placeholder"
+                    ></textarea>
+                    <p class="widget-embed-help" data-i18n="botSettings.widget.help">Paste this single script tag into the client website before the closing body tag.</p>
                 </div>
             </div>
-            <div class="widget-embed-panel">
-                <label for="widget-embed-code" class="label">Generated Embed Code</label>
-                <textarea id="widget-embed-code" class="textarea widget-embed-code" rows="3" readonly placeholder="Select a domain to generate the embed code."></textarea>
-                <p class="widget-embed-help">Paste this single script tag into the client website before the closing body tag.</p>
+
+            <div class="form-subsection">
+                <h3 class="subsection-title" data-i18n="botSettings.personality.title">Personality and Tone</h3>
+                <p class="subsection-description" data-i18n="botSettings.personality.description">Define the core character, communication style, and behavior of your AI assistant.</p>
+
+                <div class="form-group">
+                    <label for="identity" class="label" data-i18n="botSettings.personality.identity">Identity</label>
+                    <textarea
+                        id="identity"
+                        class="textarea"
+                        rows="3"
+                        placeholder="Who or what the AI represents (e.g., friendly teacher, formal advisor, helpful assistant). Be detailed and include specific details about their character or backstory."
+                        data-i18n-placeholder="botSettings.personality.identityPlaceholder"
+                    ></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="task" class="label" data-i18n="botSettings.personality.task">Task</label>
+                    <textarea
+                        id="task"
+                        class="textarea"
+                        rows="3"
+                        placeholder='At a high level, what is the agent expected to do? (e.g. "you are an expert at accurately handling user returns")'
+                        data-i18n-placeholder="botSettings.personality.taskPlaceholder"
+                    ></textarea>
+                </div>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="provider" class="label" data-i18n="botSettings.personality.provider">Realtime Provider</label>
+                        <select id="provider" class="select">
+                            <option value="" data-i18n="botSettings.personality.loadingProviders">Loading providers...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="model" class="label" data-i18n="botSettings.personality.model">Reasoning Model</label>
+                        <select id="model" class="select">
+                            <option value="" data-i18n="botSettings.personality.loadingModels">Loading models...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="voice" class="label" data-i18n="botSettings.personality.voice">Voice</label>
+                        <select id="voice" class="select">
+                            <option value="" data-i18n="botSettings.personality.loadingVoices">Loading voices...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="otherDetails" class="label" data-i18n="botSettings.personality.otherDetails">Other Details</label>
+                        <input
+                            type="text"
+                            id="otherDetails"
+                            class="input"
+                            placeholder="Any other information that helps guide the personality or tone of the agent."
+                            data-i18n-placeholder="botSettings.personality.otherDetailsPlaceholder"
+                        >
+                    </div>
+                </div>
             </div>
-        </div>
-
-        <div class="form-subsection">
-            <h3 class="subsection-title">Personality and Tone</h3>
-            <p class="subsection-description">Define the core character, communication style, and behavior of your AI assistant.</p>
-
-        <div class="form-group">
-            <label for="identity" class="label">Identity</label>
-                <textarea id="identity" class="textarea" rows="3" placeholder="Who or what the AI represents (e.g., friendly teacher, formal advisor, helpful assistant). Be detailed and include specific details about their character or backstory."></textarea>
-        </div>
-        <div class="form-group">
-            <label for="task" class="label">Task</label>
-                <textarea id="task" class="textarea" rows="3" placeholder="At a high level, what is the agent expected to do? (e.g. &quot;you are an expert at accurately handling user returns&quot;)"></textarea>
-        </div>
             
-            <div class="form-grid">
-        <div class="form-group">
-            <label for="provider" class="label">Realtime Provider</label>
-            <select id="provider" class="select">
-                <option value="">Loading providers...</option>
-            </select>
-        </div>
-        <div class="form-group">
-            <label for="model" class="label">Reasoning Model</label>
-            <select id="model" class="select">
-                <option value="">Loading models...</option>
-            </select>
-        </div>
-        <div class="form-group">
-            <label for="voice" class="label">Voice</label>
-            <select id="voice" class="select">
-                <option value="">Loading voices...</option>
-            </select>
-        </div>
-        <div class="form-group">
-            <label for="otherDetails" class="label">Other Details</label>
-                    <input type="text" id="otherDetails" class="input" placeholder="Any other information that helps guide the personality or tone of the agent.">
+            <div class="form-subsection">
+                <h3 class="subsection-title" data-i18n="botSettings.instructions.title">Instructions</h3>
+                <p class="subsection-description" data-i18n="botSettings.instructions.description">Provide specific, step-by-step instructions and rules for the AI to follow.</p>
+                <div class="form-group">
+                    <label for="instructions" class="label" data-i18n="botSettings.instructions.label"># Instructions</label>
+                    <textarea
+                        id="instructions"
+                        class="textarea"
+                        rows="15"
+                        placeholder="If a user provides a name or phone number, always repeat it back to the user to confirm you have the right understanding. If the caller corrects any detail, acknowledge the correction and confirm the new spelling or value."
+                        data-i18n-placeholder="botSettings.instructions.placeholder"
+                    ></textarea>
                 </div>
             </div>
-        </div>
-        
-        <div class="form-subsection">
-            <h3 class="subsection-title">Instructions</h3>
-            <p class="subsection-description">Provide specific, step-by-step instructions and rules for the AI to follow.</p>
-        <div class="form-group">
-                <label for="instructions" class="label"># Instructions</label>
-                <textarea id="instructions" class="textarea" rows="15" placeholder="If a user provides a name or phone number, always repeat it back to the user to confrm you have the right understanding. If the caller corrects any detail, acknowledge the correction and confirm the new spelling or value."></textarea>
-            </div>
-        </div>
 
-        <div class="form-subsection">
-            <div class="subsection-header">
-                <h3 class="subsection-title">Conversation States</h3>
-                <div class="subsection-actions">
-                    <a href="/visual-editor.html" class="btn btn-primary" id="open-visual-editor-btn">
-                        Open Visual Editor
-                    </a>
+            <div class="form-subsection">
+                <div class="subsection-header">
+                    <h3 class="subsection-title" data-i18n="botSettings.conversation.title">Conversation States</h3>
+                    <div class="subsection-actions">
+                        <a href="/visual-editor.html" class="btn btn-primary" id="open-visual-editor-btn" data-i18n="botSettings.conversation.openEditor">
+                            Open Visual Editor
+                        </a>
+                    </div>
+                </div>
+                <p class="subsection-description" data-i18n="botSettings.conversation.description">
+                    Manage conversation logic using the visual state editor. Create, edit, and connect conversation states with an intuitive drag-and-drop interface. The visual editor automatically saves changes to the database.
+                </p>
+                <div class="conversation-states-info">
+                    <div class="info-card">
+                        <h4 data-i18n="botSettings.conversation.cardTitle">What you can do in the visual editor:</h4>
+                        <ul>
+                            <li data-i18n="botSettings.conversation.item1">Create new conversation states</li>
+                            <li data-i18n="botSettings.conversation.item2">Edit instructions and examples</li>
+                            <li data-i18n="botSettings.conversation.item3">Create transitions between states</li>
+                            <li data-i18n="botSettings.conversation.item4">Visually organize conversation flow</li>
+                            <li data-i18n="botSettings.conversation.item5">Use AI Assistant to generate content</li>
+                        </ul>
+                    </div>
                 </div>
             </div>
-            <p class="subsection-description">
-                Manage conversation logic using the visual state editor. Create, edit, and connect conversation states with an intuitive drag-and-drop interface. The visual editor automatically saves changes to the database.
-            </p>
-            <div class="conversation-states-info">
-                <div class="info-card">
-                    <h4>What you can do in the visual editor:</h4>
-                    <ul>
-                        <li>Create new conversation states</li>
-                        <li>Edit instructions and examples</li>
-                        <li>Create transitions between states</li>
-                        <li>Visually organize conversation flow</li>
-                        <li>Use AI Assistant to generate content</li>
-                    </ul>
-            </div>
-            </div>
-        </div>
 
-            <button type="submit" class="btn btn-primary">Save Bot Configuration</button>
+            <button type="submit" class="btn btn-primary" data-i18n="botSettings.conversation.saveConfig">Save Bot Configuration</button>
         </form>
     </div>
     <div id="data-config" class="tab-content">
         <div class="form-subsection">
             <div class="subsection-header">
-                <h3 class="subsection-title">Current Price List</h3>
+                <h3 class="subsection-title" data-i18n="botSettings.products.title">Current Price List</h3>
                 <div class="header-buttons">
-                    <button type="button" id="import-btn" class="btn btn-secondary">Import</button>
-                    <button type="button" id="rebuild-embeddings-btn" class="btn btn-secondary">Rebuild Embeddings</button>
-                    <button type="button" id="add-product-btn" class="btn btn-secondary">Add Product</button>
+                    <button type="button" id="import-btn" class="btn btn-secondary" data-i18n="common.buttons.import">Import</button>
+                    <button type="button" id="rebuild-embeddings-btn" class="btn btn-secondary" data-i18n="botSettings.products.rebuildEmbeddings">Rebuild Embeddings</button>
+                    <button type="button" id="add-product-btn" class="btn btn-secondary" data-i18n="botSettings.products.addProduct">Add Product</button>
                 </div>
             </div>
             
-            <!-- Domain indicator -->
             <div id="domain-indicator" class="domain-indicator" hidden>
                 <div class="indicator-content">
                     <svg class="indicator-icon" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd" d="M10 2C5.58172 2 2 5.58172 2 10C2 14.4183 5.58172 18 10 18C14.4183 18 18 14.4183 18 10C18 5.58172 14.4183 2 10 2ZM10 6C10.5523 6 11 6.44772 11 7V10C11 10.5523 10.5523 11 10 11C9.44772 11 9 10.5523 9 10V7C9 6.44772 9.44772 6 10 6ZM10 13C9.44772 13 9 13.4477 9 14C9 14.5523 9.44772 15 10 15C10.5523 15 11 14.5523 11 14C11 13.4477 10.5523 13 10 13Z" clip-rule="evenodd" />
                     </svg>
-                    <span id="domain-indicator-text">Managing products for: <strong id="current-domain-name">No domain selected</strong></span>
+                    <span id="domain-indicator-text">
+                        <span data-i18n="botSettings.products.managingFor">Managing products for:</span>
+                        <strong id="current-domain-name" data-i18n="botSettings.products.noDomainSelected">No domain selected</strong>
+                    </span>
                 </div>
             </div>
             
-            <!-- Search bar -->
             <div class="search-container">
                 <div class="search-input-wrapper">
                     <svg class="search-icon" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
                     </svg>
-                    <input 
-                        type="text" 
-                        id="product-search" 
-                        class="search-input" 
+                    <input
+                        type="text"
+                        id="product-search"
+                        class="search-input"
                         placeholder="Search products by name, description, or SKU..."
+                        data-i18n-placeholder="botSettings.products.searchPlaceholder"
                         autocomplete="off"
                     >
                     <button type="button" id="clear-search-btn" class="clear-search-btn" hidden>
@@ -168,19 +214,19 @@
                     </button>
                 </div>
                 <div id="search-results-info" class="search-results-info" hidden>
-                    <span id="search-results-text">Found 0 results</span>
+                    <span id="search-results-text"></span>
                 </div>
             </div>
             
             <table id="price-list-table" class="price-table">
                 <thead>
                     <tr>
-                        <th>Name</th>
-                        <th>Description</th>
-                        <th>SKU</th>
-                        <th>Price</th>
-                        <th>Currency</th>
-                        <th>Actions</th>
+                        <th data-i18n="botSettings.products.table.name">Name</th>
+                        <th data-i18n="botSettings.products.table.description">Description</th>
+                        <th data-i18n="botSettings.products.table.sku">SKU</th>
+                        <th data-i18n="botSettings.products.table.price">Price</th>
+                        <th data-i18n="botSettings.products.table.currency">Currency</th>
+                        <th data-i18n="botSettings.products.table.actions">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -188,149 +234,136 @@
                 </tbody>
             </table>
             
-            <!-- Pagination controls -->
             <div id="pagination-container" class="pagination-container" hidden>
                 <div class="pagination-info">
-                    <span id="pagination-info-text">Showing 1-50 of 100 products</span>
+                    <span id="pagination-info-text"></span>
                 </div>
                 <div class="pagination-controls">
-                    <button id="prev-page-btn" class="btn btn-secondary pagination-btn" disabled>
+                    <button id="prev-page-btn" class="btn btn-secondary pagination-btn" disabled data-i18n="common.buttons.previous">
                         Previous
                     </button>
                     <div class="pagination-pages" id="pagination-pages">
                         <!-- Page numbers will be inserted here -->
                     </div>
-                    <button id="next-page-btn" class="btn btn-secondary pagination-btn">
+                    <button id="next-page-btn" class="btn btn-secondary pagination-btn" data-i18n="common.buttons.next">
                         Next
                     </button>
                 </div>
             </div>
         </div>
-        
     </div>
 </div>
 
-
-
-<!-- Universal Product Modal -->
 <div id="product-modal" class="modal-overlay" hidden>
     <div class="modal-content">
         <div class="modal-header">
             <h3 class="modal-title" id="product-modal-title">Add Product</h3>
-            <button id="close-product-modal-btn" class="close-btn" aria-label="Close">x</button>
+            <button id="close-product-modal-btn" class="close-btn" aria-label="Close" data-i18n-aria-label="common.buttons.close">x</button>
         </div>
         <form id="product-form" class="modal-body">
             <input type="hidden" id="product-id">
             
             <div class="form-group">
-                <label for="product-name" class="label">Product Name</label>
-                <input type="text" id="product-name" class="input" placeholder="e.g., iPhone 15" required>
+                <label for="product-name" class="label" data-i18n="botSettings.products.productName">Product Name</label>
+                <input type="text" id="product-name" class="input" placeholder="e.g., iPhone 15" data-i18n-placeholder="botSettings.products.productNamePlaceholder" required>
             </div>
             <div class="form-group">
-                <label for="product-description" class="label">Description</label>
-                <textarea id="product-description" class="textarea" rows="2" placeholder="Brief product description"></textarea>
+                <label for="product-description" class="label" data-i18n="botSettings.products.productDescription">Description</label>
+                <textarea id="product-description" class="textarea" rows="2" placeholder="Brief product description" data-i18n-placeholder="botSettings.products.productDescriptionPlaceholder"></textarea>
             </div>
             
             <div class="form-group">
-                <label class="label">Product Type</label>
+                <label class="label" data-i18n="botSettings.products.productType">Product Type</label>
                 <div class="product-type-selector">
                     <label class="radio-option">
                         <input type="radio" name="product-type" value="simple" checked>
-                        <span>Simple product (single price)</span>
+                        <span data-i18n="botSettings.products.simpleType">Simple product (single price)</span>
                     </label>
                     <label class="radio-option">
                         <input type="radio" name="product-type" value="variants">
-                        <span>Product with variants (sizes, colors, etc.)</span>
+                        <span data-i18n="botSettings.products.variantsType">Product with variants (sizes, colors, etc.)</span>
                     </label>
                 </div>
             </div>
 
-            <!-- For simple product -->
             <div id="simple-product-section">
                 <div class="form-group">
-                    <label for="simple-price" class="label">Price ($)</label>
+                    <label for="simple-price" class="label" data-i18n="botSettings.products.simplePrice">Price ($)</label>
                     <input type="number" id="simple-price" class="input" placeholder="29.99" step="0.01" min="0">
                 </div>
                 <div class="form-group">
-                    <label for="simple-sku" class="label">SKU (optional)</label>
+                    <label for="simple-sku" class="label" data-i18n="botSettings.products.simpleSku">SKU (optional)</label>
                     <input type="text" id="simple-sku" class="input" placeholder="MUG-001">
                 </div>
             </div>
 
-            <!-- For product with variants -->
             <div id="variants-section" hidden>
-            <div id="variants-container">
-                    <h4>Product Variants</h4>
-                    <p class="help-text">Add different variants of the product (sizes, colors, configurations)</p>
-                <!-- Dynamic variant fields will be added here -->
+                <div id="variants-container">
+                    <h4 data-i18n="botSettings.products.variantsTitle">Product Variants</h4>
+                    <p class="help-text" data-i18n="botSettings.products.variantsHelp">Add different variants of the product (sizes, colors, configurations)</p>
                 </div>
-                <button type="button" id="add-variant-btn" class="btn btn-secondary">+ Add Variant</button>
+                <button type="button" id="add-variant-btn" class="btn btn-secondary" data-i18n="botSettings.products.addVariant">+ Add Variant</button>
             </div>
 
             <div class="modal-actions">
-                <button type="button" id="cancel-product-btn" class="btn btn-secondary">Cancel</button>
+                <button type="button" id="cancel-product-btn" class="btn btn-secondary" data-i18n="common.buttons.cancel">Cancel</button>
                 <button type="submit" class="btn btn-primary" id="submit-product-btn">Save Product</button>
-            </div>
-    </form>
-    </div>
-</div>
-
-<!-- Conversation states management moved to visual editor only -->
-
-<!-- AI Assist Modal -->
-<div id="ai-assist-modal" class="modal-overlay" hidden>
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3 class="modal-title">AI Assistant</h3>
-            <button id="close-ai-modal-btn" class="close-btn" aria-label="Close">x</button>
-        </div>
-        <div class="modal-body">
-            <div class="form-group">
-                <label for="ai-prompt-input" class="label">What should this state do?</label>
-                <textarea id="ai-prompt-input" class="textarea" rows="4" placeholder="e.g., Greet the user and ask for their name."></textarea>
-            </div>
-            <div id="ai-error-message" class="error-message" hidden></div>
-        </div>
-        <div class="modal-actions">
-            <button type="button" id="cancel-ai-modal-btn" class="btn btn-secondary">Cancel</button>
-            <button type="button" id="generate-content-btn" class="btn btn-primary">Generate</button>
-        </div>
-    </div>
-</div>
-
-<!-- Add Domain Modal -->
-<div id="add-domain-modal" class="modal-overlay" hidden>
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3 class="modal-title">Add a New Domain</h3>
-            <button id="close-modal-btn" class="close-btn" aria-label="Close">x</button>
-        </div>
-        <form id="add-domain-form" class="modal-body">
-            <div class="form-group">
-                <label for="domain-name-input" class="label">Domain Name</label>
-                <input type="text" id="domain-name-input" class="input" placeholder="e.g., example.com" required>
-                <p class="form-help">Enter the domain where you'll be using the AI assistant.</p>
-            </div>
-            <div class="modal-actions">
-                <button type="button" id="cancel-modal-btn" class="btn btn-secondary">Cancel</button>
-                <button type="submit" class="btn btn-primary">Add Domain</button>
             </div>
         </form>
     </div>
 </div>
 
-<!-- Import Price List Modal -->
+<div id="ai-assist-modal" class="modal-overlay" hidden>
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title" data-i18n="botSettings.ai.title">AI Assistant</h3>
+            <button id="close-ai-modal-btn" class="close-btn" aria-label="Close" data-i18n-aria-label="common.buttons.close">x</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label for="ai-prompt-input" class="label" data-i18n="botSettings.ai.label">What should this state do?</label>
+                <textarea id="ai-prompt-input" class="textarea" rows="4" placeholder="e.g., Greet the user and ask for their name." data-i18n-placeholder="botSettings.ai.placeholder"></textarea>
+            </div>
+            <div id="ai-error-message" class="error-message" hidden></div>
+        </div>
+        <div class="modal-actions">
+            <button type="button" id="cancel-ai-modal-btn" class="btn btn-secondary" data-i18n="common.buttons.cancel">Cancel</button>
+            <button type="button" id="generate-content-btn" class="btn btn-primary" data-i18n="common.buttons.generate">Generate</button>
+        </div>
+    </div>
+</div>
+
+<div id="add-domain-modal" class="modal-overlay" hidden>
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title" data-i18n="botSettings.domainModal.title">Add a New Domain</h3>
+            <button id="close-modal-btn" class="close-btn" aria-label="Close" data-i18n-aria-label="common.buttons.close">x</button>
+        </div>
+        <form id="add-domain-form" class="modal-body">
+            <div class="form-group">
+                <label for="domain-name-input" class="label" data-i18n="botSettings.domainModal.label">Domain Name</label>
+                <input type="text" id="domain-name-input" class="input" placeholder="e.g., example.com" data-i18n-placeholder="botSettings.domainModal.placeholder" required>
+                <p class="form-help" data-i18n="botSettings.domainModal.help">Enter the domain where you'll be using the AI assistant.</p>
+            </div>
+            <div class="modal-actions">
+                <button type="button" id="cancel-modal-btn" class="btn btn-secondary" data-i18n="common.buttons.cancel">Cancel</button>
+                <button type="submit" class="btn btn-primary" data-i18n="botSettings.manageDomains.add">Add Domain</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <div id="import-modal" class="modal-overlay" hidden>
     <div class="modal-content">
         <div class="modal-header">
-            <h3 class="modal-title">Import Price List</h3>
-            <button id="close-import-modal-btn" class="close-btn" aria-label="Close">x</button>
+            <h3 class="modal-title" data-i18n="botSettings.import.title">Import Price List</h3>
+            <button id="close-import-modal-btn" class="close-btn" aria-label="Close" data-i18n-aria-label="common.buttons.close">x</button>
         </div>
         <form id="import-form" class="modal-body">
             <div class="form-group">
-                <label for="price-list-file" class="label">Upload Price List File</label>
+                <label for="price-list-file" class="label" data-i18n="botSettings.import.uploadLabel">Upload Price List File</label>
                 <input type="file" id="price-list-file" class="input" accept=".csv,.json" required>
-                <p class="form-help">
+                <p class="form-help" data-i18n-html="botSettings.import.fileHelp">
                     Upload a CSV or JSON file with your product pricing information.<br>
                     <a href="/public/templates/products_import_template.csv" download="products_variants_template.csv" class="template-link template-link--primary">Variants Template</a> |
                     <a href="/public/templates/products_import_separate.csv" download="products_separate_template.csv" class="template-link template-link--success">Separate Products Template</a>
@@ -339,16 +372,16 @@
             <div class="form-group">
                 <label class="checkbox-row">
                     <input type="checkbox" id="group-variants-checkbox" checked>
-                    <span class="label checkbox-row__label">Group by variants</span>
+                    <span class="label checkbox-row__label" data-i18n="botSettings.import.groupLabel">Group by variants</span>
                 </label>
-                <p class="form-help">
+                <p class="form-help" data-i18n-html="botSettings.import.groupHelp">
                     <strong>Checked:</strong> Group rows with same Product Title into variants (iPhone 15 -> 2 variants)<br>
                     <strong>Unchecked:</strong> Create separate product for each row (iPhone 15 128GB + iPhone 15 256GB = 2 products)
                 </p>
             </div>
             <div class="form-group">
-                <label class="label">File Format</label>
-                <p class="form-help">
+                <label class="label" data-i18n="botSettings.import.fileFormatLabel">File Format</label>
+                <p class="form-help" data-i18n-html="botSettings.import.fileFormatHelp">
                     <strong>CSV Format:</strong> Product Title, Product Description, Variant Title, Price, SKU, Status<br>
                     <strong>Auto-detects:</strong> Comma (,) or Semicolon (;) separators<br>
                     <strong>Important:</strong> Save as CSV UTF-8 from Excel<br><br>
@@ -358,14 +391,14 @@
                     iPhone 15;Smartphone Apple;128GB Black;89999;IP15-128-BK;active<br>
                     iPhone 15;Smartphone Apple;256GB Black;104999;IP15-256-BK;active
                     </code>
-                    -> Creates 1 product "iPhone 15" with 2 variants<br><br>
+                    <br>-> Creates 1 product "iPhone 15" with 2 variants<br><br>
                     
                     <strong>Each row = separate product mode:</strong><br>
                     <code class="import-format-code import-format-code--accent">
                     iPhone 15 128GB;Smartphone Apple Black;Default Title;89999;IP15-128-BK;active<br>
                     iPhone 15 256GB;Smartphone Apple Black;Default Title;104999;IP15-256-BK;active
                     </code>
-                    -> Creates 2 separate products<br><br>
+                    <br>-> Creates 2 separate products<br><br>
                     
                     <strong>Price:</strong> In kopecks (89999 = 899.99) or rubles (899.99 auto-converted)<br>
                     <strong>JSON Format:</strong> Array with title, description, variants fields
@@ -375,8 +408,8 @@
                 <div class="import-status__header">
                     <span class="import-status__spinner" aria-hidden="true"></span>
                     <div class="import-status__content">
-                        <p id="import-status-title" class="import-status__title">Preparing import</p>
-                        <p id="import-status-text" class="import-status__text">Select a file to start importing.</p>
+                        <p id="import-status-title" class="import-status__title" data-i18n="botSettings.import.preparingTitle">Preparing import</p>
+                        <p id="import-status-text" class="import-status__text" data-i18n="botSettings.import.preparingText">Select a file to start importing.</p>
                     </div>
                 </div>
                 <p id="import-status-meta" class="import-status__meta"></p>
@@ -385,8 +418,8 @@
                 </div>
             </div>
             <div class="modal-actions">
-                <button type="button" id="cancel-import-btn" class="btn btn-secondary">Cancel</button>
-                <button type="submit" id="submit-import-btn" class="btn btn-primary">Import</button>
+                <button type="button" id="cancel-import-btn" class="btn btn-secondary" data-i18n="common.buttons.cancel">Cancel</button>
+                <button type="submit" id="submit-import-btn" class="btn btn-primary" data-i18n="common.buttons.import">Import</button>
             </div>
         </form>
     </div>

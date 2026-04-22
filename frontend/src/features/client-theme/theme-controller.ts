@@ -3,6 +3,7 @@ import {
     resolveClientThemeId,
     type ClientThemeId
 } from './theme-registry';
+import { APP_LANGUAGE_CHANGE_EVENT, t } from '../localization';
 import { loadStoredClientThemeId, saveClientThemeId } from './theme-storage';
 
 const CLIENT_THEME_ATTRIBUTE = 'data-client-theme';
@@ -49,11 +50,19 @@ function renderThemeOptions(select: HTMLSelectElement): void {
     const options = getClientThemes()
         .map(
             (theme) =>
-                `<option value="${theme.id}">${theme.label}</option>`
+                `<option value="${theme.id}">${getThemeLabel(theme.id, theme.label)}</option>`
         )
         .join('');
 
     select.innerHTML = options;
+}
+
+function getThemeLabel(themeId: ClientThemeId, fallbackLabel: string): string {
+    if (themeId === 'solid-premium') {
+        return t('common.theme.option.solidPremium');
+    }
+
+    return fallbackLabel;
 }
 
 function bindThemeSelect(select: HTMLSelectElement): void {
@@ -85,3 +94,7 @@ function syncThemeSelect(select: HTMLSelectElement, themeId: ClientThemeId): voi
 function syncThemeSelects(root: ParentNode, themeId: ClientThemeId): void {
     getThemeSelects(root).forEach((select) => syncThemeSelect(select, themeId));
 }
+
+document.addEventListener(APP_LANGUAGE_CHANGE_EVENT, () => {
+    mountClientThemeControls();
+});

@@ -3,6 +3,7 @@ import {
     renderButtonMarkup,
     renderTableEmptyStateRow
 } from '../../../shared/ui/primitives';
+import { getActiveAppLocale, t } from '../../localization';
 import type {
     BotSettingsProduct,
     BotSettingsProductVariant as BotSettingsVariant,
@@ -19,12 +20,26 @@ export function appendVariantRow(
     row.className = 'dynamic-variant-row';
     row.innerHTML = `
         <div class="variant-fields-container">
-            <input type="text" placeholder="Variant name (e.g., 128GB Black)" value="${escapeHtml(title)}" required>
-            <input type="text" placeholder="SKU" value="${escapeHtml(sku)}">
-            <input type="number" placeholder="Price ($)" value="${escapeHtml(price)}" step="0.01" min="0" required>
+            <input
+                type="text"
+                data-variant-field="title"
+                placeholder="${escapeHtml(t('botSettings.products.variantNamePlaceholder'))}"
+                value="${escapeHtml(title)}"
+                required
+            >
+            <input type="text" data-variant-field="sku" placeholder="SKU" value="${escapeHtml(sku)}">
+            <input
+                type="number"
+                data-variant-field="price"
+                placeholder="${escapeHtml(t('botSettings.products.simplePrice'))}"
+                value="${escapeHtml(price)}"
+                step="0.01"
+                min="0"
+                required
+            >
             <div></div>
         </div>
-        <button type="button" class="btn-delete-row" aria-label="Delete variant">x</button>
+        <button type="button" class="btn-delete-row" aria-label="${escapeHtml(t('botSettings.products.deleteVariant'))}">x</button>
     `;
     container.appendChild(row);
     return row;
@@ -38,7 +53,7 @@ export function createDomainCardMarkup(domain: BotSettingsDomainCard): string {
             <div class="domain-icon">${escapeHtml(firstLetter)}</div>
             <div class="domain-details">
                 <h3 class="domain-name">${escapeHtml(domain.hostname)}</h3>
-                <p class="domain-status">Click to configure bot settings and copy widget code</p>
+                <p class="domain-status">${escapeHtml(t('botSettings.domain.cardDescription'))}</p>
             </div>
         </div>
     `;
@@ -63,15 +78,15 @@ export function renderProductsEmptyState(selectedDomain: string | null): string 
     if (!selectedDomain) {
         return renderTableEmptyStateRow({
             colspan: 6,
-            title: 'No domain selected',
-            description: 'Please select a domain from Manage Domains to view products.'
+            title: t('botSettings.products.empty.noDomainTitle'),
+            description: t('botSettings.products.empty.noDomainDescription')
         });
     }
 
     return renderTableEmptyStateRow({
         colspan: 6,
-        title: 'No products found',
-        description: 'Add your first product to display in the table.'
+        title: t('botSettings.products.empty.noProductsTitle'),
+        description: t('botSettings.products.empty.noProductsDescription')
     });
 }
 
@@ -81,7 +96,7 @@ export function renderProductTable(products: BotSettingsProduct[]): string {
 
 function renderProductRows(product: BotSettingsProduct): string {
     if (product.variants.length === 0) {
-        return renderSimpleProductRow(product, null, 'No variants');
+        return renderSimpleProductRow(product, null, t('botSettings.products.noVariants'));
     }
 
     if (isSimpleProduct(product)) {
@@ -102,7 +117,10 @@ function renderProductRows(product: BotSettingsProduct): string {
 }
 
 function formatPrice(price: number): string {
-    return `$${(price / 100).toFixed(2)}`;
+    return new Intl.NumberFormat(getActiveAppLocale(), {
+        style: 'currency',
+        currency: 'USD'
+    }).format(price / 100);
 }
 
 function isSimpleProduct(product: BotSettingsProduct): boolean {
@@ -117,14 +135,14 @@ function renderProductActions(productId: number): string {
     const editButton = renderButtonMarkup({
         attrs: { 'data-id': productId, type: 'button' },
         extraClasses: ['btn-edit'],
-        label: 'Edit',
+        label: t('common.buttons.edit'),
         size: 'sm',
         variant: 'secondary'
     });
     const deleteButton = renderButtonMarkup({
         attrs: { 'data-id': productId, type: 'button' },
         extraClasses: ['btn-delete'],
-        label: 'Delete',
+        label: t('common.buttons.delete'),
         size: 'sm',
         variant: 'danger'
     });

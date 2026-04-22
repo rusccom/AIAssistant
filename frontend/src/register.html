@@ -36,24 +36,25 @@
                         <div class="auth-logo">
                             <img src="./logoAi.png" alt="AIAssistant Logo" class="auth-logo-image">
                         </div>
-                        <h1 class="auth-title">Create Your Account</h1>
-                        <p class="auth-subtitle">Join thousands of professionals using AI to enhance their workflow</p>
+                        <h1 class="auth-title" data-i18n="auth.register.title">Create Your Account</h1>
+                        <p class="auth-subtitle" data-i18n="auth.register.subtitle">Join thousands of professionals using AI to enhance their workflow</p>
                     </div>
                     
                     <form class="auth-form" id="register-form">
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="firstName" class="form-label">First Name</label>
+                                <label for="firstName" class="form-label" data-i18n="auth.register.firstNameLabel">First Name</label>
                                 <div class="input-wrapper">
                                     <div class="input-icon">
                                         
                                     </div>
-                                    <input 
-                                        type="text" 
-                                        id="firstName" 
-                                        name="firstName" 
-                                        class="form-input" 
+                                    <input
+                                        type="text"
+                                        id="firstName"
+                                        name="firstName"
+                                        class="form-input"
                                         placeholder="First name"
+                                        data-i18n-placeholder="auth.register.firstNamePlaceholder"
                                         required
                                         autocomplete="given-name"
                                     >
@@ -61,17 +62,18 @@
                             </div>
                             
                             <div class="form-group">
-                                <label for="lastName" class="form-label">Last Name</label>
+                                <label for="lastName" class="form-label" data-i18n="auth.register.lastNameLabel">Last Name</label>
                                 <div class="input-wrapper">
                                     <div class="input-icon">
                                         
                                     </div>
-                                    <input 
-                                        type="text" 
-                                        id="lastName" 
-                                        name="lastName" 
-                                        class="form-input" 
+                                    <input
+                                        type="text"
+                                        id="lastName"
+                                        name="lastName"
+                                        class="form-input"
                                         placeholder="Last name"
+                                        data-i18n-placeholder="auth.register.lastNamePlaceholder"
                                         required
                                         autocomplete="family-name"
                                     >
@@ -80,17 +82,18 @@
                         </div>
                         
                         <div class="form-group">
-                            <label for="email" class="form-label">Email Address</label>
+                            <label for="email" class="form-label" data-i18n="auth.register.emailLabel">Email Address</label>
                             <div class="input-wrapper">
                                 <div class="input-icon">
                                     
                                 </div>
-                                <input 
-                                    type="email" 
-                                    id="email" 
-                                    name="email" 
-                                    class="form-input" 
+                                <input
+                                    type="email"
+                                    id="email"
+                                    name="email"
+                                    class="form-input"
                                     placeholder="Enter your email"
+                                    data-i18n-placeholder="auth.register.emailPlaceholder"
                                     required
                                     autocomplete="email"
                                 >
@@ -98,27 +101,42 @@
                         </div>
                         
                         <div class="form-group">
-                            <label for="company" class="form-label">Company (Optional)</label>
+                            <label for="company" class="form-label" data-i18n="auth.register.companyLabel">Company (Optional)</label>
                             <div class="input-wrapper">
                                 <div class="input-icon">
                                     
                                 </div>
-                                <input 
-                                    type="text" 
-                                    id="company" 
-                                    name="company" 
-                                    class="form-input" 
+                                <input
+                                    type="text"
+                                    id="company"
+                                    name="company"
+                                    class="form-input"
                                     placeholder="Your company name"
+                                    data-i18n-placeholder="auth.register.companyPlaceholder"
                                     autocomplete="organization"
                                 >
                             </div>
                         </div>
                         
                         <div class="form-group">
-                            <label for="password" class="form-label">Password</label>
+                            <label for="password" class="form-label" data-i18n="auth.register.passwordLabel">Password</label>
                             <div class="password-wrapper">
-                                <input type="password" id="password" name="password" required class="form-input" placeholder="Enter your password">
-                                <button type="button" id="password-toggle" class="password-toggle" aria-label="Toggle password visibility">
+                                <input
+                                    type="password"
+                                    id="password"
+                                    name="password"
+                                    required
+                                    class="form-input"
+                                    placeholder="Enter your password"
+                                    data-i18n-placeholder="auth.register.passwordPlaceholder"
+                                >
+                                <button
+                                    type="button"
+                                    id="password-toggle"
+                                    class="password-toggle"
+                                    aria-label="Toggle password visibility"
+                                    data-i18n-aria-label="common.password.toggleVisibility"
+                                >
                                     <svg class="password-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <path class="eye-open" d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                                         <circle class="eye-open" cx="12" cy="12" r="3"></circle>
@@ -134,29 +152,43 @@
                         <div class="password-requirements">
                             <ul class="requirements-list">
                                 <li class="requirement" data-requirement="length">
-                                    <span class="requirement-icon">•</span>
-                                    <span>At least 8 characters</span>
+                                    <span class="requirement-icon">вЂў</span>
+                                    <span data-i18n="auth.register.passwordRequirement.length">At least 8 characters</span>
                                 </li>
                                 <li class="requirement" data-requirement="uppercase">
-                                    <span class="requirement-icon">•</span>
-                                    <span>One uppercase letter</span>
+                                    <span class="requirement-icon">вЂў</span>
+                                    <span data-i18n="auth.register.passwordRequirement.uppercase">One uppercase letter</span>
                                 </li>
                                 <li class="requirement" data-requirement="lowercase">
-                                    <span class="requirement-icon">•</span>
-                                    <span>One lowercase letter</span>
+                                    <span class="requirement-icon">вЂў</span>
+                                    <span data-i18n="auth.register.passwordRequirement.lowercase">One lowercase letter</span>
                                 </li>
                                 <li class="requirement" data-requirement="number">
-                                    <span class="requirement-icon">•</span>
-                                    <span>One number</span>
+                                    <span class="requirement-icon">вЂў</span>
+                                    <span data-i18n="auth.register.passwordRequirement.number">One number</span>
                                 </li>
                             </ul>
                         </div>
                         
                         <div class="form-group">
-                            <label for="confirmPassword" class="form-label">Confirm Password</label>
+                            <label for="confirmPassword" class="form-label" data-i18n="auth.register.confirmPasswordLabel">Confirm Password</label>
                             <div class="password-wrapper">
-                                <input type="password" id="confirmPassword" name="confirmPassword" required class="form-input" placeholder="Confirm your password">
-                                <button type="button" id="confirm-password-toggle" class="password-toggle" aria-label="Toggle password visibility">
+                                <input
+                                    type="password"
+                                    id="confirmPassword"
+                                    name="confirmPassword"
+                                    required
+                                    class="form-input"
+                                    placeholder="Confirm your password"
+                                    data-i18n-placeholder="auth.register.confirmPasswordPlaceholder"
+                                >
+                                <button
+                                    type="button"
+                                    id="confirm-password-toggle"
+                                    class="password-toggle"
+                                    aria-label="Toggle password visibility"
+                                    data-i18n-aria-label="common.password.toggleVisibility"
+                                >
                                     <svg class="password-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <path class="eye-open" d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                                         <circle class="eye-open" cx="12" cy="12" r="3"></circle>
@@ -173,8 +205,8 @@
                             <label class="checkbox-wrapper">
                                 <input type="checkbox" id="terms" name="terms" required>
                                 <span class="checkbox-checkmark"></span>
-                                <span class="checkbox-label">
-                                    I agree to the <a href="#" class="terms-link">Terms of Service</a> 
+                                <span class="checkbox-label" data-i18n-html="auth.register.terms">
+                                    I agree to the <a href="#" class="terms-link">Terms of Service</a>
                                     and <a href="#" class="terms-link">Privacy Policy</a>
                                 </span>
                             </label>
@@ -184,15 +216,13 @@
                             <label class="checkbox-wrapper">
                                 <input type="checkbox" id="newsletter" name="newsletter">
                                 <span class="checkbox-checkmark"></span>
-                                <span class="checkbox-label">
-                                    Subscribe to product updates and news
-                                </span>
+                                <span class="checkbox-label" data-i18n="auth.register.newsletter">Subscribe to product updates and news</span>
                             </label>
                         </div>
                         
                         <div class="form-group">
                             <button type="submit" class="auth-button" id="register-button">
-                                <span class="button-text">Create Account</span>
+                                <span class="button-text" data-i18n="auth.register.submit">Create Account</span>
                                 <div class="button-spinner" style="display: none;">
                                     <div class="spinner"></div>
                                 </div>
@@ -208,9 +238,8 @@
                     </form>
                     
                     <div class="auth-footer">
-                        <p class="auth-footer-text">
-                            Already have an account? 
-                            <a href="/login.html" class="auth-link">Sign in</a>
+                        <p class="auth-footer-text" data-i18n-html="auth.register.switchText">
+                            Already have an account? <a href="/login.html" class="auth-link">Sign in</a>
                         </p>
                     </div>
                 </div>
@@ -221,8 +250,8 @@
                             
                         </div>
                         <div class="feature-content">
-                            <h3 class="feature-title">Join the Tech Revolution</h3>
-                            <p class="feature-text">Join innovative companies using AI to transform their business operations.</p>
+                            <h3 class="feature-title" data-i18n="auth.register.featureRevolutionTitle">Join the Tech Revolution</h3>
+                            <p class="feature-text" data-i18n="auth.register.featureRevolutionText">Join innovative companies using AI to transform their business operations.</p>
                         </div>
                     </div>
                     
@@ -231,8 +260,8 @@
                             
                         </div>
                         <div class="feature-content">
-                            <h3 class="feature-title">Get Started Instantly</h3>
-                            <p class="feature-text">Set up your account in minutes and start using AI right away.</p>
+                            <h3 class="feature-title" data-i18n="auth.register.featureInstantTitle">Get Started Instantly</h3>
+                            <p class="feature-text" data-i18n="auth.register.featureInstantText">Set up your account in minutes and start using AI right away.</p>
                         </div>
                     </div>
                     
@@ -241,8 +270,8 @@
                             
                         </div>
                         <div class="feature-content">
-                            <h3 class="feature-title">Build and Test AI Agent on Your Cases for Free</h3>
-                            <p class="feature-text">Test all system capabilities on real business tasks without limitations.</p>
+                            <h3 class="feature-title" data-i18n="auth.register.featureFreeTitle">Build and Test AI Agent on Your Cases for Free</h3>
+                            <p class="feature-text" data-i18n="auth.register.featureFreeText">Test all system capabilities on real business tasks without limitations.</p>
                         </div>
                     </div>
                 </div>

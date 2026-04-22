@@ -6,6 +6,7 @@ import type {
     Point,
     StateData
 } from '../types/editor-types';
+import { t } from '../../localization';
 import { getImportedGridPosition } from '../utils/state-position';
 
 function buildStatePositions(states: StateData[]): Record<string, Point> {
@@ -78,7 +79,7 @@ export function getRegularStates(records: BotStateRecord[], settings?: Partial<E
 
     return records.map((record, index) => ({
         id: record.id,
-        description: record.description || 'Imported state',
+        description: record.description || t('visualEditor.state.imported'),
         instructions: record.instructions || [],
         examples: record.examples || [],
         reasoningMode: record.reasoningMode || 'inherit',

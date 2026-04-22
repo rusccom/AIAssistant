@@ -1,9 +1,11 @@
 import { Modal } from '../../../components';
+import { setElementVisible } from '../../../shared/ui/dom';
+import { t } from '../../localization';
 import { UI_CONFIG } from '../../../utils/constants';
 import { handleApiError, showError, showSuccess } from '../../../utils/error-handler';
-import { setElementVisible } from '../../../shared/ui/dom';
 import { createPaginationEllipsis, createPaginationItem } from '../renderers/bot-settings-ui';
 import type { BotSettingsProduct, BotSettingsProductDraftVariant } from '../types';
+import { renderProductsTable, updateProductSearchInfo } from './product-section-view';
 import { createPageRange, debounce } from './product-list-utils';
 import { ProductModalController, type ProductModalSubmitPayload } from './product-modal-controller';
 import {
@@ -12,7 +14,6 @@ import {
     fetchProducts,
     updateProduct as updateProductRequest
 } from './product-service';
-import { renderProductsTable, updateProductSearchInfo } from './product-section-view';
 
 interface ProductSectionControllerOptions {
     getSelectedDomain: () => string | null;
@@ -28,7 +29,9 @@ export class ProductSectionController {
         getProducts: () => this.priceListData,
         onSubmit: (payload) => this.handleModalSubmit(payload)
     });
+
     public constructor(private readonly options: ProductSectionControllerOptions) {}
+
     public init(): void {
         this.modalController.init();
         this.bindSearch();
@@ -36,12 +39,22 @@ export class ProductSectionController {
         this.bindTableActions();
         this.bindModalTriggers();
     }
+
     public async handleDomainChange(): Promise<void> {
         await this.loadProducts(1, this.currentSearch);
     }
+
+    public refreshLanguage(): void {
+        this.modalController.refreshLanguage();
+        this.renderPriceList();
+        this.renderPagination();
+        this.updateSearchResultsInfo();
+    }
+
     public async refreshFirstPage(): Promise<void> {
         await this.loadProducts(1, this.currentSearch);
     }
+
     public async loadProducts(page = 1, search = ''): Promise<void> {
         const selectedDomain = this.options.getSelectedDomain();
         if (!selectedDomain) {
@@ -68,11 +81,13 @@ export class ProductSectionController {
             this.hideSearchResultsInfo();
         }
     }
+
     private bindModalTriggers(): void {
         document.getElementById('add-product-btn')?.addEventListener('click', () => {
             void this.modalController.open('add');
         });
     }
+
     private bindPagination(): void {
         (document.getElementById('prev-page-btn') as HTMLButtonElement | null)?.addEventListener('click', () => {
             if (this.currentPage > 1) {
@@ -85,12 +100,15 @@ export class ProductSectionController {
             }
         });
     }
+
     private bindSearch(): void {
         const searchInput = document.getElementById('product-search') as HTMLInputElement | null;
         const clearButton = document.getElementById('clear-search-btn') as HTMLButtonElement | null;
+
         if (!searchInput || !clearButton) {
             return;
         }
+
         const runSearch = debounce((searchTerm: string) => {
             void this.loadProducts(1, searchTerm);
         }, UI_CONFIG.TIMEOUTS.DEBOUNCE_DELAY);
@@ -112,66 +130,81 @@ export class ProductSectionController {
             }
         });
     }
+
     private bindTableActions(): void {
         this.tableBody?.addEventListener('click', (event) => {
             const button = (event.target as HTMLElement | null)?.closest<HTMLButtonElement>('button');
+
             if (button?.classList.contains('btn-edit') && button.dataset.id) {
                 void this.modalController.open('edit', Number(button.dataset.id));
                 return;
             }
+
             if (button?.classList.contains('btn-delete') && button.dataset.id) {
                 void this.deleteProduct(Number(button.dataset.id));
             }
         });
     }
+
     private async deleteProduct(productId: number): Promise<void> {
         const product = this.priceListData.find((item) => item.id === productId);
         if (!product) {
             return;
         }
+
         Modal.confirm(
-            `Are you sure you want to delete "${product.title}"?\n\nThis action cannot be undone.`,
-            'Delete Product',
+            t('botSettings.messages.deleteProductMessage', { name: product.title }),
+            t('botSettings.messages.deleteProductTitle'),
             () => this.performProductDelete(productId)
         );
     }
+
     private async performProductDelete(productId: number): Promise<void> {
         const selectedDomain = this.options.getSelectedDomain();
         if (!selectedDomain) {
-            showError('Please select a domain first');
+            showError(t('botSettings.messages.selectDomainFirst'));
             return;
         }
 
         try {
             await deleteProductRequest(selectedDomain, productId);
             await this.loadProducts(this.currentPage, this.currentSearch);
-            showSuccess('Product deleted successfully.');
+            showSuccess(t('botSettings.messages.productDeleted'));
         } catch (error) {
             console.error('Error deleting product:', error);
             handleApiError(error, 'deleting product');
         }
     }
+
     private hidePagination(): void {
         if (this.paginationContainer) {
             setElementVisible(this.paginationContainer, false, 'flex');
         }
     }
+
     private hideSearchResultsInfo(): void {
         if (this.searchResultsInfo) {
             setElementVisible(this.searchResultsInfo, false);
         }
     }
+
     private async handleModalSubmit(payload: ProductModalSubmitPayload): Promise<void> {
         if (payload.mode === 'edit') {
             await this.updateProduct(payload.productId, payload.productName, payload.productDesc, payload.variants);
             return;
         }
+
         await this.createProduct(payload.productName, payload.productDesc, payload.variants);
     }
-    private async createProduct(productName: string, productDesc: string, variants: BotSettingsProductDraftVariant[]): Promise<void> {
+
+    private async createProduct(
+        productName: string,
+        productDesc: string,
+        variants: BotSettingsProductDraftVariant[]
+    ): Promise<void> {
         const selectedDomain = this.options.getSelectedDomain();
         if (!selectedDomain) {
-            showError('Please select a domain first');
+            showError(t('botSettings.messages.selectDomainFirst'));
             return;
         }
 
@@ -181,14 +214,18 @@ export class ProductSectionController {
                 title: productName,
                 variants
             });
-            await this.loadProducts(this.currentSearch.trim() ? this.currentPage : 1, this.currentSearch.trim() ? this.currentSearch : '');
+            await this.loadProducts(
+                this.currentSearch.trim() ? this.currentPage : 1,
+                this.currentSearch.trim() ? this.currentSearch : ''
+            );
             this.modalController.close();
-            showSuccess('Product created successfully.');
+            showSuccess(t('botSettings.messages.productCreated'));
         } catch (error) {
             console.error('Error creating product:', error);
             handleApiError(error, 'creating product');
         }
     }
+
     private async updateProduct(
         productId: number | undefined,
         productName: string,
@@ -197,12 +234,12 @@ export class ProductSectionController {
     ): Promise<void> {
         const selectedDomain = this.options.getSelectedDomain();
         if (!selectedDomain) {
-            showError('Please select a domain first');
+            showError(t('botSettings.messages.selectDomainFirst'));
             return;
         }
 
         if (!productId) {
-            showError('Product ID not found');
+            showError(t('botSettings.messages.productIdMissing'));
             return;
         }
 
@@ -214,45 +251,60 @@ export class ProductSectionController {
             });
             await this.loadProducts(this.currentPage, this.currentSearch);
             this.modalController.close();
-            showSuccess('Product updated successfully.');
+            showSuccess(t('botSettings.messages.productUpdated'));
         } catch (error) {
             console.error('Error updating product:', error);
             handleApiError(error, 'updating product');
         }
     }
+
     private get paginationContainer(): HTMLElement | null {
         return document.getElementById('pagination-container');
     }
+
     private get paginationPages(): HTMLElement | null {
         return document.getElementById('pagination-pages');
     }
+
     private get searchResultsInfo(): HTMLElement | null {
         return document.getElementById('search-results-info');
     }
+
     private get searchResultsText(): HTMLElement | null {
         return document.getElementById('search-results-text');
     }
+
     private get tableBody(): HTMLTableSectionElement | null {
         return document.querySelector('#price-list-table tbody') as HTMLTableSectionElement | null;
     }
+
     private renderPagination(): void {
         if (!this.paginationContainer || !this.paginationPages) {
             return;
         }
+
         if (this.totalProducts === 0) {
             this.hidePagination();
             return;
         }
+
         setElementVisible(this.paginationContainer, true, 'flex');
         const info = document.getElementById('pagination-info-text');
         if (info) {
             const startItem = (this.currentPage - 1) * UI_CONFIG.PAGINATION.ITEMS_PER_PAGE + 1;
             const endItem = Math.min(this.currentPage * UI_CONFIG.PAGINATION.ITEMS_PER_PAGE, this.totalProducts);
-            info.textContent = `Showing ${startItem}-${endItem} of ${this.totalProducts} products`;
+
+            info.textContent = t('botSettings.products.pagination', {
+                end: endItem,
+                start: startItem,
+                total: this.totalProducts
+            });
         }
+
         (document.getElementById('prev-page-btn') as HTMLButtonElement | null)!.disabled = this.currentPage <= 1;
         (document.getElementById('next-page-btn') as HTMLButtonElement | null)!.disabled = this.currentPage >= this.totalPages;
         this.paginationPages.innerHTML = '';
+
         createPageRange(this.currentPage, this.totalPages).forEach((item) => {
             if (item === '...') {
                 this.paginationPages?.appendChild(createPaginationEllipsis());
@@ -264,12 +316,15 @@ export class ProductSectionController {
             this.paginationPages?.appendChild(button);
         });
     }
+
     private renderPriceList(): void {
         renderProductsTable(this.tableBody, this.priceListData, this.options.getSelectedDomain());
     }
+
     private showEmptyState(): void {
         renderProductsTable(this.tableBody, [], this.options.getSelectedDomain());
     }
+
     private updateSearchResultsInfo(): void {
         updateProductSearchInfo(
             this.searchResultsInfo,

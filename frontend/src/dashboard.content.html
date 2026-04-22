@@ -1,6 +1,6 @@
 <header class="dashboard-header">
-    <h1>Dashboard</h1>
-    <p>Welcome back! Here's an overview of your AI assistant's activity.</p>
+    <h1 data-i18n="dashboard.header.title">Dashboard</h1>
+    <p data-i18n="dashboard.header.subtitle">Welcome back! Here's an overview of your AI assistant's activity.</p>
 </header>
 
 <div class="content-section">
@@ -11,7 +11,7 @@
                     
                 </div>
             </div>
-            <p class="stat-label">Total Sessions</p>
+            <p class="stat-label" data-i18n="dashboard.stats.totalSessions">Total Sessions</p>
             <p class="stat-number" id="total-sessions">0</p>
         </div>
         
@@ -21,7 +21,7 @@
                     
                 </div>
             </div>
-            <p class="stat-label">Total Messages</p>
+            <p class="stat-label" data-i18n="dashboard.stats.totalMessages">Total Messages</p>
             <p class="stat-number" id="total-messages">0</p>
         </div>
         
@@ -31,7 +31,7 @@
                     
                 </div>
             </div>
-            <p class="stat-label">Active Sessions</p>
+            <p class="stat-label" data-i18n="dashboard.stats.activeSessions">Active Sessions</p>
             <p class="stat-number" id="active-sessions">0</p>
         </div>
     </div>
@@ -39,14 +39,19 @@
 
 <div class="content-section">
     <div class="sessions-header">
-        <h2 class="sessions-title">Recent Sessions</h2>
+        <h2 class="sessions-title" data-i18n="dashboard.sessions.title">Recent Sessions</h2>
         <div class="search-box">
             
-            <input type="text" id="session-search" placeholder="Search sessions...">
+            <input
+                type="text"
+                id="session-search"
+                placeholder="Search sessions..."
+                data-i18n-placeholder="dashboard.sessions.searchPlaceholder"
+            >
         </div>
     </div>
     
     <div id="session-list">
         <!-- Sessions will be dynamically loaded here -->
     </div>
-</div> 
+</div>

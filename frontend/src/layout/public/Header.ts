@@ -1,4 +1,5 @@
 import { ROUTES } from '../../utils/constants';
+import { refreshLocalizedUi } from '../../features/localization';
 
 let headerInserted = false;
 
@@ -28,11 +29,11 @@ function getNavLinks(flags: PageFlags): string {
     }
 
     return `
-        <a href="#target-audience" class="nav-link">Made For</a>
-        <a href="#voice-bot" class="nav-link">Voice Bot</a>
-        <a href="#widget-integration" class="nav-link">Widget</a>
-        <a href="#visual-editor" class="nav-link">Editor</a>
-        <a href="#statistics" class="nav-link">Analytics</a>
+        <a href="#target-audience" class="nav-link" data-i18n="public.nav.madeFor">Made For</a>
+        <a href="#voice-bot" class="nav-link" data-i18n="public.nav.voiceBot">Voice Bot</a>
+        <a href="#widget-integration" class="nav-link" data-i18n="public.nav.widget">Widget</a>
+        <a href="#visual-editor" class="nav-link" data-i18n="public.nav.editor">Editor</a>
+        <a href="#statistics" class="nav-link" data-i18n="public.nav.analytics">Analytics</a>
     `;
 }
 
@@ -40,8 +41,8 @@ function getDesktopActions(flags: PageFlags): string {
     if (flags.isLoginPage) {
         return `
             <div class="header-auth">
-                <a href="${ROUTES.HOME}" class="header-btn header-btn-secondary">Home</a>
-                <a href="${ROUTES.REGISTER}" class="header-btn header-btn-secondary">Register</a>
+                <a href="${ROUTES.HOME}" class="header-btn header-btn-secondary" data-i18n="common.buttons.home">Home</a>
+                <a href="${ROUTES.REGISTER}" class="header-btn header-btn-secondary" data-i18n="common.buttons.register">Register</a>
             </div>
         `;
     }
@@ -49,16 +50,16 @@ function getDesktopActions(flags: PageFlags): string {
     if (flags.isRegisterPage) {
         return `
             <div class="header-auth">
-                <a href="${ROUTES.HOME}" class="header-btn header-btn-secondary">Home</a>
-                <a href="${ROUTES.LOGIN}" class="header-btn">Sign In</a>
+                <a href="${ROUTES.HOME}" class="header-btn header-btn-secondary" data-i18n="common.buttons.home">Home</a>
+                <a href="${ROUTES.LOGIN}" class="header-btn" data-i18n="common.buttons.signIn">Sign In</a>
             </div>
         `;
     }
 
     return `
         <div class="header-auth">
-            <a href="${ROUTES.HOME}" class="header-btn header-btn-secondary">Home</a>
-            <a href="${ROUTES.LOGIN}" class="header-btn">Sign In</a>
+            <a href="${ROUTES.HOME}" class="header-btn header-btn-secondary" data-i18n="common.buttons.home">Home</a>
+            <a href="${ROUTES.LOGIN}" class="header-btn" data-i18n="common.buttons.signIn">Sign In</a>
         </div>
     `;
 }
@@ -66,24 +67,24 @@ function getDesktopActions(flags: PageFlags): string {
 function getMobileNavLinks(flags: PageFlags): string {
     if (flags.isHomePage) {
         return `
-            <a href="#target-audience" class="mobile-nav-link">Made For</a>
-            <a href="#voice-bot" class="mobile-nav-link">Voice Bot</a>
-            <a href="#widget-integration" class="mobile-nav-link">Widget</a>
-            <a href="#visual-editor" class="mobile-nav-link">Editor</a>
-            <a href="#statistics" class="mobile-nav-link">Analytics</a>
+            <a href="#target-audience" class="mobile-nav-link" data-i18n="public.nav.madeFor">Made For</a>
+            <a href="#voice-bot" class="mobile-nav-link" data-i18n="public.nav.voiceBot">Voice Bot</a>
+            <a href="#widget-integration" class="mobile-nav-link" data-i18n="public.nav.widget">Widget</a>
+            <a href="#visual-editor" class="mobile-nav-link" data-i18n="public.nav.editor">Editor</a>
+            <a href="#statistics" class="mobile-nav-link" data-i18n="public.nav.analytics">Analytics</a>
             <div class="mobile-nav-auth">
-                <a href="${ROUTES.LOGIN}" class="header-btn">Sign In</a>
+                <a href="${ROUTES.LOGIN}" class="header-btn" data-i18n="common.buttons.signIn">Sign In</a>
             </div>
         `;
     }
 
     const secondaryAction = flags.isLoginPage
-        ? `<a href="${ROUTES.REGISTER}" class="header-btn header-btn-secondary">Register</a>`
-        : `<a href="${ROUTES.LOGIN}" class="header-btn">Sign In</a>`;
+        ? `<a href="${ROUTES.REGISTER}" class="header-btn header-btn-secondary" data-i18n="common.buttons.register">Register</a>`
+        : `<a href="${ROUTES.LOGIN}" class="header-btn" data-i18n="common.buttons.signIn">Sign In</a>`;
 
     return `
         <div class="mobile-nav-auth">
-            <a href="${ROUTES.HOME}" class="header-btn header-btn-secondary">Home</a>
+            <a href="${ROUTES.HOME}" class="header-btn header-btn-secondary" data-i18n="common.buttons.home">Home</a>
             ${secondaryAction}
         </div>
     `;
@@ -96,12 +97,22 @@ function getHeaderTemplate(): string {
     return `
         <header class="main-header">
             <div class="header-container">
-                <a href="${ROUTES.HOME}" class="header-logo" aria-label="AIAssistant Home">
+                <a
+                    href="${ROUTES.HOME}"
+                    class="header-logo"
+                    aria-label="AIAssistant home"
+                    data-i18n-aria-label="public.logo.aria"
+                >
                     <img src="./logoAi.png" alt="AIAssistant" class="header-logo-image">
                 </a>
                 ${navLinks ? `<nav id="main-nav" class="header-nav">${navLinks}</nav>` : ''}
                 ${getDesktopActions(flags)}
-                <button id="mobile-menu-toggle" class="mobile-menu-toggle" aria-label="Toggle Menu">
+                <button
+                    id="mobile-menu-toggle"
+                    class="mobile-menu-toggle"
+                    aria-label="Toggle menu"
+                    data-i18n-aria-label="common.menu.toggle"
+                >
                     <div class="hamburger">
                         <span></span>
                         <span></span>
@@ -149,6 +160,7 @@ export const insertHeader = () => {
 
     appContainer.insertAdjacentHTML('afterbegin', getHeaderTemplate());
     headerInserted = true;
+    refreshLocalizedUi(appContainer);
     setupMobileMenuToggle();
     void setActiveHeaderLink();
 };

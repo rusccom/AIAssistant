@@ -47,5 +47,6 @@ export interface BotSettingsDashboardData {
 
 export interface BotSettingsWindow extends Window {
     domainConfigs?: Record<string, BotSettingsDomainConfig>;
+    domains?: BotSettingsDomainRecord[];
     realtimeProviders?: RealtimeProviderOption[];
 }

@@ -3,6 +3,7 @@ import './features/bot-settings/styles/product-modal.css';
 
 import pageContent from './bot-settings.content.html';
 import { BotSettingsPageController } from './features/bot-settings/page/bot-settings-page-controller';
+import { initializeAppLanguage } from './features/localization';
 import { setupPage } from './layout/app/page-container';
 import { protectPage } from './utils/auth';
 import { ROUTES, UI_CONFIG } from './utils/constants';
@@ -11,6 +12,7 @@ import { initSimpleFouc } from './utils/simple-fouc';
 import { getAuthToken } from './utils/api-client';
 
 protectPage();
+initializeAppLanguage('titles.botSettings');
 initSimpleFouc();
 initNavigation();
 

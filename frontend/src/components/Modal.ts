@@ -1,4 +1,5 @@
 import { closeLayer, openLayer, setBodyScrollLocked } from '../shared/ui/dom';
+import { t } from '../features/localization';
 import { escapeHtml } from '../shared/ui/primitives';
 
 export interface ModalConfig {
@@ -115,24 +116,24 @@ export class Modal {
 
     public static confirm(
         message: string,
-        title = 'Confirm',
+        title: string | undefined,
         onConfirm: () => void | Promise<void>
     ): Modal {
         const modal = new Modal({
             id: 'confirm-modal',
-            title,
+            title: title || t('common.modal.confirmTitle'),
             content: wrapMessage(message),
             className: 'confirm-modal'
         });
 
         modal.addButtons([
             {
-                text: 'Cancel',
+                text: t('common.buttons.cancel'),
                 className: 'btn btn-secondary',
                 onClick: () => modal.close()
             },
             {
-                text: 'Confirm',
+                text: t('common.buttons.confirm'),
                 className: 'btn btn-danger',
                 onClick: async () => {
                     await onConfirm();
@@ -145,17 +146,17 @@ export class Modal {
         return modal;
     }
 
-    public static alert(message: string, title = 'Information'): Modal {
+    public static alert(message: string, title?: string): Modal {
         const modal = new Modal({
             id: 'alert-modal',
-            title,
+            title: title || t('common.modal.alertTitle'),
             content: wrapMessage(message),
             className: 'alert-modal'
         });
 
         modal.addButtons([
             {
-                text: 'OK',
+                text: t('common.buttons.confirm'),
                 className: 'btn btn-primary',
                 onClick: () => modal.close()
             }
@@ -201,7 +202,7 @@ export class Modal {
                 const closeButton = document.createElement('button');
                 closeButton.type = 'button';
                 closeButton.className = 'close-btn';
-                closeButton.setAttribute('aria-label', 'Close');
+                closeButton.setAttribute('aria-label', t('common.buttons.close'));
                 closeButton.textContent = 'x';
                 closeButton.addEventListener('click', () => this.close());
                 header.appendChild(closeButton);

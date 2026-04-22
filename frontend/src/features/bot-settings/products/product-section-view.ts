@@ -1,4 +1,5 @@
 import { setElementVisible } from '../../../shared/ui/dom';
+import { t } from '../../localization';
 import { renderProductsEmptyState, renderProductTable } from '../renderers/bot-settings-ui';
 import type { BotSettingsProduct } from '../types';
 
@@ -33,6 +34,9 @@ export function updateProductSearchInfo(
     setElementVisible(container, true);
     container.className = `search-results-info ${totalProducts === 0 ? 'no-results' : 'has-results'}`;
     textElement.textContent = totalProducts === 0
-        ? `No results found for "${search}"`
-        : `Found ${totalProducts} ${totalProducts === 1 ? 'result' : 'results'} for "${search}"`;
+        ? t('botSettings.products.searchNone', { query: search })
+        : t('botSettings.products.searchFound', {
+            count: totalProducts,
+            query: search
+        });
 }

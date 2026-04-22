@@ -1,12 +1,14 @@
+import { t, type TranslationKey } from '../../localization';
+
 type ImportStage = 'reading' | 'processing' | 'uploading' | 'refreshing' | 'success' | 'error';
 
-const STAGE_TITLE: Record<ImportStage, string> = {
-    reading: 'Reading file',
-    processing: 'Preparing products',
-    uploading: 'Import in progress',
-    refreshing: 'Refreshing table',
-    success: 'Import completed',
-    error: 'Import failed'
+const STAGE_TITLE: Record<ImportStage, TranslationKey> = {
+    reading: 'botSettings.import.readingStage',
+    processing: 'botSettings.import.processingStage',
+    uploading: 'botSettings.import.uploadingStage',
+    refreshing: 'botSettings.import.refreshingStage',
+    success: 'botSettings.import.successStage',
+    error: 'botSettings.import.errorStage'
 };
 
 const STAGE_PROGRESS: Record<ImportStage, number> = {
@@ -29,7 +31,7 @@ export class ImportStatusController {
     private startedAt = 0;
     private timerId: number | null = null;
 
-    constructor(root: ParentNode = document) {
+    public constructor(root: ParentNode = document) {
         this.root = this.requireElement(root, 'import-status');
         this.title = this.requireElement(root, 'import-status-title');
         this.text = this.requireElement(root, 'import-status-text');
@@ -80,7 +82,7 @@ export class ImportStatusController {
     private render(stage: ImportStage, text: string, meta: string): void {
         this.root.hidden = false;
         this.root.dataset.state = stage;
-        this.title.textContent = STAGE_TITLE[stage];
+        this.title.textContent = t(STAGE_TITLE[stage]);
         this.text.textContent = text;
         this.metaText = meta;
         this.fill.style.width = `${STAGE_PROGRESS[stage]}%`;
@@ -91,7 +93,9 @@ export class ImportStatusController {
         const parts = [this.metaText].filter(Boolean);
 
         if (this.busy && this.startedAt > 0) {
-            parts.push(`Elapsed: ${Math.max(1, Math.floor((Date.now() - this.startedAt) / 1000))}s`);
+            parts.push(t('botSettings.import.elapsed', {
+                seconds: Math.max(1, Math.floor((Date.now() - this.startedAt) / 1000))
+            }));
         }
 
         this.meta.textContent = parts.join(' | ');

@@ -1,4 +1,5 @@
 import { showError, showSuccess } from '../../../utils/error-handler';
+import { t } from '../../localization';
 import type { Connection, FileExportRecord, ProviderKind, StateData } from '../types/editor-types';
 import {
     importEditorFilePayload,
@@ -34,7 +35,7 @@ export async function importVisualEditorSnapshot(
     }
 
     if (!isEditorFilePayload(payload)) {
-        showError('Error loading file: Invalid JSON format');
+        showError(t('visualEditor.messages.invalidJson'));
         return;
     }
 
@@ -59,7 +60,7 @@ export async function loadVisualEditorDomainSnapshot(
         applyVisualEditorSnapshot(snapshot, actions);
     } catch (error) {
         console.error('Error loading states from domain', error);
-        showError(`Could not load configuration for ${domain}.`);
+        showError(t('visualEditor.messages.loadFailed', { domain }));
     }
 }
 
@@ -72,11 +73,11 @@ export async function saveVisualEditorSnapshot(
     try {
         const result = await persistEditorState(domain, zoom, states, connections);
         if (result === 'saved') {
-            showSuccess('States and editor settings saved successfully to database!');
+            showSuccess(t('visualEditor.messages.saved'));
         }
     } catch (error) {
         console.error('Error saving states', error);
-        showError('Failed to save states to database.');
+        showError(t('visualEditor.messages.saveFailed'));
     }
 }
 
