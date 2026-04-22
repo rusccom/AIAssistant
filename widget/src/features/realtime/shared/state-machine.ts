@@ -12,8 +12,16 @@ export interface LocalStateController {
 }
 
 const resolveInitialState = (
-  stateMachine: SessionStateMachine
+  stateMachine: SessionStateMachine,
+  currentStateId?: string | null
 ): SessionStateDefinition => {
+  const currentState = stateMachine.states.find(
+    (state) => state.id === currentStateId
+  );
+  if (currentState) {
+    return currentState;
+  }
+
   const initialState = stateMachine.states.find(
     (state) => state.id === stateMachine.initialStateId
   );
@@ -28,13 +36,15 @@ const canTransition = (
 
 export const createLocalStateController = (
   stateMachine: SessionStateMachine,
+  currentStateId?: string | null,
   logger?: RealtimeLogger
 ): LocalStateController => {
-  let currentState = resolveInitialState(stateMachine);
+  let currentState = resolveInitialState(stateMachine, currentStateId);
   let pendingStateId: string | null = null;
 
   logger?.info('state', 'initialized', {
     initialStateId: stateMachine.initialStateId || null,
+    currentStateId: currentStateId || null,
     state: summarizeState(currentState)
   });
 

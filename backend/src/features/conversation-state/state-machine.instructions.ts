@@ -56,6 +56,8 @@ ${formatTransitions(state)}
 - You are currently in this state only.
 - Do not mention internal state IDs or system mechanics to the user.
 - Use \`transition_state\` only when one of the allowed next states should become active.
+- If you ask a question that should be handled by the next state, call \`transition_state\` in the same assistant turn.
+- Treat the current state as the instruction set for what you say now, and the next state as the instruction set for the user's next reply.
 - If the state is not complete yet, stay in the current state.
 `.trim();
 };

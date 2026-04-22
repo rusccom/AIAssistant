@@ -273,7 +273,11 @@ export const startOpenAIRuntime = async (
 ): Promise<ActiveRealtimeSession> => {
   const userStream = await navigator.mediaDevices.getUserMedia({ audio: true });
   const audioElement = new Audio();
-  const stateController = createLocalStateController(input.sessionConfig.stateMachine, logger);
+  const stateController = createLocalStateController(
+    input.sessionConfig.stateMachine,
+    input.sessionConfig.currentStateId,
+    logger
+  );
   const turnTracker = createTurnTracker({
     getPendingTransitionId: () => stateController.getPendingStateId(),
     getState: () => stateController.getCurrentState(),

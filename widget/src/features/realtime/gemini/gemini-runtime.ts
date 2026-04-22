@@ -178,7 +178,11 @@ export const startGeminiRuntime = async (
 ): Promise<ActiveRealtimeSession> => {
   const player = new AudioPlayer();
   const recorder = new AudioRecorder();
-  const stateController = createLocalStateController(input.sessionConfig.stateMachine, logger);
+  const stateController = createLocalStateController(
+    input.sessionConfig.stateMachine,
+    input.sessionConfig.currentStateId,
+    logger
+  );
   const turnTracker = createTurnTracker({
     getPendingTransitionId: () => stateController.getPendingStateId(),
     getState: () => stateController.getCurrentState(),
@@ -291,6 +295,7 @@ export const startGeminiRuntime = async (
           toStateId: nextState.id
         });
         sessionReady = false;
+        resumeHandle = null;
         const previousSession = getSession();
         liveSession = undefined;
         previousSession?.close();
