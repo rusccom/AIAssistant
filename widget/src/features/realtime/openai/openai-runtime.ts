@@ -1,5 +1,4 @@
 import {
-  OpenAIRealtimeWebRTC,
   RealtimeAgent,
   RealtimeSession,
   tool
@@ -8,9 +7,37 @@ import { RealtimeLogger, summarizeResult, summarizeState } from '../shared/realt
 import { createLocalStateController } from '../shared/state-machine';
 import { createTurnTracker } from '../shared/turn-tracker';
 import { createUniversalExecute } from '../shared/universal-execute';
+import { notifyRuntimeStatus } from '../shared/initial-assistant-turn';
 import { summarizeOpenAIOutput } from './openai-output-summary';
 import { getAgentName, getToolCallArguments, getToolName, logTransportEvent } from './openai-runtime-helpers';
-import { ActiveRealtimeSession, BotToolDefinition, ServerSessionConfig, SessionStateDefinition, StartRuntimeInput } from '../shared/realtime-session.types';
+import {
+  connectOpenAISession,
+  createOpenAICloseHandler,
+  createOpenAIConnectionHandler,
+  createOpenAISessionErrorHandler
+} from './openai-session-lifecycle';
+import { sendOpenAIStartupTurn } from './openai-startup-turn';
+import { ActiveRealtimeSession, BotToolDefinition, SessionStateDefinition, StartRuntimeInput } from '../shared/realtime-session.types';
+
+interface ApplyPendingTransitionContext {
+  getTraceContext: () => Record<string, unknown>;
+  input: StartRuntimeInput;
+  logger: RealtimeLogger;
+  session: RealtimeSession;
+  stateController: ReturnType<typeof createLocalStateController>;
+  turnId: string | null;
+}
+
+interface RegisterTransportEventsContext {
+  getTraceContext: () => Record<string, unknown>;
+  input: StartRuntimeInput;
+  isClosed: () => boolean;
+  logger: RealtimeLogger;
+  session: RealtimeSession;
+  setClosed: () => void;
+  stateController: ReturnType<typeof createLocalStateController>;
+  turnTracker: ReturnType<typeof createTurnTracker>;
+}
 
 const buildTools = (
   config: StartRuntimeInput['config'],
@@ -49,123 +76,41 @@ const buildAgent = (
   tools: buildTools(input.config, stateController, logger, getTraceContext, state)
 });
 
-const buildSession = (
-  agent: RealtimeAgent,
-  userStream: MediaStream,
-  audioElement: HTMLAudioElement,
-  sessionConfig: ServerSessionConfig
-) => {
-  const transport = new OpenAIRealtimeWebRTC({
-    mediaStream: userStream,
-    audioElement,
-    useInsecureApiKey: true
-  });
-
-  return new RealtimeSession(agent, {
-    transport,
-    model: sessionConfig.model,
-    config: {
-      inputAudioFormat: 'pcm16',
-      outputAudioFormat: 'pcm16',
-      turnDetection: {
-        type: 'semantic_vad',
-        eagerness: 'medium',
-        createResponse: true,
-        interruptResponse: true
-      },
-      voice: sessionConfig.voice
-    }
-  });
-};
-
-const applyPendingTransition = async (
-  session: RealtimeSession,
-  input: StartRuntimeInput,
-  stateController: ReturnType<typeof createLocalStateController>,
-  logger: RealtimeLogger,
-  getTraceContext: () => Record<string, unknown>,
-  turnId: string | null
-) => {
-  const nextState = stateController.applyPendingState({
+const applyPendingTransition = async (context: ApplyPendingTransitionContext) => {
+  const nextState = context.stateController.applyPendingState({
     source: 'openai.turn_done',
-    turnId
+    turnId: context.turnId
   });
   if (!nextState) {
     return;
   }
 
-  logger.info('state', 'activation_requested', {
+  context.logger.info('state', 'activation_requested', {
     source: 'openai.agent_update',
-    stateEntryId: stateController.getCurrentStateTrace().entryId,
+    stateEntryId: context.stateController.getCurrentStateTrace().entryId,
     stateId: nextState.id,
-    stateTrace: stateController.getCurrentStateTrace(),
-    transitionId: stateController.getCurrentStateTrace().transitionId
+    stateTrace: context.stateController.getCurrentStateTrace(),
+    transitionId: context.stateController.getCurrentStateTrace().transitionId
   });
-  logger.info('runtime', 'agent_updating_for_state', {
+  context.logger.info('runtime', 'agent_updating_for_state', {
     state: summarizeState(nextState),
-    stateEntryId: stateController.getCurrentStateTrace().entryId,
+    stateEntryId: context.stateController.getCurrentStateTrace().entryId,
     stateId: nextState.id,
-    transitionId: stateController.getCurrentStateTrace().transitionId
+    transitionId: context.stateController.getCurrentStateTrace().transitionId
   });
-  await session.updateAgent(
-    buildAgent(input, stateController, logger, getTraceContext, nextState)
+  await context.session.updateAgent(
+    buildAgent(context.input, context.stateController, context.logger,
+      context.getTraceContext, nextState)
   );
-  stateController.activateCurrentState({
+  context.stateController.activateCurrentState({
     source: 'openai.agent_updated',
-    turnId
+    turnId: context.turnId
   });
-};
-
-const createConnectionHandler = (
-  input: StartRuntimeInput,
-  logger: RealtimeLogger,
-  stateController: ReturnType<typeof createLocalStateController>,
-  isClosed: () => boolean,
-  setClosed: () => void,
-  getTurnId: () => string | null
-) => (status: string) => {
-  logger.info('transport', 'connection_change', { status });
-  if (status !== 'disconnected' || isClosed()) {
-    return;
-  }
-
-  setClosed();
-  stateController.finalizeCurrentState({
-    reason: 'transport_disconnected',
-    source: 'openai.transport_disconnected',
-    turnId: getTurnId()
-  });
-  input.onDisconnect('Session ended.');
-};
-
-const createSessionErrorHandler = (
-  input: StartRuntimeInput,
-  logger: RealtimeLogger,
-  stateController: ReturnType<typeof createLocalStateController>,
-  isClosed: () => boolean,
-  setClosed: () => void,
-  getTurnId: () => string | null
-) => (error: { error?: unknown }) => {
-  const message = error.error instanceof Error
-    ? error.error.message
-    : String(error.error || 'Unknown error');
-
-  logger.error('session', 'error', { message });
-  if (isClosed()) {
-    return;
-  }
-
-  setClosed();
-  stateController.finalizeCurrentState({
-    reason: message,
-    source: 'openai.session_error',
-    turnId: getTurnId()
-  });
-  input.onDisconnect(`An error occurred: ${message}`);
 };
 
 const registerAgentEvents = (
   session: RealtimeSession,
+  input: StartRuntimeInput,
   logger: RealtimeLogger,
   turnTracker: ReturnType<typeof createTurnTracker>
 ) => {
@@ -206,111 +151,48 @@ const registerAgentEvents = (
   session.on('audio_start', () => {
     turnTracker.ensureTurnStarted('audio_start');
     turnTracker.recordOutput({ hasAudio: true });
+    notifyRuntimeStatus(input, 'assistant_speaking');
     logger.info('audio', 'output_started');
   });
 
   session.on('audio_stopped', () => {
+    notifyRuntimeStatus(input, 'listening');
     logger.info('audio', 'output_stopped');
   });
 };
 
-const registerTransportEvents = (
-  session: RealtimeSession,
-  input: StartRuntimeInput,
-  stateController: ReturnType<typeof createLocalStateController>,
-  logger: RealtimeLogger,
-  turnTracker: ReturnType<typeof createTurnTracker>,
-  getTraceContext: () => Record<string, unknown>,
-  isClosed: () => boolean,
-  setClosed: () => void
-) => {
-  session.transport.on('connection_change', createConnectionHandler(
-    input,
-    logger,
-    stateController,
-    isClosed,
-    setClosed,
-    () => turnTracker.getCurrentTurnId()
-  ));
+const registerTransportEvents = (context: RegisterTransportEventsContext) => {
+  context.session.transport.on('connection_change', createOpenAIConnectionHandler({
+    input: context.input,
+    logger: context.logger,
+    stateController: context.stateController,
+    isClosed: context.isClosed,
+    setClosed: context.setClosed,
+    getTurnId: () => context.turnTracker.getCurrentTurnId()
+  }));
 
-  session.transport.on('turn_started', (event) => {
-    turnTracker.ensureTurnStarted('transport.turn_started');
-    logger.info('transport', 'turn_started', { event });
+  context.session.transport.on('turn_started', (event) => {
+    context.turnTracker.ensureTurnStarted('transport.turn_started');
+    context.logger.info('transport', 'turn_started', { event });
   });
 
-  session.transport.on('turn_done', (event) => {
-    logger.info('transport', 'turn_done', { event });
-    const completedTurnId = turnTracker.getCurrentTurnId();
-    turnTracker.completeTurn('transport.turn_done');
-    void applyPendingTransition(
-      session,
-      input,
-      stateController,
-      logger,
-      getTraceContext,
-      completedTurnId
-    );
+  context.session.transport.on('turn_done', (event) => {
+    context.logger.info('transport', 'turn_done', { event });
+    const completedTurnId = context.turnTracker.getCurrentTurnId();
+    context.turnTracker.completeTurn('transport.turn_done');
+    void applyPendingTransition({ ...context, turnId: completedTurnId });
   });
 
-  session.transport.on('audio_interrupted', () => {
-    turnTracker.recordOutput({ interrupted: true });
-    logger.warn('audio', 'output_interrupted', {
-      stateId: stateController.getCurrentState().id
+  context.session.transport.on('audio_interrupted', () => {
+    context.turnTracker.recordOutput({ interrupted: true });
+    context.logger.warn('audio', 'output_interrupted', {
+      stateId: context.stateController.getCurrentState().id
     });
   });
 
-  session.on('transport_event', (event) => logTransportEvent(logger, event as any));
-};
-
-const connectSession = async (
-  input: StartRuntimeInput,
-  userStream: MediaStream,
-  audioElement: HTMLAudioElement,
-  stateController: ReturnType<typeof createLocalStateController>,
-  logger: RealtimeLogger,
-  getTraceContext: () => Record<string, unknown>
-) => {
-  const session = buildSession(
-    buildAgent(
-      input,
-      stateController,
-      logger,
-      getTraceContext,
-      stateController.getCurrentState()
-    ),
-    userStream,
-    audioElement,
-    input.sessionConfig
-  );
-
-  logger.info('transport', 'connect_requested', {
-    state: summarizeState(stateController.getCurrentState()),
-    stateEntryId: stateController.getCurrentStateTrace().entryId,
-    stateId: stateController.getCurrentState().id,
-    transitionId: stateController.getCurrentStateTrace().transitionId
+  context.session.on('transport_event', (event) => {
+    logTransportEvent(context.logger, event as any);
   });
-  await session.connect({ apiKey: input.sessionConfig.token });
-  logger.info('transport', 'connected');
-  return session;
-};
-
-const createCloseHandler = (
-  session: RealtimeSession,
-  userStream: MediaStream,
-  setClosed: () => void,
-  logger: RealtimeLogger,
-  stateController: ReturnType<typeof createLocalStateController>,
-  getTurnId: () => string | null
-) => () => {
-  logger.info('session', 'closed_by_widget');
-  setClosed();
-  stateController.finalizeCurrentState({
-    reason: 'closed_by_widget',
-    source: 'openai.closed_by_widget',
-    turnId: getTurnId()
-  });
-  userStream.getTracks().forEach((track) => track.stop());
-  session.close();
 };
 
 export const startOpenAIRuntime = async (
@@ -348,21 +230,29 @@ export const startOpenAIRuntime = async (
     stateTrace: stateController.getCurrentStateTrace(),
     transitionId: stateController.getCurrentStateTrace().transitionId
   });
-  const session = await connectSession(
+  const session = await connectOpenAISession({
     input,
+    agent: buildAgent(
+      input,
+      stateController,
+      logger,
+      getTraceContext,
+      stateController.getCurrentState()
+    ),
     userStream,
     audioElement,
+    sessionConfig: input.sessionConfig,
     stateController,
-    logger,
-    getTraceContext
-  );
+    logger
+  });
   stateController.activateCurrentState({
     source: 'openai.connected',
     turnId: turnTracker.getCurrentTurnId()
   });
+  notifyRuntimeStatus(input, 'connected');
 
-  registerAgentEvents(session, logger, turnTracker);
-  registerTransportEvents(
+  registerAgentEvents(session, input, logger, turnTracker);
+  registerTransportEvents({
     session,
     input,
     stateController,
@@ -371,24 +261,25 @@ export const startOpenAIRuntime = async (
     getTraceContext,
     isClosed,
     setClosed
-  );
-  session.on('error', createSessionErrorHandler(
+  });
+  session.on('error', createOpenAISessionErrorHandler({
     input,
     logger,
     stateController,
     isClosed,
     setClosed,
-    () => turnTracker.getCurrentTurnId()
-  ));
+    getTurnId: () => turnTracker.getCurrentTurnId()
+  }));
+  sendOpenAIStartupTurn(session, input, logger);
 
   return {
-    close: createCloseHandler(
+    close: createOpenAICloseHandler({
       session,
       userStream,
       setClosed,
       logger,
       stateController,
-      () => turnTracker.getCurrentTurnId()
-    )
+      getTurnId: () => turnTracker.getCurrentTurnId()
+    })
   };
 };

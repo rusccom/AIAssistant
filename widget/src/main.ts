@@ -25,15 +25,18 @@ import {
 import { startRealtimeRuntime } from './features/realtime/shared/runtime-factory';
 import {
   ActiveRealtimeSession,
+  RuntimeStatus,
   WidgetConfig
 } from './features/realtime/shared/realtime-session.types';
 
 type AppState = 'idle' | 'connecting' | 'connected';
+type StatusTone = 'connected' | 'connecting' | 'idle' | 'speaking';
 
 interface WidgetInstance {
   appState: AppState;
   config: WidgetConfig;
   runtime: ActiveRealtimeSession | null;
+  runtimeStatus: RuntimeStatus | null;
   shell: WidgetShell;
   traceView: WidgetModalTraceView | null;
 }
@@ -48,15 +51,44 @@ const updateButton = (button: HTMLButtonElement, label: string, color: string) =
   button.style.background = color;
 };
 
+const updateStatus = (
+  instance: WidgetInstance,
+  message: string,
+  tone: StatusTone
+) => {
+  instance.shell.statusElement.textContent = message;
+  instance.shell.statusElement.dataset.status = tone;
+};
+
+const getRuntimeStatusTone = (status: RuntimeStatus): StatusTone => {
+  return status === 'assistant_speaking' ? 'speaking' : 'connected';
+};
+
+const handleRuntimeStatus = (
+  instance: WidgetInstance,
+  status: RuntimeStatus,
+  message?: string
+) => {
+  if (instance.shell.isDestroyed || instance.appState === 'idle') return;
+
+  instance.runtimeStatus = status;
+  updateStatus(
+    instance,
+    message || 'Connected. You can speak now.',
+    getRuntimeStatusTone(status)
+  );
+};
+
 const setIdleState = (instance: WidgetInstance, message: string) => {
   instance.appState = 'idle';
   instance.runtime = null;
+  instance.runtimeStatus = null;
 
   if (instance.shell.isDestroyed) {
     return;
   }
 
-  instance.shell.statusElement.textContent = message;
+  updateStatus(instance, message, 'idle');
   instance.shell.talkButton.disabled = false;
   updateButton(instance.shell.talkButton, 'Start Talking', '#2563eb');
 };
@@ -85,7 +117,12 @@ const connectSession = async (instance: WidgetInstance) => {
   const runtime = await startRealtimeRuntime({
     config: instance.config,
     sessionConfig,
-    onDisconnect: (message) => stopSession(instance, message)
+    onDisconnect: (message) => stopSession(instance, message),
+    onStatus: (event) => handleRuntimeStatus(
+      instance,
+      event.status,
+      event.message
+    )
   });
 
   if (instance.appState !== 'connecting' || instance.shell.isDestroyed) {
@@ -95,7 +132,9 @@ const connectSession = async (instance: WidgetInstance) => {
 
   instance.runtime = runtime;
   instance.appState = 'connected';
-  instance.shell.statusElement.textContent = 'Connected. You can speak now.';
+  if (!instance.runtimeStatus) {
+    updateStatus(instance, 'Connected. Assistant is starting...', 'connected');
+  }
   instance.shell.talkButton.disabled = false;
   updateButton(instance.shell.talkButton, 'Stop Talking', '#dc2626');
   logWidgetEvent(
@@ -121,7 +160,8 @@ const startSession = async (instance: WidgetInstance) => {
 
   instance.config.traceId = ENABLE_REALTIME_TRACE ? createTraceId() : undefined;
   instance.appState = 'connecting';
-  instance.shell.statusElement.textContent = 'Connecting...';
+  instance.runtimeStatus = null;
+  updateStatus(instance, 'Connecting...', 'connecting');
   instance.shell.talkButton.disabled = true;
   updateButton(instance.shell.talkButton, 'Connecting...', '#1d4ed8');
   logWidgetEvent(
@@ -197,6 +237,7 @@ const initWidget = (inputConfig: WidgetConfig) => {
     runtime: null,
     appState: 'idle',
     config,
+    runtimeStatus: null,
     shell,
     traceView
   };
@@ -213,6 +254,7 @@ const initWidget = (inputConfig: WidgetConfig) => {
 
   const hostInfo = config.apiHost ? `Custom: ${config.apiHost}` : 'Auto-detected';
   const domainInfo = config.hostname;
+  shell.statusElement.dataset.status = 'idle';
   shell.statusElement.textContent = `Ready for ${domainInfo} (${hostInfo}). Click to start!`;
   updateButton(shell.talkButton, 'Start Talking', '#2563eb');
   logWidgetEvent('widget', 'initialized', { domainInfo, hostInfo });

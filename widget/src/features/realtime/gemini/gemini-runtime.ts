@@ -4,9 +4,11 @@ import { RealtimeLogger } from '../shared/realtime-logger';
 import { createLocalStateController } from '../shared/state-machine';
 import { createTurnTracker } from '../shared/turn-tracker';
 import { createUniversalExecute } from '../shared/universal-execute';
+import { notifyRuntimeStatus } from '../shared/initial-assistant-turn';
 import { summarizeGeminiMessage } from './gemini-message-summary';
 import { createGeminiResumeState } from './gemini-resume-state';
 import { applyPendingGeminiState } from './gemini-state-transition';
+import { sendGeminiStartupTurn } from './gemini-startup-turn';
 import {
   createGeminiCloseHandler,
   createGeminiDisconnectHandler,
@@ -21,11 +23,15 @@ import {
 
 const playAudioParts = async (message: any, player: AudioPlayer) => {
   const parts = message.serverContent?.modelTurn?.parts || [];
+  let hasAudio = false;
   for (const part of parts) {
     if (typeof part.inlineData?.data === 'string') {
       await player.enqueue(part.inlineData.data);
+      hasAudio = true;
     }
   }
+
+  return hasAudio;
 };
 
 const createMessageQueue = (logger: RealtimeLogger) => {
@@ -72,6 +78,8 @@ export const startGeminiRuntime = async (
   let closed = false;
   let generation = 0;
   let sessionReady = false;
+  let startupTurnSent = false;
+  let assistantSpeaking = false;
   let liveSession: any;
   const resumeState = createGeminiResumeState();
 
@@ -119,6 +127,10 @@ export const startGeminiRuntime = async (
           stateEntryId: stateController.getCurrentStateTrace().entryId,
           stateId: stateController.getCurrentState().id
         });
+        notifyRuntimeStatus(input, 'connected');
+        if (!startupTurnSent) {
+          startupTurnSent = sendGeminiStartupTurn({ getSession, input, logger });
+        }
         return;
       }
 
@@ -137,6 +149,7 @@ export const startGeminiRuntime = async (
         logger.warn('audio', 'output_interrupted', {
           stateId: stateController.getCurrentState().id
         });
+        assistantSpeaking = false;
         player.reset();
       }
 
@@ -156,7 +169,11 @@ export const startGeminiRuntime = async (
         });
       }
 
-      await playAudioParts(message, player);
+      const hasAudio = await playAudioParts(message, player);
+      if (hasAudio && !assistantSpeaking) {
+        assistantSpeaking = true;
+        notifyRuntimeStatus(input, 'assistant_speaking');
+      }
       const changedState = await handleToolCall(message);
       if (changedState) {
         return;
@@ -168,9 +185,14 @@ export const startGeminiRuntime = async (
 
       const previousStateId = stateController.getCurrentState().id;
       const completedTurnId = turnTracker.getCurrentTurnId();
+      const hasPendingTransition = Boolean(stateController.getPendingTransition());
       logger.info('transport', 'turn_done', { stateId: previousStateId });
       turnTracker.completeTurn('gemini.turn_complete');
       await applyPendingTransition('gemini.turn_complete', completedTurnId);
+      assistantSpeaking = false;
+      if (!hasPendingTransition) {
+        notifyRuntimeStatus(input, 'listening');
+      }
     });
 
   const openSession = createGeminiSessionOpener({

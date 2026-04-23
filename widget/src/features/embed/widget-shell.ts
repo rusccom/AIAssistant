@@ -129,6 +129,21 @@ const createStyle = () => {
       line-height: 1.6;
     }
 
+    .status[data-status="connecting"] {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .status[data-status="connected"] {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .status[data-status="speaking"] {
+      background: #e0f2fe;
+      color: #075985;
+    }
+
     .talkButton {
       width: 100%;
       border: none;

@@ -57,8 +57,20 @@ export interface ActiveRealtimeSession {
   close(): void;
 }
 
+export type RuntimeStatus =
+  | 'assistant_speaking'
+  | 'assistant_starting'
+  | 'connected'
+  | 'listening';
+
+export interface RuntimeStatusEvent {
+  message?: string;
+  status: RuntimeStatus;
+}
+
 export interface StartRuntimeInput {
   config: WidgetConfig;
   onDisconnect: (message: string) => void;
+  onStatus?: (event: RuntimeStatusEvent) => void;
   sessionConfig: ServerSessionConfig;
 }
