@@ -25,70 +25,6 @@ const createSectionTitle = (text: string) => {
   return title;
 };
 
-const renderChips = (items: string[], emptyText: string) => {
-  const wrap = createElement<HTMLDivElement>('div', {
-    display: 'flex',
-    flexWrap: 'wrap',
-    gap: '6px'
-  });
-
-  if (items.length === 0) {
-    const empty = createElement<HTMLSpanElement>('span', {
-      fontSize: '11px',
-      color: '#64748b'
-    });
-    empty.textContent = emptyText;
-    wrap.appendChild(empty);
-    return wrap;
-  }
-
-  items.forEach((item) => {
-    const chip = createElement<HTMLSpanElement>('span', {
-      padding: '4px 8px',
-      borderRadius: '999px',
-      background: '#eff6ff',
-      color: '#1d4ed8',
-      fontSize: '11px',
-      fontWeight: '600'
-    });
-    chip.textContent = item;
-    wrap.appendChild(chip);
-  });
-
-  return wrap;
-};
-
-const renderMetaRow = (labelText: string, valueText: string | null) => {
-  if (!valueText) {
-    return null;
-  }
-
-  const row = createElement<HTMLDivElement>('div', {
-    display: 'grid',
-    gridTemplateColumns: '110px 1fr',
-    gap: '8px',
-    alignItems: 'start'
-  });
-
-  const label = createElement<HTMLDivElement>('div', {
-    color: '#64748b',
-    fontSize: '12px',
-    fontWeight: '700'
-  });
-  label.textContent = labelText;
-
-  const value = createElement<HTMLDivElement>('div', {
-    color: '#0f172a',
-    fontSize: '12px',
-    lineHeight: '1.45',
-    wordBreak: 'break-word'
-  });
-  value.textContent = valueText;
-
-  row.append(label, value);
-  return row;
-};
-
 const renderTextBlock = (titleText: string, bodyText: string | null) => {
   const block = createElement<HTMLDivElement>('div', {
     display: 'flex',
@@ -192,9 +128,9 @@ const renderToolCall = (toolCall: ModalTraceToolCall) => {
 
   card.append(
     header,
-    renderTextBlock('Input', toolCall.inputText),
+    renderTextBlock('Input Parameters', toolCall.inputText),
     renderTextBlock(
-      toolCall.status === 'failed' ? 'Error' : 'Output',
+      toolCall.status === 'failed' ? 'Error' : 'Result Sent To Model',
       toolCall.outputText || (toolCall.status === 'running' ? 'Waiting for result...' : 'No data')
     )
   );
@@ -277,39 +213,13 @@ export const renderTraceGroup = (group: ModalTraceStateGroup) => {
   });
   status.textContent = group.status;
 
-  const metaList = createElement<HTMLDivElement>('div', {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '6px'
-  });
-
-  const rows = [
-    renderMetaRow('Source', group.activationSource),
-    renderMetaRow('Reason', group.activationReason),
-    renderMetaRow('Version', group.instructionVersion)
-  ].filter((row): row is HTMLDivElement => Boolean(row));
-  rows.forEach((row) => metaList.appendChild(row));
-
   titleWrap.append(title, meta);
   header.append(titleWrap, status);
   card.append(header);
-
-  if (rows.length > 0) {
-    card.append(metaList);
-  }
-
   card.append(
-    createSectionTitle('Configured Tools'),
-    renderChips(group.configuredToolNames, 'No configured tools'),
-    createSectionTitle('Transition Tools'),
-    renderChips(group.transitionToolNames, 'No transition tools'),
-    renderTextBlock('Instructions', group.instructions)
+    renderTextBlock('Instructions Sent To Model', group.instructions),
+    createSectionTitle('Function Calls'),
+    renderToolCalls(group.toolCalls)
   );
-
-  if (group.thinkingConfigText) {
-    card.append(renderTextBlock('Thinking Config', group.thinkingConfigText));
-  }
-
-  card.append(createSectionTitle('Tool Calls'), renderToolCalls(group.toolCalls));
   return card;
 };

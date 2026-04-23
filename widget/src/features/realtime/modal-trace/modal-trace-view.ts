@@ -46,6 +46,24 @@ const isSessionStartEvent = (entry: RealtimeLogEntry) => {
   return entry.scope === 'session' && entry.event === 'start_requested';
 };
 
+const isStateTreeEvent = (entry: RealtimeLogEntry) => {
+  return entry.scope === 'state'
+    && (entry.event === 'entered' || entry.event === 'exited');
+};
+
+const isToolTreeEvent = (entry: RealtimeLogEntry) => {
+  return entry.scope === 'tool'
+    && [
+      'execute_started',
+      'execute_finished',
+      'execute_failed'
+    ].includes(entry.event);
+};
+
+const shouldKeepEntry = (entry: RealtimeLogEntry) => {
+  return isSessionStartEvent(entry) || isStateTreeEvent(entry) || isToolTreeEvent(entry);
+};
+
 const renderEmptyState = (
   body: HTMLDivElement,
   text: string
@@ -152,6 +170,10 @@ export const createWidgetModalTraceView = (
     }
 
     if (!state.activeTraceId || entry.traceId !== state.activeTraceId) {
+      return;
+    }
+
+    if (!shouldKeepEntry(entry)) {
       return;
     }
 
