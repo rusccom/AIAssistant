@@ -12,14 +12,6 @@ interface GeminiStartupTurnContext {
   logger: RealtimeLogger;
 }
 
-const buildStartupTurn = () => ({
-  turnComplete: true,
-  turns: [{
-    role: 'user',
-    parts: [{ text: INITIAL_ASSISTANT_PROMPT }]
-  }]
-});
-
 export const sendGeminiStartupTurn = (
   context: GeminiStartupTurnContext
 ) => {
@@ -30,6 +22,6 @@ export const sendGeminiStartupTurn = (
   context.logger.info('startup', 'initial_prompt_sent', {
     provider: 'gemini'
   });
-  session.sendClientContent(buildStartupTurn());
+  session.sendRealtimeInput({ text: INITIAL_ASSISTANT_PROMPT });
   return true;
 };

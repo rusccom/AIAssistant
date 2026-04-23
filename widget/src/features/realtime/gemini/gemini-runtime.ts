@@ -49,6 +49,12 @@ const createMessageQueue = (logger: RealtimeLogger) => {
     };
 };
 
+const logRecorderFailure = (logger: RealtimeLogger, error: unknown) => {
+  logger.error('audio', 'recorder_failed', {
+    message: error instanceof Error ? error.message : String(error)
+  });
+};
+
 export const startGeminiRuntime = async (
   input: StartRuntimeInput,
   logger: RealtimeLogger
@@ -241,11 +247,23 @@ export const startGeminiRuntime = async (
     transitionId: stateController.getCurrentStateTrace().transitionId
   });
   liveSession = await openSession(stateController.getCurrentState(), generation);
-  await startGeminiRecorder({
+  void startGeminiRecorder({
     recorder,
     getSession,
     canStreamInput: () => !closed && sessionReady,
     logger
+  }).catch((error) => {
+    logRecorderFailure(logger, error);
+    if (closed) return;
+
+    stateController.finalizeCurrentState({
+      reason: 'microphone_permission_failed',
+      source: 'gemini.recorder_failed',
+      turnId: turnTracker.getCurrentTurnId()
+    });
+    setClosed();
+    getSession()?.close();
+    input.onDisconnect('Microphone permission failed.');
   });
   return {
     close: createGeminiCloseHandler({
