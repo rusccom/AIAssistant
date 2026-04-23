@@ -2,6 +2,12 @@ import {
   ENABLE_REALTIME_TRACE,
   ENABLE_WIDGET_MODAL_TRACE
 } from '../../shared/realtime-trace.config';
+import {
+  clearCartSnapshot,
+  readCartSnapshot
+} from './features/cart/cart-storage';
+import { dispatchCartChanged } from './features/cart/cart-events';
+import { LocalCartSnapshot } from './features/cart/cart.types';
 import { resolveEmbedBootstrap } from './features/embed/embed-config';
 import { createWidgetShell, WidgetShell } from './features/embed/widget-shell';
 import { ensureRealtimeDebugPanel } from './features/realtime/debug/realtime-debug-panel';
@@ -34,6 +40,7 @@ interface WidgetInstance {
 
 interface AIWidgetApi {
   destroy(message?: string): void;
+  getCart(hostname?: string): LocalCartSnapshot | null;
 }
 
 const updateButton = (button: HTMLButtonElement, label: string, color: string) => {
@@ -159,10 +166,16 @@ const normalizeConfig = (config: WidgetConfig): WidgetConfig => {
   };
 };
 
+const resetWidgetCart = (hostname: string) => {
+  const snapshot = clearCartSnapshot(hostname);
+  dispatchCartChanged(snapshot);
+};
+
 const initWidget = (inputConfig: WidgetConfig) => {
   ensureRealtimeDebugPanel();
   ensureWidgetConsoleBridge();
   const config = normalizeConfig(inputConfig);
+  resetWidgetCart(config.hostname);
 
   let instance!: WidgetInstance;
   const traceView = ENABLE_WIDGET_MODAL_TRACE
@@ -226,8 +239,20 @@ const mountWidget = (config: WidgetConfig) => {
   activeInstance = initWidget(config);
 };
 
+const resolveCartHostname = (hostname?: string) => {
+  const requestedHostname = hostname?.trim();
+  if (requestedHostname) return requestedHostname;
+  if (activeInstance?.config.hostname) return activeInstance.config.hostname;
+  return resolveEmbedBootstrap()?.hostname || null;
+};
+
 const AIWidget: AIWidgetApi = {
-  destroy: destroyWidget
+  destroy: destroyWidget,
+  getCart: (hostname) => {
+    const resolvedHostname = resolveCartHostname(hostname);
+    if (!resolvedHostname) return null;
+    return readCartSnapshot(resolvedHostname);
+  }
 };
 
 const globalWindow = window as Window & { AIWidget?: AIWidgetApi };

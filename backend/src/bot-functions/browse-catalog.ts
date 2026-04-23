@@ -4,7 +4,7 @@ export const browseCatalogFunction = {
   type: 'function' as const,
   function: {
     name: 'browse_catalog',
-    description: 'Show product catalog when user asks general questions like "what do you have?", "show me your products", "what\'s available?", "browse catalog". Use this for general browsing requests.',
+    description: 'Show product catalog when user asks general questions like "what do you have?", "show me your products", "what\'s available?", "browse catalog". Use this for general browsing requests. For follow-up questions about one shown item, use `get_product_details`.',
     parameters: {
       type: 'object' as const,
       properties: {

@@ -5,6 +5,8 @@ import {
 } from './realtime-logger';
 import { WidgetConfig } from './realtime-session.types';
 import { findTransitionByToolName } from './state-transition-tools';
+import { createLocalCartToolController } from '../../cart/local-cart-tools';
+import { createProductContextController } from '../../product-context/product-context-controller';
 
 const resolveDefaultApiHost = () => {
   return `${window.location.protocol}//${window.location.host}`;
@@ -20,6 +22,9 @@ export const createUniversalExecute = (
   logger?: RealtimeLogger,
   getTraceContext?: () => Record<string, unknown>
 ) => {
+  const localCartTools = createLocalCartToolController(config.hostname);
+  const productContext = createProductContextController();
+
   return async (params: Record<string, unknown>, toolName: string) => {
     const startedAt = Date.now();
     const currentState = stateController.getCurrentState();
@@ -41,6 +46,20 @@ export const createUniversalExecute = (
     });
 
     try {
+      const localResult = localCartTools.executeTool(toolName, params);
+      if (localResult) {
+        logger?.info('tool', 'execute_finished', {
+          currentStateId,
+          toolName,
+          durationMs: Date.now() - startedAt,
+          stateEntryId: currentStateTrace.entryId,
+          stateId: currentStateId,
+          transitionId: pendingTransition?.id || null,
+          result: summarizeResult(localResult)
+        });
+        return localResult;
+      }
+
       if (transition) {
         const result = stateController.scheduleTransition({
           instructionVersion: traceContext.instructionVersion as string | null,
@@ -66,8 +85,10 @@ export const createUniversalExecute = (
       }
 
       const apiHost = resolveApiHost(config);
-      const enhancedParams = {
+      const cartSnapshot = localCartTools.getCartSnapshot();
+      const enhancedParams = productContext.enhanceParams(toolName, {
         ...params,
+        ...(toolName === 'place_order' ? { cart: cartSnapshot } : {}),
         hostname: config.hostname,
         embedToken: config.embedToken,
         traceId: config.traceId || null,
@@ -75,7 +96,15 @@ export const createUniversalExecute = (
         stateEntryId: currentStateTrace.entryId,
         transitionId: pendingTransition?.id || null,
         ...traceContext
-      };
+      });
+
+      if (toolName === 'place_order' && !cartSnapshot.items.length) {
+        return {
+          success: false,
+          response: 'Cart is empty. Add items before placing the order.',
+          error: 'EMPTY_CART'
+        };
+      }
 
       const response = await fetch(`${apiHost}/api/bot-execute/${toolName}`, {
         method: 'POST',
@@ -88,9 +117,11 @@ export const createUniversalExecute = (
       }
 
       const result = await response.json();
-      const output = result.success
-        ? result.response
-        : result.response || `Error executing ${toolName}.`;
+      if (toolName === 'place_order' && result.success) {
+        localCartTools.clearCart();
+      }
+      localCartTools.captureToolResult(toolName, result);
+      productContext.captureToolResult(toolName, result);
 
       logger?.info('tool', 'execute_finished', {
         currentStateId,
@@ -101,10 +132,10 @@ export const createUniversalExecute = (
         stateEntryId: currentStateTrace.entryId,
         stateId: currentStateId,
         transitionId: pendingTransition?.id || null,
-        result: summarizeResult(output)
+        result: summarizeResult(result)
       });
 
-      return output;
+      return result;
     } catch (error) {
       logger?.error('tool', 'execute_failed', {
         currentStateId,

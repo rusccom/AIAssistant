@@ -2,6 +2,11 @@ import { searchProductsFunction, executeSearchProducts } from './search-products
 import { addToCartFunction, addToCart } from './add-to-cart';
 import { getCartInfoFunction, getCartInfo } from './get-cart-info';
 import { browseCatalogFunction, browseCatalog } from './browse-catalog';
+import {
+    getProductDetails,
+    getProductDetailsFunction
+} from './get-product-details';
+import { placeOrderFunction, placeOrder } from './place-order';
 
 /**
  * Все доступные функции для голосового бота
@@ -18,6 +23,14 @@ export const botFunctions = {
     get_cart_info: {
         definition: getCartInfoFunction,
         implementation: getCartInfo
+    },
+    get_product_details: {
+        definition: getProductDetailsFunction,
+        implementation: getProductDetails
+    },
+    place_order: {
+        definition: placeOrderFunction,
+        implementation: placeOrder
     },
     browse_catalog: {
         definition: browseCatalogFunction,
@@ -50,6 +63,10 @@ export async function executeBotFunction(name: string, args: any) {
         return await addToCart(args);
     } else if (name === 'get_cart_info') {
         return await getCartInfo(args);
+    } else if (name === 'get_product_details') {
+        return await getProductDetails(args);
+    } else if (name === 'place_order') {
+        return await placeOrder(args);
     } else if (name === 'browse_catalog') {
         return await browseCatalog(args);
     } else {

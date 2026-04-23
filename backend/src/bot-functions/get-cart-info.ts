@@ -4,7 +4,7 @@ export const getCartInfoFunction = {
   type: 'function' as const,
   function: {
     name: 'get_cart_info',
-    description: 'Show shopping cart contents and total. Use when user asks about cart, wants to see what\'s in cart, or asks for total.',
+    description: 'Read the current cart contents and totals. Returns cart items with `variantId`, `quantity`, `price`, and `totalPrice`.',
     parameters: {
       type: 'object' as const,
       properties: {},

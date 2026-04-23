@@ -4,7 +4,7 @@ export const addToCartFunction = {
   type: 'function' as const,
   function: {
     name: 'add_to_cart',
-    description: 'Add a product variant to shopping cart. Use when user wants to buy or add something to cart.',
+    description: 'Add a catalog variant to the active cart. Use only with a `variantId` returned by `search_products` or already present in `get_cart_info`.',
     parameters: {
       type: 'object' as const,
       properties: {
