@@ -40,13 +40,19 @@ export const copyWidgetEmbedSnippet = async (widgetScriptUrl: string) => {
   return snippet;
 };
 
+const createPreviewUrl = (widgetScriptUrl: string) => {
+  const url = new URL(widgetScriptUrl, window.location.href);
+  url.searchParams.set('previewTs', Date.now().toString());
+  return url.toString();
+};
+
 export const openWidgetPreview = (widgetScriptUrl: string) => {
   const widgetWindow = window as WidgetWindow;
   widgetWindow.AIWidget?.destroy?.('Widget reloaded from dashboard.');
   document.getElementById(WIDGET_LOADER_ID)?.remove();
 
   const script = document.createElement('script');
-  script.src = widgetScriptUrl;
+  script.src = createPreviewUrl(widgetScriptUrl);
   script.id = WIDGET_LOADER_ID;
   document.head.appendChild(script);
 };
